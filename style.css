@@ -1,0 +1,21 @@
+body {
+  font-family: sans-serif;
+  padding: 10px;
+}
+
+.chatBox {
+  border: 1px solid #aaa;
+  height: 300px;
+  overflow-y: scroll;
+  padding: 5px;
+  margin-bottom: 10px;
+}
+
+input {
+  width: 70%;
+  padding: 5px;
+}
+
+button {
+  padding: 5px 10px;
+}
