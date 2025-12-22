@@ -1,12 +1,16 @@
 const enterBtn = document.getElementById("enterBtn");
-const userNameInput = document.getElementById("userName");
-const message = document.getElementById("message");
+const msg = document.getElementById("msg");
 
 enterBtn.onclick = () => {
-  const name = userNameInput.value.trim();
-  if (!name) {
-    message.textContent = "名前を入力してください";
+  const name = document.getElementById("name").value.trim();
+  const age = document.getElementById("age").value.trim();
+  const sex = document.getElementById("sex").value.trim();
+
+  if (!name || !age || !sex) {
+    msg.textContent = "すべて入力してください";
     return;
   }
-  location.href = `chat.html?name=${encodeURIComponent(name)}`;
+
+  location.href =
+    `chat.html?name=${encodeURIComponent(name)}&age=${age}&sex=${encodeURIComponent(sex)}`;
 };
