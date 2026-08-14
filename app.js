@@ -1,12 +1,12 @@
 /* =========================================================
    Research AI Lab
    app.js
-   Supabase connected version
+   Supabase + Hypothesis Storage
    ========================================================= */
 
 
 /* =========================================================
-   1. SUPABASE CONFIG
+   SUPABASE
    ========================================================= */
 
 const SUPABASE_URL =
@@ -16,99 +16,74 @@ const SUPABASE_KEY =
     "sb_publishable_HmcPY6BGvUQTPESGHVe7Hw_W4NlTPqj";
 
 
-/* =========================================================
-   2. SUPABASE CLIENT
-   ========================================================= */
+const PROJECT_ID =
+    "4253800d-a89e-45e2-a36a-cc52eb6c510b";
+
 
 let supabaseClient = null;
 
 
 /* =========================================================
-   3. APPLICATION STATE
+   STATE
    ========================================================= */
 
 const state = {
 
-    project: null,
-
-    results: [],
+    connected: false,
 
     hypotheses: [],
 
-    routes: [],
+    results: [],
 
     memory: [],
 
-    jobs: [],
+    routes: [],
 
-    conversations: [],
-
-    messages: [],
-
-    sources: [],
-
-    events: [],
-
-    currentPage: "research",
-
-    connected: false
+    jobs: []
 
 };
 
 
 /* =========================================================
-   4. START
+   START
    ========================================================= */
 
 document.addEventListener(
     "DOMContentLoaded",
-    initializeApp
+    start
 );
 
 
-async function initializeApp() {
+async function start() {
 
     console.log(
         "Research AI Lab starting..."
     );
 
 
-    initializeNavigation();
-
-    initializeButtons();
-
-    initializeModals();
-
-    initializeSupabase();
-
-}
+    setConnectionStatus(
+        "● Supabase 接続確認中"
+    );
 
 
-/* =========================================================
-   5. SUPABASE INITIALIZATION
-   ========================================================= */
+    if (
+        !window.supabase ||
+        !window.supabase.createClient
+    ) {
 
-function initializeSupabase() {
-
-    const status =
-        document.getElementById(
-            "connectionStatus"
+        setConnectionStatus(
+            "× Supabase SDK読み込み失敗"
         );
+
+        console.error(
+            "Supabase SDKが読み込まれていません。"
+        );
+
+        return;
+    }
 
 
     try {
-
-        if (
-            !window.supabase ||
-            !window.supabase.createClient
-        ) {
-
-            throw new Error(
-                "Supabase SDKが読み込まれていません。"
-            );
-
-        }
-
 
         supabaseClient =
             window.supabase.createClient(
@@ -116,38 +91,109 @@ function initializeSupabase() {
                 SUPABASE_KEY
             );
 
+    } catch (error) {
+
+        console.error(error);
+
+        setConnectionStatus(
+            "× Supabase Client作成失敗"
+        );
+
+        return;
+    }
+
+
+    await testSupabaseConnection();
+
+
+    initializeNavigation();
+
+    initializeHypothesis();
+
+    initializeCalculation();
+
+    initializeChat();
+
+    initializeModal();
+
+}
+
+
+/* =========================================================
+   SUPABASE CONNECTION
+   ========================================================= */
+
+async function testSupabaseConnection() {
+
+    setConnectionStatus(
+        "● Supabase DB確認中"
+    );
+
+
+    try {
+
+        const {
+            data,
+            error
+        } = await supabaseClient
+            .from("research_projects")
+            .select("id")
+            .eq("id", PROJECT_ID)
+            .limit(1);
+
+
+        if (error) {
+
+            console.error(
+                "Supabase error:",
+                error
+            );
+
+            setConnectionStatus(
+                "× DB接続エラー"
+            );
+
+            return;
+        }
+
 
         state.connected = true;
 
 
-        if (status) {
+        setConnectionStatus(
+            "● Supabase 接続済み"
+        );
 
-            status.textContent =
-                "● Supabase 接続中";
+
+        console.log(
+            "Supabase connection successful."
+        );
+
+
+        if (
+            !data ||
+            data.length === 0
+        ) {
+
+            console.warn(
+                "指定したresearch_projectsが存在しません。"
+            );
 
         }
 
 
-        loadApplication();
+        await loadHypotheses();
 
 
     } catch (error) {
 
         console.error(
-            "Supabase initialization failed:",
             error
         );
 
-
-        state.connected = false;
-
-
-        if (status) {
-
-            status.textContent =
-                "● Supabase 接続エラー";
-
-        }
+        setConnectionStatus(
+            "× Supabase 接続失敗"
+        );
 
     }
 
@@ -155,74 +201,106 @@ function initializeSupabase() {
 
 
 /* =========================================================
-   6. LOAD EVERYTHING
+   CONNECTION STATUS
    ========================================================= */
 
-async function loadApplication() {
+function setConnectionStatus(text) {
+
+    const element =
+        document.getElementById(
+            "connectionStatus"
+        );
+
+
+    if (!element) {
+
+        console.warn(
+            "connectionStatusが見つかりません。"
+        );
+
+        return;
+    }
+
+
+    element.textContent =
+        text;
+
+}
+
+
+/* =========================================================
+   HYPOTHESES
+   ========================================================= */
+
+async function loadHypotheses() {
+
+    if (!supabaseClient) return;
+
 
     try {
 
-        await loadProject();
+        const {
+            data,
+            error
+        } = await supabaseClient
 
+            .from("hypotheses")
 
-        if (!state.project) {
+            .select(
+                "id, project_id, code, title, statement, status, confidence, created_at, updated_at"
+            )
 
-            showConnectionError(
-                "research_projects に研究プロジェクトがありません。"
+            .eq(
+                "project_id",
+                PROJECT_ID
+            )
+
+            .order(
+                "created_at",
+                {
+                    ascending: false
+                }
             );
 
-            return;
 
+        if (error) {
+
+            console.error(
+                "Hypothesis loading error:",
+                error
+            );
+
+
+            showHypothesisError(
+                error.message
+            );
+
+
+            return;
         }
 
 
-        await Promise.all([
+        state.hypotheses =
+            data || [];
 
-            loadResults(),
 
-            loadHypotheses(),
-
-            loadRoutes(),
-
-            loadMemory(),
-
-            loadJobs()
-
-        ]);
+        renderHypotheses();
 
 
         updateStatistics();
 
 
-        const status =
-            document.getElementById(
-                "connectionStatus"
-            );
-
-
-        if (status) {
-
-            status.textContent =
-                "● Supabase 接続済み";
-
-        }
-
-
         console.log(
-            "Research AI Lab loaded successfully."
+            "Loaded hypotheses:",
+            state.hypotheses
         );
 
 
     } catch (error) {
 
         console.error(
-            "Application loading error:",
+            "Hypothesis load exception:",
             error
-        );
-
-
-        showConnectionError(
-            "Supabaseからデータを読み込めませんでした。"
         );
 
     }
@@ -231,275 +309,415 @@ async function loadApplication() {
 
 
 /* =========================================================
-   7. PROJECT
+   RENDER HYPOTHESES
    ========================================================= */
 
-async function loadProject() {
-
-    const {
-        data,
-        error
-    } = await supabaseClient
-
-        .from("research_projects")
-
-        .select("*")
-
-        .order(
-            "created_at",
-            {
-                ascending: true
-            }
-        )
-
-        .limit(1);
-
-
-    if (error) {
-
-        console.error(
-            "Project loading error:",
-            error
-        );
-
-        throw error;
-
-    }
-
-
-    state.project =
-        data && data.length
-            ? data[0]
-            : null;
-
-
-    console.log(
-        "Current project:",
-        state.project
-    );
-
-}
-
-
-/* =========================================================
-   8. RESULTS
-   ========================================================= */
-
-async function loadResults() {
-
-    if (!state.project) return;
-
-
-    const {
-        data,
-        error
-    } = await supabaseClient
-
-        .from("research_results")
-
-        .select("*")
-
-        .eq(
-            "project_id",
-            state.project.id
-        )
-
-        .order(
-            "created_at",
-            {
-                ascending: false
-            }
-        )
-
-        .limit(100);
-
-
-    if (error) {
-
-        console.error(
-            "Results error:",
-            error
-        );
-
-        return;
-
-    }
-
-
-    state.results =
-        data || [];
-
-
-    renderResults();
-
-}
-
-
-function renderResults() {
+function renderHypotheses() {
 
     const container =
         document.getElementById(
-            "results"
+            "hypotheses"
         );
 
 
     if (!container) return;
 
 
-    if (!state.results.length) {
+    if (
+        state.hypotheses.length === 0
+    ) {
 
         container.innerHTML = `
 
             <div class="empty">
 
-                まだ研究結果はありません。
+                仮説はまだありません。
 
                 <br><br>
 
-                AIによる仮説検証や計算結果が
-                ここに保存されます。
+                「＋ 仮説を作る」から
+                最初の仮説を登録してください。
 
             </div>
 
         `;
 
         return;
-
     }
 
 
     container.innerHTML =
-        state.results
-            .map(createResultHTML)
+        state.hypotheses
+            .map(
+                hypothesis => {
+
+                    const status =
+                        normalizeStatus(
+                            hypothesis.status
+                        );
+
+
+                    const confidence =
+                        hypothesis.confidence == null
+                            ? "—"
+                            : Number(
+                                hypothesis.confidence
+                              ).toFixed(2);
+
+
+                    return `
+
+                        <div
+                            class="result-card"
+                            data-hypothesis-id="${escapeHTML(
+                                hypothesis.id
+                            )}"
+                            style="cursor:pointer;"
+                        >
+
+                            <div
+                                style="
+                                    display:flex;
+                                    justify-content:space-between;
+                                    gap:15px;
+                                "
+                            >
+
+                                <div>
+
+                                    <div
+                                        style="
+                                            color:#edf1f8;
+                                            font-weight:700;
+                                            font-size:16px;
+                                        "
+                                    >
+
+                                        ${escapeHTML(
+                                            hypothesis.title ||
+                                            "無題の仮説"
+                                        )}
+
+                                    </div>
+
+
+                                    <div
+                                        style="
+                                            color:#8995ae;
+                                            margin-top:8px;
+                                        "
+                                    >
+
+                                        ${escapeHTML(
+                                            hypothesis.statement ||
+                                            ""
+                                        )}
+
+                                    </div>
+
+                                </div>
+
+
+                                <div
+                                    style="
+                                        font-size:28px;
+                                        min-width:40px;
+                                        text-align:center;
+                                    "
+                                >
+
+                                    ${getStatusSymbol(
+                                        status
+                                    )}
+
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                style="
+                                    margin-top:12px;
+                                    color:#7f8baa;
+                                    font-size:12px;
+                                "
+                            >
+
+                                信頼度：
+                                ${confidence}
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                }
+            )
             .join("");
 
 
     container
         .querySelectorAll(
-            "[data-result-id]"
+            "[data-hypothesis-id]"
         )
-        .forEach(element => {
+        .forEach(
+            element => {
 
-            element.addEventListener(
-                "click",
-                () => {
+                element.addEventListener(
+                    "click",
+                    () => {
 
-                    openResultDetail(
-                        element.dataset.resultId
-                    );
+                        openHypothesis(
+                            element.dataset.hypothesisId
+                        );
 
-                }
-            );
+                    }
+                );
 
-        });
-
-}
-
-
-function createResultHTML(result) {
-
-    const status =
-        normalizeStatus(
-            result.status
+            }
         );
-
-
-    return `
-
-        <div
-            class="result-card ${getStatusClass(status)}"
-            data-result-id="${escapeHTML(result.id)}"
-            style="cursor:pointer;"
-        >
-
-            <div
-                style="
-                    display:flex;
-                    align-items:flex-start;
-                    gap:14px;
-                "
-            >
-
-                <div
-                    style="
-                        font-size:31px;
-                        min-width:35px;
-                        line-height:1;
-                    "
-                >
-                    ${getStatusSymbol(status)}
-                </div>
-
-
-                <div style="flex:1;">
-
-                    <div
-                        style="
-                            font-weight:700;
-                            color:#edf1f8;
-                            margin-bottom:6px;
-                        "
-                    >
-                        ${escapeHTML(
-                            result.title ||
-                            "無題の研究結果"
-                        )}
-                    </div>
-
-
-                    <div
-                        style="
-                            color:#8c98b1;
-                            font-size:13px;
-                            line-height:1.65;
-                        "
-                    >
-                        ${escapeHTML(
-                            truncate(
-                                result.description ||
-                                "説明なし",
-                                220
-                            )
-                        )}
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <div
-                style="
-                    margin-top:12px;
-                    color:#5e6b86;
-                    font-size:11px;
-                "
-            >
-                ${formatDate(
-                    result.created_at
-                )}
-            </div>
-
-        </div>
-
-    `;
 
 }
 
 
 /* =========================================================
-   9. RESULT DETAIL
+   CREATE HYPOTHESIS
    ========================================================= */
 
-function openResultDetail(id) {
+async function createHypothesis() {
 
-    const result =
-        state.results.find(
-            item => item.id === id
+    if (!supabaseClient) {
+
+        alert(
+            "Supabaseに接続されていません。"
+        );
+
+        return;
+    }
+
+
+    const titleElement =
+        document.getElementById(
+            "hypothesisTitle"
         );
 
 
-    if (!result) return;
+    const statementElement =
+        document.getElementById(
+            "hypothesisStatement"
+        );
+
+
+    if (
+        !titleElement ||
+        !statementElement
+    ) {
+
+        alert(
+            "仮説入力欄が見つかりません。"
+        );
+
+        return;
+    }
+
+
+    const title =
+        titleElement.value.trim();
+
+
+    const statement =
+        statementElement.value.trim();
+
+
+    if (!title) {
+
+        alert(
+            "仮説名を入力してください。"
+        );
+
+        return;
+    }
+
+
+    if (!statement) {
+
+        alert(
+            "命題・仮説の内容を入力してください。"
+        );
+
+        return;
+    }
+
+
+    /*
+       初期状態では、
+       AIによる検証をまだしていないので
+       unknown にする。
+
+       ここで勝手に○にしない。
+    */
+
+    const status =
+        "unknown";
+
+
+    const confidence =
+        0;
+
+
+    /*
+       codeには研究上の構造化データを保存する。
+
+       将来Claudeや別AIが読むことも想定。
+    */
+
+    const codeObject = {
+
+        version: 1,
+
+        type: "mathematical_hypothesis",
+
+        title: title,
+
+        statement: statement,
+
+        status: status,
+
+        confidence: confidence,
+
+        created_by: "user",
+
+        verification: {
+
+            mathematical_proof: null,
+
+            numerical_test: null,
+
+            counterexample_search: null,
+
+            literature_check: null,
+
+            reproducibility: null
+
+        }
+
+    };
+
+
+    const code =
+        JSON.stringify(
+            codeObject,
+            null,
+            2
+        );
+
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+
+        .from("hypotheses")
+
+        .insert({
+
+            project_id:
+                PROJECT_ID,
+
+            code:
+                code,
+
+            title:
+                title,
+
+            statement:
+                statement,
+
+            status:
+                status,
+
+            confidence:
+                confidence
+
+        })
+
+        .select()
+
+        .single();
+
+
+    if (error) {
+
+        console.error(
+            "Hypothesis insert error:",
+            error
+        );
+
+
+        alert(
+            "仮説の保存に失敗しました。\n\n" +
+            error.message
+        );
+
+
+        return;
+    }
+
+
+    console.log(
+        "Hypothesis saved:",
+        data
+    );
+
+
+    state.hypotheses.unshift(
+        data
+    );
+
+
+    renderHypotheses();
+
+    updateStatistics();
+
+
+    titleElement.value =
+        "";
+
+
+    statementElement.value =
+        "";
+
+
+    closeHypothesisModal();
+
+
+    /*
+       保存成功を画面でも通知
+    */
+
+    showSaveMessage(
+        "仮説をSupabaseに保存しました。"
+    );
+
+}
+
+
+/* =========================================================
+   HYPOTHESIS DETAIL
+   ========================================================= */
+
+function openHypothesis(id) {
+
+    const hypothesis =
+        state.hypotheses.find(
+            item =>
+                String(item.id) ===
+                String(id)
+        );
+
+
+    if (!hypothesis) return;
 
 
     const modal =
@@ -514,13 +732,36 @@ function openResultDetail(id) {
         );
 
 
-    if (!modal || !content) return;
+    if (
+        !modal ||
+        !content
+    ) return;
 
 
-    const status =
-        normalizeStatus(
-            result.status
-        );
+    let codeText =
+        hypothesis.code ||
+        "";
+
+
+    try {
+
+        codeText =
+            JSON.stringify(
+                JSON.parse(
+                    hypothesis.code
+                ),
+                null,
+                2
+            );
+
+    } catch {
+
+        /*
+           codeがJSONでなくても
+           そのまま表示する。
+        */
+
+    }
 
 
     content.innerHTML = `
@@ -536,42 +777,65 @@ function openResultDetail(id) {
 
         <div
             style="
-                font-size:45px;
-                margin-bottom:5px;
+                font-size:40px;
+                margin-bottom:8px;
             "
         >
-            ${getStatusSymbol(status)}
+
+            ${getStatusSymbol(
+                normalizeStatus(
+                    hypothesis.status
+                )
+            )}
+
         </div>
 
 
         <h2>
+
             ${escapeHTML(
-                result.title ||
-                "無題の研究結果"
+                hypothesis.title ||
+                "無題の仮説"
             )}
+
         </h2>
 
 
         <div class="detail-block">
 
             <div class="detail-label">
+
+                命題
+
+            </div>
+
+
+            ${escapeHTML(
+                hypothesis.statement ||
+                ""
+            )}
+
+        </div>
+
+
+        <div class="detail-block">
+
+            <div class="detail-label">
+
                 判定
+
             </div>
 
-            ${getStatusText(status)}
 
-        </div>
-
-
-        <div class="detail-block">
-
-            <div class="detail-label">
-                概要
-            </div>
+            ${getStatusSymbol(
+                normalizeStatus(
+                    hypothesis.status
+                )
+            )}
 
             ${escapeHTML(
-                result.description ||
-                "記録なし"
+                hypothesis.status ||
+                "unknown"
             )}
 
         </div>
@@ -580,13 +844,19 @@ function openResultDetail(id) {
         <div class="detail-block">
 
             <div class="detail-label">
-                仮説
+
+                信頼度
+
             </div>
 
-            ${escapeHTML(
-                result.hypothesis ||
-                "記録なし"
-            )}
+
+            ${
+                hypothesis.confidence == null
+                    ? "—"
+                    : Number(
+                        hypothesis.confidence
+                      ).toFixed(2)
+            }
 
         </div>
 
@@ -594,12 +864,19 @@ function openResultDetail(id) {
         <div class="detail-block">
 
             <div class="detail-label">
-                計算
+
+                AI・検証用データ
+
             </div>
 
-            <pre>${escapeHTML(
-                result.calculation ||
-                "計算記録なし"
+
+            <pre
+                style="
+                    white-space:pre-wrap;
+                    overflow:auto;
+                "
+            >${escapeHTML(
+                codeText
             )}</pre>
 
         </div>
@@ -608,39 +885,15 @@ function openResultDetail(id) {
         <div class="detail-block">
 
             <div class="detail-label">
-                検証
+
+                作成日時
+
             </div>
+
 
             ${escapeHTML(
-                result.verification ||
-                "検証記録なし"
-            )}
-
-        </div>
-
-
-        <div class="detail-block">
-
-            <div class="detail-label">
-                次の探索
-            </div>
-
-            ${escapeHTML(
-                result.next_action ||
-                "未設定"
-            )}
-
-        </div>
-
-
-        <div class="detail-block">
-
-            <div class="detail-label">
-                保存日時
-            </div>
-
-            ${formatDate(
-                result.created_at
+                hypothesis.created_at ||
+                ""
             )}
 
         </div>
@@ -656,1103 +909,76 @@ function openResultDetail(id) {
 
 
 /* =========================================================
-   10. HYPOTHESES
+   STATUS
    ========================================================= */
 
-async function loadHypotheses() {
+function normalizeStatus(status) {
 
-    if (!state.project) return;
+    if (
+        status === "good" ||
+        status === "supported"
+    ) {
 
-
-    const {
-        data,
-        error
-    } = await supabaseClient
-
-        .from("hypotheses")
-
-        .select("*")
-
-        .eq(
-            "project_id",
-            state.project.id
-        )
-
-        .order(
-            "created_at",
-            {
-                ascending: false
-            }
-        );
-
-
-    if (error) {
-
-        console.error(
-            "Hypotheses error:",
-            error
-        );
-
-        return;
-
+        return "good";
     }
 
 
-    state.hypotheses =
-        data || [];
+    if (
+        status === "maybe" ||
+        status === "uncertain"
+    ) {
+
+        return "maybe";
+    }
 
 
-    renderHypotheses();
+    if (
+        status === "bad" ||
+        status === "rejected"
+    ) {
+
+        return "bad";
+    }
+
+
+    return "unknown";
 
 }
 
 
-function renderHypotheses() {
+function getStatusSymbol(status) {
 
-    const container =
-        document.getElementById(
-            "hypotheses"
-        );
+    if (
+        status === "good"
+    ) {
 
-
-    if (!container) return;
-
-
-    if (!state.hypotheses.length) {
-
-        container.innerHTML = `
-
-            <div class="empty">
-
-                仮説はまだありません。
-
-                <br>
-
-                「＋ 仮説を作る」から追加できます。
-
-            </div>
-
-        `;
-
-        return;
-
+        return "○";
     }
 
 
-    container.innerHTML =
-        state.hypotheses
-            .map(
-                hypothesis => `
+    if (
+        status === "maybe"
+    ) {
 
-                    <div class="result-card">
-
-                        <div
-                            style="
-                                display:flex;
-                                justify-content:space-between;
-                                gap:20px;
-                            "
-                        >
-
-                            <div>
-
-                                <div
-                                    style="
-                                        color:#71809e;
-                                        font-size:11px;
-                                        margin-bottom:5px;
-                                    "
-                                >
-                                    ${escapeHTML(
-                                        hypothesis.code ||
-                                        ""
-                                    )}
-                                </div>
+        return "△";
+    }
 
 
-                                <div
-                                    style="
-                                        color:#edf1f8;
-                                        font-weight:700;
-                                        margin-bottom:7px;
-                                    "
-                                >
-                                    ${escapeHTML(
-                                        hypothesis.title ||
-                                        "無題の仮説"
-                                    )}
-                                </div>
+    if (
+        status === "bad"
+    ) {
+
+        return "×";
+    }
 
 
-                                <div
-                                    style="
-                                        color:#929db6;
-                                        font-size:13px;
-                                        line-height:1.65;
-                                    "
-                                >
-                                    ${escapeHTML(
-                                        hypothesis.statement ||
-                                        ""
-                                    )}
-                                </div>
-
-                            </div>
-
-
-                            <div
-                                style="
-                                    font-size:24px;
-                                "
-                            >
-                                ${getStatusSymbol(
-                                    normalizeStatus(
-                                        hypothesis.status
-                                    )
-                                )}
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                `
-            )
-            .join("");
+    return "?";
 
 }
 
 
 /* =========================================================
-   11. CREATE HYPOTHESIS
-   ========================================================= */
-
-async function createHypothesis() {
-
-    if (!state.project) {
-
-        alert(
-            "研究プロジェクトがありません。"
-        );
-
-        return;
-
-    }
-
-
-    const title =
-        document
-            .getElementById(
-                "hypothesisTitle"
-            )
-            ?.value
-            .trim();
-
-
-    const statement =
-        document
-            .getElementById(
-                "hypothesisStatement"
-            )
-            ?.value
-            .trim();
-
-
-    if (!title || !statement) {
-
-        alert(
-            "仮説名と命題を入力してください。"
-        );
-
-        return;
-
-    }
-
-
-    const code =
-        "H-" +
-        String(
-            state.hypotheses.length + 1
-        ).padStart(
-            4,
-            "0"
-        );
-
-
-    const {
-        data,
-        error
-    } = await supabaseClient
-
-        .from("hypotheses")
-
-        .insert({
-
-            project_id:
-                state.project.id,
-
-            code,
-
-            title,
-
-            statement,
-
-            status:
-                "unknown"
-
-        })
-
-        .select()
-        .single();
-
-
-    if (error) {
-
-        console.error(
-            "Hypothesis insert error:",
-            error
-        );
-
-        alert(
-            "仮説の保存に失敗しました。\n\n" +
-            error.message
-        );
-
-        return;
-
-    }
-
-
-    state.hypotheses.unshift(
-        data
-    );
-
-
-    renderHypotheses();
-
-    updateStatistics();
-
-    closeHypothesisModal();
-
-
-    const titleInput =
-        document.getElementById(
-            "hypothesisTitle"
-        );
-
-
-    const statementInput =
-        document.getElementById(
-            "hypothesisStatement"
-        );
-
-
-    if (titleInput)
-        titleInput.value = "";
-
-
-    if (statementInput)
-        statementInput.value = "";
-
-
-    console.log(
-        "Hypothesis saved:",
-        data
-    );
-
-}
-
-
-/* =========================================================
-   12. MEMORY
-   ========================================================= */
-
-async function loadMemory() {
-
-    if (!state.project) return;
-
-
-    const {
-        data,
-        error
-    } = await supabaseClient
-
-        .from("research_memory")
-
-        .select("*")
-
-        .eq(
-            "project_id",
-            state.project.id
-        )
-
-        .order(
-            "importance",
-            {
-                ascending: false
-            }
-        )
-
-        .order(
-            "created_at",
-            {
-                ascending: false
-            }
-        );
-
-
-    if (error) {
-
-        console.error(
-            "Memory error:",
-            error
-        );
-
-        return;
-
-    }
-
-
-    state.memory =
-        data || [];
-
-
-    renderMemory();
-
-}
-
-
-function renderMemory() {
-
-    const container =
-        document.getElementById(
-            "memory"
-        );
-
-
-    if (!container) return;
-
-
-    if (!state.memory.length) {
-
-        container.innerHTML = `
-
-            <div class="empty">
-
-                研究記憶はまだありません。
-
-                <br><br>
-
-                AIが研究を進めると、
-                重要な発見・失敗・反例などが
-                ここに保存されます。
-
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        state.memory
-            .map(
-                memory => `
-
-                    <div class="result-card">
-
-                        <div
-                            style="
-                                display:flex;
-                                justify-content:space-between;
-                                gap:15px;
-                            "
-                        >
-
-                            <div>
-
-                                <div
-                                    style="
-                                        color:#71809e;
-                                        font-size:11px;
-                                        margin-bottom:5px;
-                                    "
-                                >
-                                    ${escapeHTML(
-                                        memory.memory_type ||
-                                        "memory"
-                                    )}
-                                </div>
-
-
-                                <div
-                                    style="
-                                        color:#edf1f8;
-                                        font-weight:700;
-                                        margin-bottom:7px;
-                                    "
-                                >
-                                    ${escapeHTML(
-                                        memory.title ||
-                                        "無題"
-                                    )}
-                                </div>
-
-
-                                <div
-                                    style="
-                                        color:#929db6;
-                                        font-size:13px;
-                                        line-height:1.65;
-                                    "
-                                >
-                                    ${escapeHTML(
-                                        memory.content ||
-                                        ""
-                                    )}
-                                </div>
-
-                            </div>
-
-
-                            <div
-                                style="
-                                    color:#aab5cb;
-                                    font-size:11px;
-                                    white-space:nowrap;
-                                "
-                            >
-                                P${escapeHTML(
-                                    memory.importance ??
-                                    0
-                                )}
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                `
-            )
-            .join("");
-
-}
-
-
-/* =========================================================
-   13. ROUTES
-   ========================================================= */
-
-async function loadRoutes() {
-
-    if (!state.project) return;
-
-
-    const {
-        data,
-        error
-    } = await supabaseClient
-
-        .from("exploration_routes")
-
-        .select("*")
-
-        .eq(
-            "project_id",
-            state.project.id
-        )
-
-        .order(
-            "created_at",
-            {
-                ascending: false
-            }
-        );
-
-
-    if (error) {
-
-        console.error(
-            "Routes error:",
-            error
-        );
-
-        return;
-
-    }
-
-
-    state.routes =
-        data || [];
-
-
-    renderRoutes();
-
-}
-
-
-function renderRoutes() {
-
-    const container =
-        document.getElementById(
-            "routes"
-        );
-
-
-    if (!container) return;
-
-
-    if (!state.routes.length) {
-
-        container.innerHTML = `
-
-            <div class="empty">
-
-                探索ルートはまだありません。
-
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        state.routes
-            .map(
-                route => {
-
-                    const banned =
-                        route.status ===
-                        "banned";
-
-
-                    return `
-
-                        <div class="result-card">
-
-                            <div
-                                style="
-                                    display:flex;
-                                    justify-content:space-between;
-                                    gap:20px;
-                                "
-                            >
-
-                                <div>
-
-                                    <div
-                                        style="
-                                            color:#edf1f8;
-                                            font-weight:700;
-                                            margin-bottom:6px;
-                                        "
-                                    >
-                                        ${escapeHTML(
-                                            route.name ||
-                                            "無名ルート"
-                                        )}
-                                    </div>
-
-
-                                    <div
-                                        style="
-                                            color:#8995ae;
-                                            font-size:13px;
-                                        "
-                                    >
-                                        ${escapeHTML(
-                                            route.description ||
-                                            ""
-                                        )}
-                                    </div>
-
-                                </div>
-
-
-                                <div
-                                    style="
-                                        text-align:right;
-                                        white-space:nowrap;
-                                    "
-                                >
-
-                                    <div>
-                                        ${escapeHTML(
-                                            route.attempts ??
-                                            0
-                                        )}
-                                        / 3
-                                    </div>
-
-
-                                    <div
-                                        style="
-                                            color:
-                                            ${
-                                                banned
-                                                    ? "#dc7582"
-                                                    : "#8390aa"
-                                            };
-                                            font-size:11px;
-                                            margin-top:4px;
-                                        "
-                                    >
-
-                                        ${
-                                            banned
-                                                ? "× 封印"
-                                                : "使用可能"
-                                        }
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    `;
-
-                }
-            )
-            .join("");
-
-}
-
-
-/* =========================================================
-   14. CALCULATION JOBS
-   ========================================================= */
-
-async function loadJobs() {
-
-    if (!state.project) return;
-
-
-    const {
-        data,
-        error
-    } = await supabaseClient
-
-        .from("calculation_jobs")
-
-        .select("*")
-
-        .eq(
-            "project_id",
-            state.project.id
-        )
-
-        .order(
-            "created_at",
-            {
-                ascending: false
-            }
-        )
-
-        .limit(100);
-
-
-    if (error) {
-
-        console.error(
-            "Jobs error:",
-            error
-        );
-
-        return;
-
-    }
-
-
-    state.jobs =
-        data || [];
-
-
-    renderJobs();
-
-}
-
-
-function renderJobs() {
-
-    const container =
-        document.getElementById(
-            "jobs"
-        );
-
-
-    if (!container) return;
-
-
-    if (!state.jobs.length) {
-
-        container.innerHTML = `
-
-            <div class="empty">
-
-                計算ジョブはありません。
-
-                <br><br>
-
-                「▶ 計算を開始」から
-                ジョブを作成できます。
-
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        state.jobs
-            .map(
-                job => {
-
-                    const progress =
-                        Math.max(
-                            0,
-                            Math.min(
-                                100,
-                                Number(
-                                    job.progress || 0
-                                )
-                            )
-                        );
-
-
-                    return `
-
-                        <div class="result-card">
-
-                            <div
-                                style="
-                                    display:flex;
-                                    justify-content:space-between;
-                                    gap:15px;
-                                "
-                            >
-
-                                <div>
-
-                                    <div
-                                        style="
-                                            font-weight:700;
-                                            color:#edf1f8;
-                                        "
-                                    >
-                                        ${escapeHTML(
-                                            job.job_type ||
-                                            "計算"
-                                        )}
-                                    </div>
-
-
-                                    <div
-                                        style="
-                                            color:#7f8ca7;
-                                            font-size:12px;
-                                            margin-top:5px;
-                                        "
-                                    >
-                                        ${escapeHTML(
-                                            job.status ||
-                                            "unknown"
-                                        )}
-                                    </div>
-
-                                </div>
-
-
-                                <div>
-                                    ${progress}%
-                                </div>
-
-                            </div>
-
-
-                            <div
-                                style="
-                                    height:5px;
-                                    margin-top:12px;
-                                    background:#192238;
-                                    border-radius:20px;
-                                    overflow:hidden;
-                                "
-                            >
-
-                                <div
-                                    style="
-                                        width:${progress}%;
-                                        height:100%;
-                                        background:#718cff;
-                                    "
-                                ></div>
-
-                            </div>
-
-                        </div>
-
-                    `;
-
-                }
-            )
-            .join("");
-
-}
-
-
-/* =========================================================
-   15. CREATE CALCULATION JOB
-   ========================================================= */
-
-async function createCalculationJob() {
-
-    if (!state.project) {
-
-        alert(
-            "研究プロジェクトがありません。"
-        );
-
-        return;
-
-    }
-
-
-    const {
-        data,
-        error
-    } = await supabaseClient
-
-        .from("calculation_jobs")
-
-        .insert({
-
-            project_id:
-                state.project.id,
-
-            job_type:
-                "exploration",
-
-            parameters: {
-
-                mode:
-                    "experimental",
-
-                source:
-                    "Research AI Lab"
-
-            },
-
-            status:
-                "queued",
-
-            progress:
-                0
-
-        })
-
-        .select()
-        .single();
-
-
-    if (error) {
-
-        console.error(
-            "Job creation error:",
-            error
-        );
-
-        alert(
-            "計算ジョブの作成に失敗しました。\n\n" +
-            error.message
-        );
-
-        return;
-
-    }
-
-
-    state.jobs.unshift(
-        data
-    );
-
-
-    renderJobs();
-
-
-    /*
-       現在はDBへのジョブ登録まで。
-
-       本物の計算は次の段階で
-
-       calculation_jobs
-              ↓
-       Worker
-              ↓
-       Python / 数式エンジン
-              ↓
-       結果検証
-              ↓
-       research_results
-
-       にする。
-    */
-
-
-    console.log(
-        "Calculation job created:",
-        data
-    );
-
-}
-
-
-/* =========================================================
-   16. CHAT
-   ========================================================= */
-
-async function sendMessage() {
-
-    const input =
-        document.getElementById(
-            "chatInput"
-        );
-
-
-    if (!input) return;
-
-
-    const content =
-        input.value.trim();
-
-
-    if (!content) return;
-
-
-    addChatMessage(
-        "user",
-        content
-    );
-
-
-    input.value = "";
-
-
-    /*
-       Claude APIはまだ接続していない。
-
-       APIキーをブラウザへ直接置かず、
-
-       Browser
-           ↓
-       Server / Edge Function
-           ↓
-       Claude
-           ↓
-       Research Memory
-           ↓
-       Response
-
-       にする。
-    */
-
-
-    addChatMessage(
-        "assistant",
-        "メッセージを受け取りました。現在はClaude API接続前の段階です。研究記憶・仮説・過去の探索結果をAIへ渡す機構を次に実装します。"
-    );
-
-}
-
-
-/* =========================================================
-   17. CHAT UI
-   ========================================================= */
-
-function addChatMessage(
-    role,
-    content
-) {
-
-    const container =
-        document.getElementById(
-            "chatMessages"
-        );
-
-
-    if (!container) return;
-
-
-    const message =
-        document.createElement(
-            "div"
-        );
-
-
-    message.className =
-        role === "user"
-            ? "message user"
-            : "message ai";
-
-
-    message.innerHTML = `
-
-        <div class="message-label">
-
-            ${
-                role === "user"
-                    ? "あなた"
-                    : "研究AI"
-            }
-
-        </div>
-
-
-        <div>
-
-            ${escapeHTML(content)}
-
-        </div>
-
-    `;
-
-
-    container.appendChild(
-        message
-    );
-
-
-    container.scrollTop =
-        container.scrollHeight;
-
-
-    state.messages.push({
-
-        role,
-
-        content,
-
-        created_at:
-            new Date().toISOString()
-
-    });
-
-}
-
-
-/* =========================================================
-   18. NAVIGATION
+   NAVIGATION
    ========================================================= */
 
 function initializeNavigation() {
@@ -1761,120 +987,78 @@ function initializeNavigation() {
         .querySelectorAll(
             ".nav-button"
         )
-        .forEach(button => {
+        .forEach(
+            button => {
 
-            button.addEventListener(
-                "click",
-                () => {
+                button.addEventListener(
+                    "click",
+                    () => {
 
-                    switchPage(
-                        button.dataset.page
-                    );
+                        switchPage(
+                            button.dataset.page
+                        );
 
-                }
-            );
+                    }
+                );
 
-        });
+            }
+        );
 
 }
 
 
 function switchPage(page) {
 
-    state.currentPage =
-        page;
-
-
     document
         .querySelectorAll(
             ".nav-button"
         )
-        .forEach(button => {
+        .forEach(
+            button => {
 
-            button.classList.toggle(
-                "active",
-                button.dataset.page ===
-                page
-            );
+                button.classList.toggle(
+                    "active",
+                    button.dataset.page === page
+                );
 
-        });
+            }
+        );
 
 
     document
         .querySelectorAll(
             ".page"
         )
-        .forEach(section => {
+        .forEach(
+            section => {
 
-            section.classList.toggle(
-                "active",
-                section.id ===
-                `page-${page}`
-            );
+                section.classList.toggle(
+                    "active",
+                    section.id ===
+                    `page-${page}`
+                );
 
-        });
+            }
+        );
 
 }
 
 
 /* =========================================================
-   19. BUTTONS
+   HYPOTHESIS MODAL
    ========================================================= */
 
-function initializeButtons() {
+function initializeHypothesis() {
 
-    const send =
-        document.getElementById(
-            "sendMessageButton"
-        );
-
-
-    if (send) {
-
-        send.addEventListener(
-            "click",
-            sendMessage
-        );
-
-    }
-
-
-    const input =
-        document.getElementById(
-            "chatInput"
-        );
-
-
-    if (input) {
-
-        input.addEventListener(
-            "keydown",
-            event => {
-
-                if (
-                    event.key ===
-                    "Enter"
-                ) {
-
-                    sendMessage();
-
-                }
-
-            }
-        );
-
-    }
-
-
-    const newHypothesis =
+    const openButton =
         document.getElementById(
             "newHypothesisButton"
         );
 
 
-    if (newHypothesis) {
+    if (openButton) {
 
-        newHypothesis.addEventListener(
+        openButton.addEventListener(
             "click",
             openHypothesisModal
         );
@@ -1882,15 +1066,15 @@ function initializeButtons() {
     }
 
 
-    const saveHypothesis =
+    const saveButton =
         document.getElementById(
             "saveHypothesisButton"
         );
 
 
-    if (saveHypothesis) {
+    if (saveButton) {
 
-        saveHypothesis.addEventListener(
+        saveButton.addEventListener(
             "click",
             createHypothesis
         );
@@ -1898,33 +1082,55 @@ function initializeButtons() {
     }
 
 
-    const closeHypothesis =
+    const closeButton =
         document.getElementById(
             "closeHypothesisModal"
         );
 
 
-    if (closeHypothesis) {
+    if (closeButton) {
 
-        closeHypothesis.addEventListener(
+        closeButton.addEventListener(
             "click",
             closeHypothesisModal
         );
 
     }
 
+}
 
-    const calculation =
+
+function openHypothesisModal() {
+
+    const modal =
         document.getElementById(
-            "startCalculationButton"
+            "hypothesisModal"
         );
 
 
-    if (calculation) {
+    if (modal) {
 
-        calculation.addEventListener(
-            "click",
-            createCalculationJob
+        modal.classList.add(
+            "active"
+        );
+
+    }
+
+}
+
+
+function closeHypothesisModal() {
+
+    const modal =
+        document.getElementById(
+            "hypothesisModal"
+        );
+
+
+    if (modal) {
+
+        modal.classList.remove(
+            "active"
         );
 
     }
@@ -1933,10 +1139,10 @@ function initializeButtons() {
 
 
 /* =========================================================
-   20. MODALS
+   MODAL
    ========================================================= */
 
-function initializeModals() {
+function initializeModal() {
 
     const modal =
         document.getElementById(
@@ -2012,18 +1218,23 @@ function closeModal() {
 }
 
 
-function openHypothesisModal() {
+/* =========================================================
+   CALCULATION
+   ========================================================= */
 
-    const modal =
+function initializeCalculation() {
+
+    const button =
         document.getElementById(
-            "hypothesisModal"
+            "startCalculationButton"
         );
 
 
-    if (modal) {
+    if (button) {
 
-        modal.classList.add(
-            "active"
+        button.addEventListener(
+            "click",
+            createCalculationJob
         );
 
     }
@@ -2031,85 +1242,258 @@ function openHypothesisModal() {
 }
 
 
-function closeHypothesisModal() {
+async function createCalculationJob() {
 
-    const modal =
-        document.getElementById(
-            "hypothesisModal"
+    if (!supabaseClient) {
+
+        alert(
+            "Supabaseに接続されていません。"
         );
 
-
-    if (modal) {
-
-        modal.classList.remove(
-            "active"
-        );
-
+        return;
     }
+
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+
+        .from("calculation_jobs")
+
+        .insert({
+
+            project_id:
+                PROJECT_ID,
+
+            job_type:
+                "exploration",
+
+            status:
+                "queued",
+
+            progress:
+                0
+
+        })
+
+        .select()
+
+        .single();
+
+
+    if (error) {
+
+        console.error(
+            error
+        );
+
+
+        alert(
+            "計算ジョブの作成に失敗しました。\n\n" +
+            error.message
+        );
+
+
+        return;
+    }
+
+
+    alert(
+        "計算ジョブをキューに追加しました。"
+    );
+
+
+    console.log(
+        data
+    );
 
 }
 
 
 /* =========================================================
-   21. STATISTICS
+   CHAT
+   ========================================================= */
+
+function initializeChat() {
+
+    const button =
+        document.getElementById(
+            "sendMessageButton"
+        );
+
+
+    const input =
+        document.getElementById(
+            "chatInput"
+        );
+
+
+    if (!button || !input)
+        return;
+
+
+    button.addEventListener(
+        "click",
+        sendMessage
+    );
+
+
+    input.addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key === "Enter"
+            ) {
+
+                sendMessage();
+
+            }
+
+        }
+    );
+
+}
+
+
+function sendMessage() {
+
+    const input =
+        document.getElementById(
+            "chatInput"
+        );
+
+
+    if (!input) return;
+
+
+    const text =
+        input.value.trim();
+
+
+    if (!text) return;
+
+
+    addMessage(
+        "user",
+        text
+    );
+
+
+    input.value = "";
+
+
+    addMessage(
+        "assistant",
+        "現在は研究データ保存部分を構築中です。Claudeとの接続は次の段階で実装します。"
+    );
+
+}
+
+
+function addMessage(
+    role,
+    text
+) {
+
+    const container =
+        document.getElementById(
+            "chatMessages"
+        );
+
+
+    if (!container) return;
+
+
+    const message =
+        document.createElement(
+            "div"
+        );
+
+
+    message.className =
+        role === "user"
+            ? "message user"
+            : "message ai";
+
+
+    message.innerHTML = `
+
+        <div class="message-label">
+
+            ${
+                role === "user"
+                    ? "あなた"
+                    : "研究AI"
+            }
+
+        </div>
+
+
+        <div>
+
+            ${escapeHTML(text)}
+
+        </div>
+
+    `;
+
+
+    container.appendChild(
+        message
+    );
+
+
+    container.scrollTop =
+        container.scrollHeight;
+
+}
+
+
+/* =========================================================
+   STATISTICS
    ========================================================= */
 
 function updateStatistics() {
 
-    const results =
+    const resultElement =
         document.getElementById(
             "stat-results"
         );
 
 
-    const hypotheses =
+    const hypothesisElement =
         document.getElementById(
             "stat-hypotheses"
         );
 
 
-    const banned =
+    const bannedElement =
         document.getElementById(
             "stat-banned"
         );
 
 
-    if (results) {
+    if (resultElement) {
 
-        results.textContent =
+        resultElement.textContent =
             state.results.length;
 
     }
 
 
-    if (hypotheses) {
+    if (hypothesisElement) {
 
-        hypotheses.textContent =
-            state.hypotheses.filter(
-                hypothesis => {
-
-                    const status =
-                        normalizeStatus(
-                            hypothesis.status
-                        );
-
-                    return (
-                        status ===
-                        "maybe"
-                    ) || (
-                        status ===
-                        "unknown"
-                    );
-
-                }
-            ).length;
+        hypothesisElement.textContent =
+            state.hypotheses.length;
 
     }
 
 
-    if (banned) {
+    if (bannedElement) {
 
-        banned.textContent =
+        bannedElement.textContent =
             state.routes.filter(
                 route =>
                     route.status ===
@@ -2122,153 +1506,107 @@ function updateStatistics() {
 
 
 /* =========================================================
-   22. STATUS
+   SAVE MESSAGE
    ========================================================= */
 
-function normalizeStatus(
-    status
-) {
+function showSaveMessage(text) {
 
-    if (
-        status === "good" ||
-        status === "supported"
-    ) {
-
-        return "good";
-
-    }
+    const message =
+        document.createElement(
+            "div"
+        );
 
 
-    if (
-        status === "maybe" ||
-        status === "uncertain"
-    ) {
-
-        return "maybe";
-
-    }
+    message.textContent =
+        text;
 
 
-    if (
-        status === "bad" ||
-        status === "rejected"
-    ) {
+    message.style.position =
+        "fixed";
 
-        return "bad";
+    message.style.bottom =
+        "25px";
 
-    }
+    message.style.right =
+        "25px";
 
+    message.style.zIndex =
+        "99999";
 
-    return "unknown";
+    message.style.padding =
+        "12px 18px";
 
-}
+    message.style.borderRadius =
+        "10px";
 
+    message.style.background =
+        "#182033";
 
-function getStatusSymbol(
-    status
-) {
+    message.style.color =
+        "#edf1f8";
 
-    switch (status) {
-
-        case "good":
-            return "○";
-
-        case "maybe":
-            return "△";
-
-        case "bad":
-            return "×";
-
-        default:
-            return "?";
-
-    }
-
-}
+    message.style.border =
+        "1px solid #34405a";
 
 
-function getStatusClass(
-    status
-) {
-
-    switch (status) {
-
-        case "good":
-            return "result-good";
-
-        case "maybe":
-            return "result-maybe";
-
-        case "bad":
-            return "result-bad";
-
-        default:
-            return "result-unknown";
-
-    }
-
-}
-
-
-function getStatusText(
-    status
-) {
-
-    switch (status) {
-
-        case "good":
-            return "○ 支持";
-
-        case "maybe":
-            return "△ 未確定";
-
-        case "bad":
-            return "× 棄却";
-
-        default:
-            return "? 未判定";
-
-    }
-
-}
-
-
-/* =========================================================
-   23. ERROR DISPLAY
-   ========================================================= */
-
-function showConnectionError(
-    message
-) {
-
-    console.warn(
+    document.body.appendChild(
         message
     );
 
 
-    const status =
-        document.getElementById(
-            "connectionStatus"
-        );
+    setTimeout(
+        () => {
 
+            message.remove();
 
-    if (status) {
-
-        status.textContent =
-            "● データ接続確認中";
-
-    }
+        },
+        3000
+    );
 
 }
 
 
 /* =========================================================
-   24. UTILITIES
+   ERROR
    ========================================================= */
 
-function escapeHTML(
-    value
+function showHypothesisError(
+    message
 ) {
+
+    const container =
+        document.getElementById(
+            "hypotheses"
+        );
+
+
+    if (!container) return;
+
+
+    container.innerHTML = `
+
+        <div class="empty">
+
+            <strong>
+                仮説の読み込みに失敗しました。
+            </strong>
+
+            <br><br>
+
+            ${escapeHTML(message)}
+
+        </div>
+
+    `;
+
+}
+
+
+/* =========================================================
+   ESCAPE
+   ========================================================= */
+
+function escapeHTML(value) {
 
     if (
         value === null ||
@@ -2310,108 +1648,31 @@ function escapeHTML(
 }
 
 
-function truncate(
-    text,
-    length
-) {
-
-    if (!text) return "";
-
-
-    const value =
-        String(text);
-
-
-    if (
-        value.length <= length
-    ) {
-
-        return value;
-
-    }
-
-
-    return (
-        value.slice(
-            0,
-            length
-        ) +
-        "..."
-    );
-
-}
-
-
-function formatDate(
-    value
-) {
-
-    if (!value) {
-
-        return "日時不明";
-
-    }
-
-
-    try {
-
-        return new Date(
-            value
-        ).toLocaleString(
-            "ja-JP"
-        );
-
-    } catch {
-
-        return String(value);
-
-    }
-
-}
-
-
 /* =========================================================
-   25. GLOBAL DEBUG API
+   GLOBAL
    ========================================================= */
-
-window.ResearchLab = {
-
-    state,
-
-    reload:
-        loadApplication,
-
-    loadProject,
-
-    loadResults,
-
-    loadHypotheses,
-
-    loadMemory,
-
-    loadRoutes,
-
-    loadJobs,
-
-    createHypothesis,
-
-    createCalculationJob
-
-};
-
 
 window.closeModal =
     closeModal;
-
-
-window.openHypothesisModal =
-    openHypothesisModal;
 
 
 window.closeHypothesisModal =
     closeHypothesisModal;
 
 
+window.ResearchLab = {
+
+    state,
+
+    reload:
+        start,
+
+    testConnection:
+        testSupabaseConnection
+
+};
+
+
 console.log(
-    "Research AI Lab initialized."
+    "Research AI Lab ready."
 );
