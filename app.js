@@ -1,904 +1,2211 @@
-/*
-  Research AI Lab
-  Frontend prototype
-
-  IMPORTANT:
-  API keys must NEVER be placed in this file.
-  Supabase and AI APIs will be connected securely later.
-*/
-
-"use strict";
+/* =========================================================
+   Research AI Lab
+   app.js
+   ========================================================= */
 
 
 /* =========================================================
-   Research Data
-========================================================= */
+   1. CONFIGURATION
+   ========================================================= */
 
-const researchState = {
-
-  project: {
-    id: "project-001",
-    name: "新しい数学研究",
-    description:
-      "仮説・計算・反証・証明を統合して探索する研究プロジェクト"
-  },
-
-  results: [
-
-    {
-      id: "result-001",
-      status: "good",
-      mark: "○",
-      title: "不変量候補 I(x)",
-      description:
-        "数値実験で予想された不変量が複数条件で一致。",
-      date: "2026-08-14",
-
-      hypothesis:
-        "変換 T に対して I(T(x)) = I(x) が成立する。",
-
-      calculation:
-        "100,000回の数値実験。",
-
-      verification:
-        "数値的支持あり。ただし数学的証明は未完了。",
-
-      evidence: [
-        "ランダムサンプル 100,000件",
-        "境界条件 3種類",
-        "数値誤差 1e-12 未満"
-      ],
-
-      next:
-        "一般条件について記号的な証明を探索する。"
-    },
-
-    {
-      id: "result-002",
-      status: "maybe",
-      mark: "△",
-      title: "単調性仮説 H-002",
-      description:
-        "数値的には支持されているが証明されていない。",
-      date: "2026-08-14",
-
-      hypothesis:
-        "条件 A のもとで f(x) は単調増加する。",
-
-      calculation:
-        "ランダム探索 500,000回。",
-
-      verification:
-        "反例は現在まで発見されていない。",
-
-      evidence: [
-        "ランダム探索",
-        "局所探索",
-        "境界付近の探索"
-      ],
-
-      next:
-        "境界条件を変えた反例探索。"
-    },
-
-    {
-      id: "result-003",
-      status: "bad",
-      mark: "×",
-      title: "全域成立仮説 H-003",
-      description:
-        "反例候補が発見されたため棄却。",
-      date: "2026-08-14",
-
-      hypothesis:
-        "すべての x に対して P(x) が成立する。",
-
-      calculation:
-        "50,000回の探索。",
-
-      verification:
-        "反例候補を確認。",
-
-      evidence: [
-        "x ≈ 3.72 付近",
-        "複数精度で再計算",
-        "同条件で再現"
-      ],
-
-      next:
-        "仮説の前提条件を修正する。"
-    }
-
-  ],
+const SUPABASE_URL = "ここにSupabase URL";
+const SUPABASE_KEY = "ここにPublishable key";
 
 
-  hypotheses: [
+/* =========================================================
+   2. SUPABASE
+   ========================================================= */
 
-    {
-      id: "H-001",
-      status: "good",
-      mark: "○",
-      title: "不変量 I(x) が存在する",
-      description:
-        "特定の変換に対する保存量候補。"
-    },
+let supabaseClient = null;
 
-    {
-      id: "H-002",
-      status: "maybe",
-      mark: "△",
-      title: "f(x) の単調性",
-      description:
-        "数値的には支持されている。"
-    },
+let currentProject = null;
 
-    {
-      id: "H-003",
-      status: "bad",
-      mark: "×",
-      title: "条件なしで P(x) が成立",
-      description:
-        "反例候補により棄却。"
-    }
-
-  ],
+let currentConversation = null;
 
 
-  routes: [
+/* =========================================================
+   3. APPLICATION STATE
+   ========================================================= */
 
-    {
-      id: "route-001",
-      name: "背理法 → 極値 → 矛盾",
-      attempts: 1,
-      status: "active",
-      description:
-        "仮定の否定から極値を構成して矛盾を探す。"
-    },
+const state = {
 
-    {
-      id: "route-002",
-      name: "不変量 → 帰納的構成",
-      attempts: 2,
-      status: "active",
-      description:
-        "保存量を利用して構造を帰納的に構成する。"
-    },
+    results: [],
 
-    {
-      id: "route-003",
-      name: "局所解析 → 反例探索",
-      attempts: 3,
-      status: "banned",
-      description:
-        "局所条件から全域成立を推定するルート。"
-    }
+    hypotheses: [],
 
-  ],
+    routes: [],
 
+    memory: [],
 
-  memories: [
+    jobs: [],
 
-    {
-      id: "memory-001",
-      type: "研究上の事実",
-      title: "H-003には反例候補が存在",
-      content:
-        "全域成立を主張するには条件追加が必要。"
-    },
+    messages: [],
 
-    {
-      id: "memory-002",
-      type: "失敗した探索",
-      title: "局所解析ルート",
-      content:
-        "3回の試行で有効な証明につながらなかったため封印。"
-    },
+    sources: [],
 
-    {
-      id: "memory-003",
-      type: "研究方針",
-      title: "数値実験を証明とみなさない",
-      content:
-        "反例が見つからないことは、一般命題の証明を意味しない。"
-    }
+    events: [],
 
-  ],
+    currentPage: "research",
 
-
-  jobs: []
+    loading: false
 
 };
 
 
 /* =========================================================
-   Navigation
-========================================================= */
+   4. INITIALIZE
+   ========================================================= */
 
-function setupNavigation() {
+document.addEventListener("DOMContentLoaded", async () => {
 
-  const buttons =
-    document.querySelectorAll(".nav-button");
+    initializeNavigation();
 
-  buttons.forEach(button => {
+    initializeButtons();
 
-    button.addEventListener("click", () => {
+    initializeModal();
 
-      const page =
-        button.dataset.page;
+    initializeSupabase();
 
-      if (!page) return;
+});
 
-      buttons.forEach(b =>
-        b.classList.remove("active")
-      );
 
-      button.classList.add("active");
+/* =========================================================
+   5. SUPABASE INITIALIZATION
+   ========================================================= */
 
-      document
-        .querySelectorAll(".page")
-        .forEach(section => {
-          section.classList.remove("active");
-        });
+function initializeSupabase() {
 
-      const target =
-        document.getElementById(`page-${page}`);
+    const status =
+        document.getElementById("connectionStatus");
 
-      if (target) {
-        target.classList.add("active");
-      }
 
-    });
+    if (
+        !SUPABASE_URL ||
+        SUPABASE_URL.includes("ここに")
+    ) {
 
-  });
+        if (status) {
+
+            status.textContent =
+                "● Supabase API設定待ち";
+
+        }
+
+        console.warn(
+            "Supabase URL / Key が設定されていません。"
+        );
+
+        renderEmptyState();
+
+        return;
+
+    }
+
+
+    if (
+        !SUPABASE_KEY ||
+        SUPABASE_KEY.includes("ここに")
+    ) {
+
+        if (status) {
+
+            status.textContent =
+                "● Supabase API設定待ち";
+
+        }
+
+        console.warn(
+            "Supabase Key が設定されていません。"
+        );
+
+        renderEmptyState();
+
+        return;
+
+    }
+
+
+    try {
+
+        supabaseClient =
+            window.supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_KEY
+            );
+
+
+        if (status) {
+
+            status.textContent =
+                "● Supabase 接続中";
+
+        }
+
+
+        loadApplication();
+
+
+    } catch (error) {
+
+        console.error(
+            "Supabase initialization error:",
+            error
+        );
+
+
+        if (status) {
+
+            status.textContent =
+                "● Supabase 接続エラー";
+
+        }
+
+    }
 
 }
 
 
 /* =========================================================
-   Result Rendering
-========================================================= */
+   6. LOAD APPLICATION
+   ========================================================= */
+
+async function loadApplication() {
+
+    try {
+
+        await loadProject();
+
+        if (!currentProject) {
+
+            console.warn(
+                "研究プロジェクトが見つかりません。"
+            );
+
+            return;
+
+        }
+
+
+        await Promise.all([
+
+            loadResults(),
+
+            loadHypotheses(),
+
+            loadRoutes(),
+
+            loadMemory(),
+
+            loadJobs()
+
+        ]);
+
+
+        updateStatistics();
+
+
+        const status =
+            document.getElementById(
+                "connectionStatus"
+            );
+
+
+        if (status) {
+
+            status.textContent =
+                "● Supabase 接続済み";
+
+        }
+
+
+    } catch (error) {
+
+        console.error(
+            "Application loading error:",
+            error
+        );
+
+
+        const status =
+            document.getElementById(
+                "connectionStatus"
+            );
+
+
+        if (status) {
+
+            status.textContent =
+                "● データ読み込みエラー";
+
+        }
+
+    }
+
+}
+
+
+/* =========================================================
+   7. LOAD PROJECT
+   ========================================================= */
+
+async function loadProject() {
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+
+        .from("research_projects")
+
+        .select("*")
+
+        .order(
+            "created_at",
+            {
+                ascending: true
+            }
+        )
+
+        .limit(1);
+
+
+    if (error) {
+
+        throw error;
+
+    }
+
+
+    currentProject =
+        data && data.length
+            ? data[0]
+            : null;
+
+}
+
+
+/* =========================================================
+   8. RESULTS
+   ========================================================= */
+
+async function loadResults() {
+
+    if (!currentProject) return;
+
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+
+        .from("research_results")
+
+        .select("*")
+
+        .eq(
+            "project_id",
+            currentProject.id
+        )
+
+        .order(
+            "created_at",
+            {
+                ascending: false
+            }
+        )
+
+        .limit(100);
+
+
+    if (error) {
+
+        console.error(
+            "Results loading error:",
+            error
+        );
+
+        return;
+
+    }
+
+
+    state.results = data || [];
+
+
+    renderResults();
+
+}
+
 
 function renderResults() {
 
-  const container =
-    document.getElementById("results");
-
-  if (!container) return;
-
-  container.innerHTML = "";
-
-  /*
-    UIでは最新100件だけを表示する。
-    研究記憶そのものはこの配列から削除しない。
-  */
-
-  const visible =
-    researchState.results.slice(0, 100);
-
-  if (visible.length === 0) {
-
-    container.innerHTML = `
-      <div class="empty">
-        研究結果はまだありません。
-      </div>
-    `;
-
-    return;
-  }
+    const container =
+        document.getElementById("results");
 
 
-  visible.forEach(result => {
+    if (!container) return;
 
-    const row =
-      document.createElement("div");
 
-    row.className = "result";
+    if (!state.results.length) {
 
-    row.innerHTML = `
+        container.innerHTML = `
 
-      <div class="result-mark ${result.status}">
-        ${result.mark}
-      </div>
+            <div class="empty">
 
-      <div class="result-content">
+                まだ研究結果はありません。
 
-        <div class="result-title">
-          ${escapeHTML(result.title)}
+                <br><br>
+
+                AIまたは計算エンジンによる
+                最初の研究結果がここに保存されます。
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        state.results
+            .map(result =>
+                createResultHTML(result)
+            )
+            .join("");
+
+
+    container
+        .querySelectorAll("[data-result-id]")
+        .forEach(element => {
+
+            element.addEventListener(
+                "click",
+                () => {
+
+                    const id =
+                        element.dataset.resultId;
+
+                    openResultDetail(id);
+
+                }
+            );
+
+        });
+
+}
+
+
+function createResultHTML(result) {
+
+    const status =
+        normalizeResultStatus(
+            result.status
+        );
+
+
+    const symbol =
+        getStatusSymbol(status);
+
+
+    const className =
+        getStatusClass(status);
+
+
+    return `
+
+        <div
+            class="result-card ${className}"
+            data-result-id="${escapeHTML(result.id)}"
+            style="cursor:pointer;"
+        >
+
+            <div
+                style="
+                    display:flex;
+                    align-items:center;
+                    gap:14px;
+                "
+            >
+
+                <div
+                    style="
+                        font-size:30px;
+                        min-width:36px;
+                    "
+                >
+                    ${symbol}
+                </div>
+
+
+                <div
+                    style="
+                        flex:1;
+                    "
+                >
+
+                    <div
+                        style="
+                            font-weight:700;
+                            margin-bottom:5px;
+                        "
+                    >
+                        ${escapeHTML(
+                            result.title ||
+                            "無題の研究結果"
+                        )}
+                    </div>
+
+
+                    <div
+                        style="
+                            color:#8d99b5;
+                            font-size:13px;
+                            line-height:1.6;
+                        "
+                    >
+                        ${escapeHTML(
+                            truncate(
+                                result.description ||
+                                "説明なし",
+                                180
+                            )
+                        )}
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div
+                style="
+                    margin-top:12px;
+                    color:#66728f;
+                    font-size:11px;
+                "
+            >
+                ${formatDate(
+                    result.created_at
+                )}
+            </div>
+
         </div>
 
-        <div class="result-description">
-          ${escapeHTML(result.description)}
-        </div>
-
-      </div>
-
-      <div class="result-date">
-        ${result.date}
-      </div>
-
-      <button
-        class="btn"
-        data-result-id="${result.id}"
-      >
-        詳細
-      </button>
-
     `;
 
-    row
-      .querySelector("button")
-      .addEventListener("click", () => {
+}
 
-        openResult(result.id);
 
-      });
+function normalizeResultStatus(status) {
 
-    container.appendChild(row);
+    if (
+        status === "good" ||
+        status === "supported"
+    ) return "good";
 
-  });
+
+    if (
+        status === "maybe" ||
+        status === "uncertain"
+    ) return "maybe";
+
+
+    if (
+        status === "bad" ||
+        status === "rejected"
+    ) return "bad";
+
+
+    return "unknown";
+
+}
+
+
+function getStatusSymbol(status) {
+
+    if (status === "good")
+        return "○";
+
+    if (status === "maybe")
+        return "△";
+
+    if (status === "bad")
+        return "×";
+
+    return "?";
+
+}
+
+
+function getStatusClass(status) {
+
+    if (status === "good")
+        return "result-good";
+
+    if (status === "maybe")
+        return "result-maybe";
+
+    if (status === "bad")
+        return "result-bad";
+
+    return "result-unknown";
 
 }
 
 
 /* =========================================================
-   Result Detail
-========================================================= */
+   9. RESULT DETAIL
+   ========================================================= */
 
-function openResult(id) {
+function openResultDetail(id) {
 
-  const result =
-    researchState.results.find(
-      item => item.id === id
-    );
-
-  if (!result) return;
-
-  const modal =
-    document.getElementById("modal");
-
-  const content =
-    document.getElementById("modalContent");
+    const result =
+        state.results.find(
+            item => item.id === id
+        );
 
 
-  content.innerHTML = `
-
-    <button
-      class="close"
-      id="closeModal"
-    >
-      ×
-    </button>
-
-    <div class="result-mark ${result.status}">
-      ${result.mark}
-    </div>
-
-    <h2>
-      ${escapeHTML(result.title)}
-    </h2>
-
-    <div class="detail-block">
-
-      <div class="detail-label">
-        現在の判定
-      </div>
-
-      <strong>
-        ${result.mark}
-      </strong>
-
-      ${
-        result.status === "good"
-          ? " 現在の検証条件では支持"
-          : result.status === "maybe"
-          ? " 未確定"
-          : " 棄却・反例あり"
-      }
-
-    </div>
+    if (!result) return;
 
 
-    <div class="detail-block">
-
-      <div class="detail-label">
-        仮説
-      </div>
-
-      ${escapeHTML(result.hypothesis)}
-
-    </div>
+    const modal =
+        document.getElementById("modal");
 
 
-    <div class="detail-block">
-
-      <div class="detail-label">
-        計算
-      </div>
-
-      ${escapeHTML(result.calculation)}
-
-    </div>
+    const content =
+        document.getElementById(
+            "modalContent"
+        );
 
 
-    <div class="detail-block">
-
-      <div class="detail-label">
-        検証
-      </div>
-
-      ${escapeHTML(result.verification)}
-
-    </div>
+    if (!modal || !content) return;
 
 
-    <div class="detail-block">
-
-      <div class="detail-label">
-        証拠
-      </div>
-
-      <ul>
-
-        ${result.evidence
-          .map(item =>
-            `<li>${escapeHTML(item)}</li>`
-          )
-          .join("")}
-
-      </ul>
-
-    </div>
+    const status =
+        normalizeResultStatus(
+            result.status
+        );
 
 
-    <div class="detail-block">
+    content.innerHTML = `
 
-      <div class="detail-label">
-        次に試すこと
-      </div>
-
-      ${escapeHTML(result.next)}
-
-    </div>
-
-  `;
+        <button
+            class="close"
+            onclick="closeModal()"
+        >
+            ×
+        </button>
 
 
-  modal.classList.add("show");
+        <div
+            style="
+                font-size:42px;
+                margin-bottom:10px;
+            "
+        >
+            ${getStatusSymbol(status)}
+        </div>
 
 
-  document
-    .getElementById("closeModal")
-    .addEventListener(
-      "click",
-      closeModal
-    );
+        <h2>
+            ${escapeHTML(
+                result.title ||
+                "無題"
+            )}
+        </h2>
+
+
+        <div
+            class="detail-block"
+        >
+
+            <div class="detail-label">
+                判定
+            </div>
+
+            ${getStatusText(status)}
+
+        </div>
+
+
+        <div
+            class="detail-block"
+        >
+
+            <div class="detail-label">
+                概要
+            </div>
+
+            ${escapeHTML(
+                result.description ||
+                "記録なし"
+            )}
+
+        </div>
+
+
+        <div
+            class="detail-block"
+        >
+
+            <div class="detail-label">
+                仮説
+            </div>
+
+            ${escapeHTML(
+                result.hypothesis ||
+                "記録なし"
+            )}
+
+        </div>
+
+
+        <div
+            class="detail-block"
+        >
+
+            <div class="detail-label">
+                計算
+            </div>
+
+            <pre
+                style="
+                    white-space:pre-wrap;
+                    overflow-wrap:anywhere;
+                "
+            >${escapeHTML(
+                result.calculation ||
+                "計算記録なし"
+            )}</pre>
+
+        </div>
+
+
+        <div
+            class="detail-block"
+        >
+
+            <div class="detail-label">
+                検証
+            </div>
+
+            ${escapeHTML(
+                result.verification ||
+                "検証記録なし"
+            )}
+
+        </div>
+
+
+        <div
+            class="detail-block"
+        >
+
+            <div class="detail-label">
+                次の行動
+            </div>
+
+            ${escapeHTML(
+                result.next_action ||
+                "未設定"
+            )}
+
+        </div>
+
+
+        <div
+            class="detail-block"
+        >
+
+            <div class="detail-label">
+                保存日時
+            </div>
+
+            ${formatDate(
+                result.created_at
+            )}
+
+        </div>
+
+    `;
+
+
+    modal.classList.add("active");
 
 }
 
 
-function closeModal() {
+function getStatusText(status) {
 
-  const modal =
-    document.getElementById("modal");
+    if (status === "good")
+        return "○ 支持";
 
-  modal.classList.remove("show");
+    if (status === "maybe")
+        return "△ 未確定";
+
+    if (status === "bad")
+        return "× 棄却";
+
+    return "? 未判定";
 
 }
 
 
 /* =========================================================
-   Hypotheses
-========================================================= */
+   10. HYPOTHESES
+   ========================================================= */
+
+async function loadHypotheses() {
+
+    if (!currentProject) return;
+
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+
+        .from("hypotheses")
+
+        .select("*")
+
+        .eq(
+            "project_id",
+            currentProject.id
+        )
+
+        .order(
+            "created_at",
+            {
+                ascending: false
+            }
+        );
+
+
+    if (error) {
+
+        console.error(
+            "Hypotheses loading error:",
+            error
+        );
+
+        return;
+
+    }
+
+
+    state.hypotheses =
+        data || [];
+
+
+    renderHypotheses();
+
+}
+
 
 function renderHypotheses() {
 
-  const container =
-    document.getElementById("hypotheses");
-
-  if (!container) return;
-
-  container.innerHTML = "";
-
-  researchState.hypotheses
-    .forEach(hypothesis => {
-
-      const element =
-        document.createElement("div");
-
-      element.className =
-        "hypothesis";
-
-      element.innerHTML = `
-
-        <div class="hypothesis-top">
-
-          <div class="result-mark ${hypothesis.status}">
-            ${hypothesis.mark}
-          </div>
-
-          <span class="hypothesis-id">
-            ${hypothesis.id}
-          </span>
-
-          <span class="hypothesis-title">
-            ${escapeHTML(hypothesis.title)}
-          </span>
-
-        </div>
-
-        <div
-          style="
-            margin-left:50px;
-            margin-top:8px;
-            color:#8793af;
-            font-size:13px;
-          "
-        >
-          ${escapeHTML(hypothesis.description)}
-        </div>
-
-      `;
-
-      container.appendChild(element);
-
-    });
-
-}
+    const container =
+        document.getElementById(
+            "hypotheses"
+        );
 
 
-/* =========================================================
-   Routes
-========================================================= */
+    if (!container) return;
 
-function renderRoutes() {
 
-  const container =
-    document.getElementById("routes");
+    if (!state.hypotheses.length) {
 
-  if (!container) return;
+        container.innerHTML = `
 
-  container.innerHTML = "";
+            <div class="empty">
 
-  researchState.routes
-    .forEach(route => {
+                仮説はまだありません。
 
-      const element =
-        document.createElement("div");
+            </div>
 
-      element.className = "route";
+        `;
 
-      const banned =
-        route.attempts >= 3 ||
-        route.status === "banned";
+        return;
 
-      element.innerHTML = `
+    }
 
-        <div>
 
-          <div class="route-name">
-            ${escapeHTML(route.name)}
-          </div>
+    container.innerHTML =
+        state.hypotheses
+            .map(hypothesis => `
 
-          <div class="route-meta">
-            ${escapeHTML(route.description)}
-          </div>
+                <div class="result-card">
 
-          ${
-            banned
-              ? `
-                <div
-                  style="
-                    margin-top:8px;
-                    color:#ff8ba1;
-                    font-size:12px;
-                  "
-                >
-                  × この探索ルートは封印されています
+                    <div
+                        style="
+                            display:flex;
+                            justify-content:space-between;
+                            gap:20px;
+                        "
+                    >
+
+                        <div>
+
+                            <div
+                                style="
+                                    color:#7885a5;
+                                    font-size:11px;
+                                    margin-bottom:6px;
+                                "
+                            >
+                                ${escapeHTML(
+                                    hypothesis.code ||
+                                    ""
+                                )}
+                            </div>
+
+
+                            <div
+                                style="
+                                    font-weight:700;
+                                    margin-bottom:8px;
+                                "
+                            >
+                                ${escapeHTML(
+                                    hypothesis.title
+                                )}
+                            </div>
+
+
+                            <div
+                                style="
+                                    color:#909bb6;
+                                    line-height:1.6;
+                                    font-size:13px;
+                                "
+                            >
+                                ${escapeHTML(
+                                    hypothesis.statement
+                                )}
+                            </div>
+
+                        </div>
+
+
+                        <div>
+
+                            ${getStatusSymbol(
+                                normalizeResultStatus(
+                                    hypothesis.status
+                                )
+                            )}
+
+                        </div>
+
+                    </div>
+
                 </div>
-              `
-              : ""
-          }
 
-        </div>
+            `)
+            .join("");
 
-        <div class="route-count">
+}
 
-          <strong>
-            ${route.attempts}
-          </strong>
 
-          <div
-            style="
-              color:#7d8aa8;
-              font-size:11px;
-            "
-          >
-            試行
+async function createHypothesis() {
 
-          </div>
+    if (!currentProject) {
 
-        </div>
+        alert(
+            "研究プロジェクトが読み込まれていません。"
+        );
 
-      `;
+        return;
 
-      container.appendChild(element);
+    }
 
-    });
+
+    const title =
+        document.getElementById(
+            "hypothesisTitle"
+        ).value.trim();
+
+
+    const statement =
+        document.getElementById(
+            "hypothesisStatement"
+        ).value.trim();
+
+
+    if (!title || !statement) {
+
+        alert(
+            "仮説名と命題を入力してください。"
+        );
+
+        return;
+
+    }
+
+
+    const code =
+        "H-" +
+        String(
+            state.hypotheses.length + 1
+        ).padStart(
+            4,
+            "0"
+        );
+
+
+    const {
+        error
+    } = await supabaseClient
+
+        .from("hypotheses")
+
+        .insert({
+
+            project_id:
+                currentProject.id,
+
+            code,
+
+            title,
+
+            statement,
+
+            status:
+                "unknown"
+
+        });
+
+
+    if (error) {
+
+        console.error(error);
+
+        alert(
+            "仮説の保存に失敗しました。"
+        );
+
+        return;
+
+    }
+
+
+    closeHypothesisModal();
+
+
+    document.getElementById(
+        "hypothesisTitle"
+    ).value = "";
+
+
+    document.getElementById(
+        "hypothesisStatement"
+    ).value = "";
+
+
+    await loadHypotheses();
+
+    updateStatistics();
 
 }
 
 
 /* =========================================================
-   Memory
-========================================================= */
+   11. MEMORY
+   ========================================================= */
+
+async function loadMemory() {
+
+    if (!currentProject) return;
+
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+
+        .from("research_memory")
+
+        .select("*")
+
+        .eq(
+            "project_id",
+            currentProject.id
+        )
+
+        .order(
+            "importance",
+            {
+                ascending: false
+            }
+        )
+
+        .order(
+            "created_at",
+            {
+                ascending: false
+            }
+        );
+
+
+    if (error) {
+
+        console.error(
+            "Memory loading error:",
+            error
+        );
+
+        return;
+
+    }
+
+
+    state.memory =
+        data || [];
+
+
+    renderMemory();
+
+}
+
 
 function renderMemory() {
 
-  const container =
-    document.getElementById("memory");
-
-  if (!container) return;
-
-  container.innerHTML = "";
-
-  researchState.memories
-    .forEach(memory => {
-
-      const element =
-        document.createElement("div");
-
-      element.className =
-        "memory";
-
-      element.innerHTML = `
-
-        <div class="memory-type">
-          ${escapeHTML(memory.type)}
-        </div>
-
-        <div class="memory-title">
-          ${escapeHTML(memory.title)}
-        </div>
-
-        <div class="memory-content">
-          ${escapeHTML(memory.content)}
-        </div>
-
-      `;
-
-      container.appendChild(element);
-
-    });
-
-}
+    const container =
+        document.getElementById(
+            "memory"
+        );
 
 
-/* =========================================================
-   Chat
-========================================================= */
-
-function addMessage(type, text) {
-
-  const container =
-    document.getElementById("chatMessages");
-
-  if (!container) return;
-
-  const message =
-    document.createElement("div");
-
-  message.className =
-    `message ${type}`;
-
-  message.innerHTML = `
-
-    <div class="message-label">
-      ${
-        type === "ai"
-          ? "研究AI"
-          : "あなた"
-      }
-    </div>
-
-    <div>
-      ${escapeHTML(text)}
-    </div>
-
-  `;
-
-  container.appendChild(message);
-
-  container.scrollTop =
-    container.scrollHeight;
-
-}
+    if (!container) return;
 
 
-function sendMessage() {
+    if (!state.memory.length) {
 
-  const input =
-    document.getElementById("chatInput");
+        container.innerHTML = `
 
-  if (!input) return;
+            <div class="empty">
+                研究記憶はありません。
+            </div>
 
-  const text =
-    input.value.trim();
+        `;
 
-  if (!text) return;
+        return;
 
-  addMessage("user", text);
-
-  input.value = "";
+    }
 
 
-  /*
-    本物のAI APIはまだ接続していない。
-    この部分は後で安全なサーバーAPIに置き換える。
-  */
+    container.innerHTML =
+        state.memory
+            .map(memory => `
 
-  setTimeout(() => {
+                <div class="result-card">
 
-    addMessage(
-      "ai",
-      "現在は研究AIのUIプロトタイプです。次の段階で研究記憶を検索し、過去の仮説・反例・封印ルートを確認してから回答する仕組みを接続します。"
-    );
+                    <div
+                        style="
+                            display:flex;
+                            justify-content:space-between;
+                            gap:15px;
+                        "
+                    >
 
-  }, 350);
+                        <div>
+
+                            <div
+                                style="
+                                    font-size:11px;
+                                    color:#72809e;
+                                    margin-bottom:5px;
+                                "
+                            >
+                                ${escapeHTML(
+                                    memory.memory_type
+                                )}
+                            </div>
+
+
+                            <div
+                                style="
+                                    font-weight:700;
+                                    margin-bottom:7px;
+                                "
+                            >
+                                ${escapeHTML(
+                                    memory.title
+                                )}
+                            </div>
+
+
+                            <div
+                                style="
+                                    color:#929db6;
+                                    font-size:13px;
+                                    line-height:1.6;
+                                "
+                            >
+                                ${escapeHTML(
+                                    memory.content
+                                )}
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            style="
+                                color:#aeb9d2;
+                                font-size:11px;
+                            "
+                        >
+                            P${memory.importance}
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `)
+            .join("");
 
 }
 
 
 /* =========================================================
-   Calculator Demo
-========================================================= */
+   12. EXPLORATION ROUTES
+   ========================================================= */
 
-function startCalculation() {
+async function loadRoutes() {
 
-  const job = {
-
-    id:
-      `job-${Date.now()}`,
-
-    iterations: 1000000,
-
-    completed: 0,
-
-    status: "running"
-
-  };
-
-  researchState.jobs.unshift(job);
-
-  renderJobs();
+    if (!currentProject) return;
 
 
-  const interval =
-    setInterval(() => {
+    const {
+        data,
+        error
+    } = await supabaseClient
 
-      job.completed +=
-        Math.floor(
-          Math.random() * 70000
-        ) + 30000;
+        .from("exploration_routes")
+
+        .select("*")
+
+        .eq(
+            "project_id",
+            currentProject.id
+        )
+
+        .order(
+            "created_at",
+            {
+                ascending: false
+            }
+        );
 
 
-      if (
-        job.completed >=
-        job.iterations
-      ) {
+    if (error) {
 
-        job.completed =
-          job.iterations;
+        console.error(
+            "Routes loading error:",
+            error
+        );
 
-        job.status =
-          "completed";
+        return;
 
-        clearInterval(interval);
+    }
 
-      }
 
-      renderJobs();
+    state.routes =
+        data || [];
 
-    }, 300);
+
+    renderRoutes();
+
+}
+
+
+function renderRoutes() {
+
+    const container =
+        document.getElementById(
+            "routes"
+        );
+
+
+    if (!container) return;
+
+
+    if (!state.routes.length) {
+
+        container.innerHTML = `
+
+            <div class="empty">
+
+                探索ルートはありません。
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        state.routes
+            .map(route => {
+
+                const banned =
+                    route.status === "banned";
+
+
+                return `
+
+                    <div class="result-card">
+
+                        <div
+                            style="
+                                display:flex;
+                                justify-content:space-between;
+                                gap:15px;
+                            "
+                        >
+
+                            <div>
+
+                                <div
+                                    style="
+                                        font-weight:700;
+                                        margin-bottom:7px;
+                                    "
+                                >
+                                    ${escapeHTML(
+                                        route.name
+                                    )}
+                                </div>
+
+
+                                <div
+                                    style="
+                                        color:#8c98b2;
+                                        font-size:13px;
+                                    "
+                                >
+                                    ${escapeHTML(
+                                        route.description ||
+                                        ""
+                                    )}
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                style="
+                                    text-align:right;
+                                    white-space:nowrap;
+                                "
+                            >
+
+                                <div>
+
+                                    ${route.attempts}
+                                    / 3
+
+                                </div>
+
+
+                                <div
+                                    style="
+                                        margin-top:5px;
+                                        font-size:11px;
+                                        color:
+                                            ${banned
+                                                ? "#ff7d8b"
+                                                : "#8b97b1"};
+                                    "
+                                >
+
+                                    ${banned
+                                        ? "封印"
+                                        : "使用可能"}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            })
+            .join("");
+
+}
+
+
+/* =========================================================
+   13. CALCULATION JOBS
+   ========================================================= */
+
+async function loadJobs() {
+
+    if (!currentProject) return;
+
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+
+        .from("calculation_jobs")
+
+        .select("*")
+
+        .eq(
+            "project_id",
+            currentProject.id
+        )
+
+        .order(
+            "created_at",
+            {
+                ascending: false
+            }
+        )
+
+        .limit(100);
+
+
+    if (error) {
+
+        console.error(
+            "Jobs loading error:",
+            error
+        );
+
+        return;
+
+    }
+
+
+    state.jobs =
+        data || [];
+
+
+    renderJobs();
 
 }
 
 
 function renderJobs() {
 
-  const container =
-    document.getElementById("jobs");
-
-  if (!container) return;
-
-  container.innerHTML = "";
-
-
-  if (researchState.jobs.length === 0) {
-
-    container.innerHTML = `
-      <div class="empty">
-        計算ジョブはありません。
-      </div>
-    `;
-
-    return;
-
-  }
-
-
-  researchState.jobs
-    .slice(0, 20)
-    .forEach(job => {
-
-      const percent =
-        Math.min(
-          100,
-          Math.round(
-            job.completed /
-            job.iterations *
-            100
-          )
+    const container =
+        document.getElementById(
+            "jobs"
         );
 
 
-      const element =
-        document.createElement("div");
+    if (!container) return;
 
-      element.className = "job";
 
-      element.innerHTML = `
+    if (!state.jobs.length) {
+
+        container.innerHTML = `
+
+            <div class="empty">
+
+                計算ジョブはありません。
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        state.jobs
+            .map(job => `
+
+                <div class="result-card">
+
+                    <div
+                        style="
+                            display:flex;
+                            justify-content:space-between;
+                        "
+                    >
+
+                        <div>
+
+                            <div
+                                style="
+                                    font-weight:700;
+                                "
+                            >
+                                ${escapeHTML(
+                                    job.job_type
+                                )}
+                            </div>
+
+
+                            <div
+                                style="
+                                    color:#8793ad;
+                                    font-size:12px;
+                                    margin-top:5px;
+                                "
+                            >
+                                ${escapeHTML(
+                                    job.status
+                                )}
+                            </div>
+
+                        </div>
+
+
+                        <div>
+
+                            ${Math.round(
+                                Number(
+                                    job.progress || 0
+                                )
+                            )}%
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        style="
+                            height:5px;
+                            background:#182138;
+                            border-radius:10px;
+                            margin-top:12px;
+                            overflow:hidden;
+                        "
+                    >
+
+                        <div
+                            style="
+                                width:${Math.max(
+                                    0,
+                                    Math.min(
+                                        100,
+                                        Number(
+                                            job.progress || 0
+                                        )
+                                    )
+                                )}%;
+                                height:100%;
+                                background:#718cff;
+                            "
+                        ></div>
+
+                    </div>
+
+                </div>
+
+            `)
+            .join("");
+
+}
+
+
+/* =========================================================
+   14. CREATE CALCULATION JOB
+   ========================================================= */
+
+async function createCalculationJob() {
+
+    if (!currentProject) {
+
+        alert(
+            "研究プロジェクトが読み込まれていません。"
+        );
+
+        return;
+
+    }
+
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+
+        .from("calculation_jobs")
+
+        .insert({
+
+            project_id:
+                currentProject.id,
+
+            job_type:
+                "exploration",
+
+            parameters: {
+
+                mode:
+                    "experimental",
+
+                created_by:
+                    "research_ui"
+
+            },
+
+            status:
+                "queued",
+
+            progress:
+                0
+
+        })
+
+        .select()
+
+        .single();
+
+
+    if (error) {
+
+        console.error(error);
+
+        alert(
+            "計算ジョブを作成できませんでした。"
+        );
+
+        return;
+
+    }
+
+
+    state.jobs.unshift(data);
+
+    renderJobs();
+
+
+    /*
+       注意：
+
+       ここではまだ本当の計算は実行していない。
+
+       今後、
+
+       Browser
+          ↓
+       Job Queue
+          ↓
+       Compute Worker
+          ↓
+       Python / 数式エンジン
+          ↓
+       Supabase
+
+       という構造にする。
+    */
+
+
+    simulateJobDisplay(data.id);
+
+}
+
+
+/* =========================================================
+   15. TEMPORARY JOB DISPLAY
+   ========================================================= */
+
+function simulateJobDisplay(jobId) {
+
+    let progress = 0;
+
+
+    const timer =
+        setInterval(
+            async () => {
+
+                progress += 5;
+
+
+                if (progress >= 100) {
+
+                    progress = 100;
+
+                    clearInterval(timer);
+
+                }
+
+
+                const job =
+                    state.jobs.find(
+                        item =>
+                            item.id === jobId
+                    );
+
+
+                if (job) {
+
+                    job.progress =
+                        progress;
+
+                    job.status =
+                        progress >= 100
+                            ? "completed"
+                            : "running";
+
+                }
+
+
+                renderJobs();
+
+
+                /*
+                   これは仮表示。
+
+                   実際の24時間計算では
+                   この部分をサーバー側Workerに置き換える。
+                */
+
+            },
+
+            500
+
+        );
+
+}
+
+
+/* =========================================================
+   16. CHAT
+   ========================================================= */
+
+async function sendMessage() {
+
+    const input =
+        document.getElementById(
+            "chatInput"
+        );
+
+
+    if (!input) return;
+
+
+    const content =
+        input.value.trim();
+
+
+    if (!content) return;
+
+
+    addChatMessage(
+        "user",
+        content
+    );
+
+
+    input.value = "";
+
+
+    /*
+       現在はAI API未接続。
+
+       後で、
+
+       Browser
+          ↓
+       Secure API
+          ↓
+       Claude
+          ↓
+       Research Context
+          ↓
+       Research Memory
+          ↓
+       Response
+
+       にする。
+    */
+
+
+    addChatMessage(
+
+        "assistant",
+
+        "現在は研究AI APIが未接続です。Supabaseへの保存機能を確認後、Claude接続を追加します。"
+
+    );
+
+}
+
+
+/* =========================================================
+   17. CHAT UI
+   ========================================================= */
+
+function addChatMessage(role, content) {
+
+    const container =
+        document.getElementById(
+            "chatMessages"
+        );
+
+
+    if (!container) return;
+
+
+    const message =
+        document.createElement(
+            "div"
+        );
+
+
+    message.className =
+        role === "user"
+            ? "message user"
+            : "message ai";
+
+
+    message.innerHTML = `
+
+        <div class="message-label">
+
+            ${
+                role === "user"
+                    ? "あなた"
+                    : "研究AI"
+            }
+
+        </div>
+
 
         <div>
 
-          <strong>
-            ${job.id}
-          </strong>
+            ${escapeHTML(content)}
 
-          <span
-            style="
-              color:#8793af;
-              margin-left:8px;
-              font-size:12px;
-            "
-          >
-            ${
-              job.status === "completed"
-                ? "完了"
-                : "計算中"
+        </div>
+
+    `;
+
+
+    container.appendChild(
+        message
+    );
+
+
+    container.scrollTop =
+        container.scrollHeight;
+
+}
+
+
+/* =========================================================
+   18. NAVIGATION
+   ========================================================= */
+
+function initializeNavigation() {
+
+    const buttons =
+        document.querySelectorAll(
+            ".nav-button"
+        );
+
+
+    buttons.forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                const page =
+                    button.dataset.page;
+
+
+                switchPage(page);
+
             }
-          </span>
+        );
 
-        </div>
+    });
 
-
-        <div
-          style="
-            margin-top:7px;
-            color:#8793af;
-            font-size:12px;
-          "
-        >
-
-          ${job.completed.toLocaleString()}
-          /
-          ${job.iterations.toLocaleString()}
-          iterations
-
-        </div>
+}
 
 
-        <div class="progress">
+function switchPage(page) {
 
-          <div
-            class="progress-bar"
-            style="width:${percent}%"
-          ></div>
+    state.currentPage =
+        page;
 
-        </div>
 
-      `;
+    document
+        .querySelectorAll(
+            ".nav-button"
+        )
+        .forEach(button => {
 
-      container.appendChild(element);
+            button.classList.toggle(
+                "active",
+                button.dataset.page === page
+            );
+
+        });
+
+
+    document
+        .querySelectorAll(
+            ".page"
+        )
+        .forEach(section => {
+
+            section.classList.toggle(
+                "active",
+                section.id ===
+                    `page-${page}`
+            );
+
+        });
+
+}
+
+
+/* =========================================================
+   19. BUTTONS
+   ========================================================= */
+
+function initializeButtons() {
+
+    const sendButton =
+        document.getElementById(
+            "sendMessageButton"
+        );
+
+
+    if (sendButton) {
+
+        sendButton.addEventListener(
+            "click",
+            sendMessage
+        );
+
+    }
+
+
+    const chatInput =
+        document.getElementById(
+            "chatInput"
+        );
+
+
+    if (chatInput) {
+
+        chatInput.addEventListener(
+            "keydown",
+            event => {
+
+                if (
+                    event.key === "Enter"
+                ) {
+
+                    sendMessage();
+
+                }
+
+            }
+        );
+
+    }
+
+
+    const newHypothesis =
+        document.getElementById(
+            "newHypothesisButton"
+        );
+
+
+    if (newHypothesis) {
+
+        newHypothesis.addEventListener(
+            "click",
+            openHypothesisModal
+        );
+
+    }
+
+
+    const saveHypothesis =
+        document.getElementById(
+            "saveHypothesisButton"
+        );
+
+
+    if (saveHypothesis) {
+
+        saveHypothesis.addEventListener(
+            "click",
+            createHypothesis
+        );
+
+    }
+
+
+    const closeHypothesis =
+        document.getElementById(
+            "closeHypothesisModal"
+        );
+
+
+    if (closeHypothesis) {
+
+        closeHypothesis.addEventListener(
+            "click",
+            closeHypothesisModal
+        );
+
+    }
+
+
+    const startCalculation =
+        document.getElementById(
+            "startCalculationButton"
+        );
+
+
+    if (startCalculation) {
+
+        startCalculation.addEventListener(
+            "click",
+            createCalculationJob
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   20. MODALS
+   ========================================================= */
+
+function initializeModal() {
+
+    const modal =
+        document.getElementById(
+            "modal"
+        );
+
+
+    if (modal) {
+
+        modal.addEventListener(
+            "click",
+            event => {
+
+                if (
+                    event.target === modal
+                ) {
+
+                    closeModal();
+
+                }
+
+            }
+        );
+
+    }
+
+
+    const hypothesisModal =
+        document.getElementById(
+            "hypothesisModal"
+        );
+
+
+    if (hypothesisModal) {
+
+        hypothesisModal.addEventListener(
+            "click",
+            event => {
+
+                if (
+                    event.target ===
+                    hypothesisModal
+                ) {
+
+                    closeHypothesisModal();
+
+                }
+
+            }
+        );
+
+    }
+
+}
+
+
+function closeModal() {
+
+    const modal =
+        document.getElementById(
+            "modal"
+        );
+
+
+    if (modal) {
+
+        modal.classList.remove(
+            "active"
+        );
+
+    }
+
+}
+
+
+function openHypothesisModal() {
+
+    const modal =
+        document.getElementById(
+            "hypothesisModal"
+        );
+
+
+    if (modal) {
+
+        modal.classList.add(
+            "active"
+        );
+
+    }
+
+}
+
+
+function closeHypothesisModal() {
+
+    const modal =
+        document.getElementById(
+            "hypothesisModal"
+        );
+
+
+    if (modal) {
+
+        modal.classList.remove(
+            "active"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   21. STATISTICS
+   ========================================================= */
+
+function updateStatistics() {
+
+    const results =
+        document.getElementById(
+            "stat-results"
+        );
+
+
+    const hypotheses =
+        document.getElementById(
+            "stat-hypotheses"
+        );
+
+
+    const banned =
+        document.getElementById(
+            "stat-banned"
+        );
+
+
+    if (results) {
+
+        results.textContent =
+            state.results.length;
+
+    }
+
+
+    if (hypotheses) {
+
+        hypotheses.textContent =
+            state.hypotheses.filter(
+                item =>
+                    normalizeResultStatus(
+                        item.status
+                    ) === "maybe" ||
+                    item.status === "unknown"
+            ).length;
+
+    }
+
+
+    if (banned) {
+
+        banned.textContent =
+            state.routes.filter(
+                route =>
+                    route.status === "banned"
+            ).length;
+
+    }
+
+}
+
+
+/* =========================================================
+   22. EMPTY STATE
+   ========================================================= */
+
+function renderEmptyState() {
+
+    const containers = [
+
+        "results",
+
+        "hypotheses",
+
+        "memory",
+
+        "routes",
+
+        "jobs"
+
+    ];
+
+
+    containers.forEach(id => {
+
+        const element =
+            document.getElementById(id);
+
+
+        if (!element) return;
+
+
+        element.innerHTML = `
+
+            <div class="empty">
+
+                Supabase接続を設定すると
+                研究データが表示されます。
+
+            </div>
+
+        `;
 
     });
 
@@ -906,124 +2213,153 @@ function renderJobs() {
 
 
 /* =========================================================
-   Dashboard Stats
-========================================================= */
-
-function updateStats() {
-
-  const resultCount =
-    document.getElementById(
-      "stat-results"
-    );
-
-  const hypothesisCount =
-    document.getElementById(
-      "stat-hypotheses"
-    );
-
-  const bannedCount =
-    document.getElementById(
-      "stat-banned"
-    );
-
-
-  if (resultCount) {
-
-    resultCount.textContent =
-      researchState.results.length;
-
-  }
-
-
-  if (hypothesisCount) {
-
-    hypothesisCount.textContent =
-      researchState.hypotheses
-        .filter(
-          item =>
-            item.status === "maybe"
-        )
-        .length;
-
-  }
-
-
-  if (bannedCount) {
-
-    bannedCount.textContent =
-      researchState.routes
-        .filter(
-          route =>
-            route.attempts >= 3 ||
-            route.status === "banned"
-        )
-        .length;
-
-  }
-
-}
-
-
-/* =========================================================
-   Security Helper
-========================================================= */
+   23. UTILITY
+   ========================================================= */
 
 function escapeHTML(value) {
 
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-
-}
-
-
-/* =========================================================
-   Global Events
-========================================================= */
-
-document.addEventListener(
-  "keydown",
-  event => {
-
     if (
-      event.key === "Escape"
+        value === null ||
+        value === undefined
     ) {
 
-      closeModal();
+        return "";
 
     }
 
-  }
-);
 
+    return String(value)
 
-/* =========================================================
-   Initialization
-========================================================= */
+        .replace(
+            /&/g,
+            "&amp;"
+        )
 
-function initializeResearchLab() {
+        .replace(
+            /</g,
+            "&lt;"
+        )
 
-  setupNavigation();
+        .replace(
+            />/g,
+            "&gt;"
+        )
 
-  renderResults();
+        .replace(
+            /"/g,
+            "&quot;"
+        )
 
-  renderHypotheses();
-
-  renderRoutes();
-
-  renderMemory();
-
-  renderJobs();
-
-  updateStats();
+        .replace(
+            /'/g,
+            "&#039;"
+        );
 
 }
 
 
-document.addEventListener(
-  "DOMContentLoaded",
-  initializeResearchLab
+function truncate(
+    text,
+    length
+) {
+
+    if (!text) return "";
+
+
+    const value =
+        String(text);
+
+
+    if (
+        value.length <= length
+    ) {
+
+        return value;
+
+    }
+
+
+    return (
+        value.slice(
+            0,
+            length
+        ) + "..."
+    );
+
+}
+
+
+function formatDate(
+    value
+) {
+
+    if (!value) {
+
+        return "日時不明";
+
+    }
+
+
+    try {
+
+        return new Date(
+            value
+        ).toLocaleString(
+            "ja-JP"
+        );
+
+    } catch {
+
+        return String(value);
+
+    }
+
+}
+
+
+/* =========================================================
+   24. GLOBAL FUNCTIONS
+   ========================================================= */
+
+window.closeModal =
+    closeModal;
+
+
+window.openHypothesisModal =
+    openHypothesisModal;
+
+
+window.closeHypothesisModal =
+    closeHypothesisModal;
+
+
+/* =========================================================
+   25. DEBUG
+   ========================================================= */
+
+window.ResearchLab = {
+
+    state,
+
+    getProject:
+        () => currentProject,
+
+    reload:
+        loadApplication,
+
+    loadResults,
+
+    loadHypotheses,
+
+    loadMemory,
+
+    loadRoutes,
+
+    loadJobs
+
+};
+
+
+console.log(
+    "Research AI Lab initialized."
 );
