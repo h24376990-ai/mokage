@@ -1,395 +1,40 @@
 <!DOCTYPE html>
+
 <html lang="ja">
+
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="description"
+    content="数学研究AI Lab"
+  >
+
   <title>Research AI Lab</title>
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+  <link
+    rel="stylesheet"
+    href="styles.css"
+  >
 
-    body {
-      margin: 0;
-      font-family:
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        sans-serif;
-      background: #0b1020;
-      color: #eef2ff;
-    }
-
-    button,
-    input,
-    textarea {
-      font: inherit;
-    }
-
-    button {
-      cursor: pointer;
-    }
-
-    .app {
-      min-height: 100vh;
-      display: flex;
-    }
-
-    /* Sidebar */
-
-    .sidebar {
-      width: 250px;
-      background: #11182d;
-      border-right: 1px solid #27304a;
-      padding: 22px 16px;
-      position: fixed;
-      left: 0;
-      top: 0;
-      bottom: 0;
-    }
-
-    .logo {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 30px;
-    }
-
-    .logo span {
-      color: #8ea2ff;
-    }
-
-    .nav-button {
-      width: 100%;
-      border: 0;
-      background: transparent;
-      color: #b9c2dc;
-      padding: 13px 14px;
-      border-radius: 10px;
-      text-align: left;
-      margin-bottom: 6px;
-    }
-
-    .nav-button:hover,
-    .nav-button.active {
-      background: #202a48;
-      color: white;
-    }
-
-    /* Main */
-
-    .main {
-      margin-left: 250px;
-      width: calc(100% - 250px);
-      padding: 30px;
-      max-width: 1500px;
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 20px;
-      margin-bottom: 28px;
-    }
-
-    .header h1 {
-      margin: 0;
-      font-size: 28px;
-    }
-
-    .header p {
-      color: #8995b5;
-      margin: 7px 0 0;
-    }
-
-    .status {
-      padding: 9px 14px;
-      background: #14233a;
-      border: 1px solid #29466d;
-      border-radius: 999px;
-      color: #9fc4ff;
-      font-size: 13px;
-    }
-
-    /* Cards */
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-      margin-bottom: 25px;
-    }
-
-    .card {
-      background: #121a30;
-      border: 1px solid #27304a;
-      border-radius: 15px;
-      padding: 20px;
-    }
-
-    .stat-label {
-      color: #8995b5;
-      font-size: 13px;
-      margin-bottom: 10px;
-    }
-
-    .stat-number {
-      font-size: 30px;
-      font-weight: 700;
-    }
-
-    /* Research */
-
-    .section {
-      background: #121a30;
-      border: 1px solid #27304a;
-      border-radius: 15px;
-      margin-bottom: 20px;
-      overflow: hidden;
-    }
-
-    .section-header {
-      padding: 18px 20px;
-      border-bottom: 1px solid #27304a;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .section-header h2 {
-      margin: 0;
-      font-size: 18px;
-    }
-
-    .result {
-      padding: 18px 20px;
-      border-bottom: 1px solid #202941;
-      display: flex;
-      gap: 15px;
-      align-items: center;
-    }
-
-    .result:last-child {
-      border-bottom: 0;
-    }
-
-    .result-mark {
-      width: 42px;
-      height: 42px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 21px;
-      font-weight: bold;
-      flex-shrink: 0;
-    }
-
-    .good {
-      background: #123528;
-      color: #62e6a0;
-    }
-
-    .maybe {
-      background: #403416;
-      color: #ffd56a;
-    }
-
-    .bad {
-      background: #411f2b;
-      color: #ff879d;
-    }
-
-    .result-content {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .result-title {
-      font-weight: 600;
-      margin-bottom: 5px;
-    }
-
-    .result-description {
-      color: #8995b5;
-      font-size: 13px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .result-date {
-      color: #697694;
-      font-size: 12px;
-    }
-
-    .details-button {
-      background: #202a48;
-      border: 0;
-      color: #dce4ff;
-      padding: 9px 13px;
-      border-radius: 8px;
-    }
-
-    .details-button:hover {
-      background: #2b3960;
-    }
-
-    /* Chat */
-
-    .chat {
-      display: flex;
-      flex-direction: column;
-      min-height: 300px;
-    }
-
-    .messages {
-      padding: 20px;
-      min-height: 190px;
-    }
-
-    .message {
-      background: #1a2440;
-      border-radius: 12px;
-      padding: 13px 15px;
-      margin-bottom: 10px;
-      max-width: 85%;
-      color: #dce4ff;
-    }
-
-    .message.ai {
-      border-left: 3px solid #8095ff;
-    }
-
-    .chat-input {
-      display: flex;
-      gap: 10px;
-      padding: 15px;
-      border-top: 1px solid #27304a;
-    }
-
-    .chat-input input {
-      flex: 1;
-      background: #0d1427;
-      color: white;
-      border: 1px solid #303b59;
-      border-radius: 10px;
-      padding: 12px;
-      outline: none;
-    }
-
-    .send {
-      background: #6578e8;
-      color: white;
-      border: 0;
-      border-radius: 10px;
-      padding: 0 18px;
-    }
-
-    /* Modal */
-
-    .modal-bg {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.7);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      z-index: 100;
-    }
-
-    .modal-bg.show {
-      display: flex;
-    }
-
-    .modal {
-      width: min(750px, 100%);
-      max-height: 90vh;
-      overflow-y: auto;
-      background: #121a30;
-      border: 1px solid #35415f;
-      border-radius: 16px;
-      padding: 25px;
-    }
-
-    .modal h2 {
-      margin-top: 0;
-    }
-
-    .detail-block {
-      background: #0d1427;
-      border: 1px solid #252f4a;
-      border-radius: 10px;
-      padding: 15px;
-      margin-top: 12px;
-    }
-
-    .detail-label {
-      color: #8490b0;
-      font-size: 12px;
-      margin-bottom: 7px;
-    }
-
-    .close {
-      float: right;
-      background: transparent;
-      color: #9aa6c4;
-      border: 0;
-      font-size: 22px;
-    }
-
-    /* Mobile */
-
-    @media (max-width: 800px) {
-      .sidebar {
-        width: 70px;
-        padding: 15px 8px;
-      }
-
-      .logo {
-        font-size: 0;
-        text-align: center;
-      }
-
-      .logo span {
-        font-size: 20px;
-      }
-
-      .nav-button {
-        font-size: 0;
-        text-align: center;
-      }
-
-      .nav-button::first-letter {
-        font-size: 20px;
-      }
-
-      .main {
-        margin-left: 70px;
-        width: calc(100% - 70px);
-        padding: 18px;
-      }
-
-      .grid {
-        grid-template-columns: 1fr;
-      }
-
-      .result {
-        align-items: flex-start;
-      }
-
-      .result-date {
-        display: none;
-      }
-    }
-  </style>
 </head>
+
 
 <body>
 
+
 <div class="app">
+
+
+  <!-- =========================================
+       Sidebar
+  ========================================== -->
 
   <aside class="sidebar">
 
@@ -397,337 +42,621 @@
       Research <span>AI</span>
     </div>
 
-    <button class="nav-button active">⌂　研究</button>
-    <button class="nav-button">◉　仮説</button>
-    <button class="nav-button">∿　計算</button>
-    <button class="nav-button">◇　証明</button>
-    <button class="nav-button">△　3Dモデル</button>
-    <button class="nav-button">▣　研究記憶</button>
+
+    <nav class="nav">
+
+      <button
+        class="nav-button active"
+        data-page="research"
+      >
+        <span class="nav-icon">⌂</span>
+        研究
+      </button>
+
+
+      <button
+        class="nav-button"
+        data-page="hypotheses"
+      >
+        <span class="nav-icon">◉</span>
+        仮説
+      </button>
+
+
+      <button
+        class="nav-button"
+        data-page="calculations"
+      >
+        <span class="nav-icon">∿</span>
+        計算
+      </button>
+
+
+      <button
+        class="nav-button"
+        data-page="proofs"
+      >
+        <span class="nav-icon">◇</span>
+        証明
+      </button>
+
+
+      <button
+        class="nav-button"
+        data-page="models"
+      >
+        <span class="nav-icon">△</span>
+        3Dモデル
+      </button>
+
+
+      <button
+        class="nav-button"
+        data-page="memory"
+      >
+        <span class="nav-icon">▣</span>
+        研究記憶
+      </button>
+
+
+      <button
+        class="nav-button"
+        data-page="routes"
+      >
+        <span class="nav-icon">↗</span>
+        探索ルート
+      </button>
+
+    </nav>
 
   </aside>
 
 
+  <!-- =========================================
+       Main
+  ========================================== -->
+
   <main class="main">
 
-    <header class="header">
 
-      <div>
-        <h1>数学研究ラボ</h1>
-        <p>仮説・計算・反証・証明を一つの場所で管理</p>
-      </div>
+    <!-- =====================================
+         Research
+    ====================================== -->
 
-      <div class="status">
-        ● Research Engine 準備中
-      </div>
+    <section
+      id="page-research"
+      class="page active"
+    >
 
-    </header>
+      <header class="header">
 
+        <div>
 
-    <!-- Statistics -->
+          <h1>
+            数学研究ラボ
+          </h1>
 
-    <section class="grid">
+          <p>
+            仮説・計算・反証・証明を統合して探索
+          </p>
 
-      <div class="card">
-        <div class="stat-label">研究結果</div>
-        <div class="stat-number" id="resultCount">3</div>
-      </div>
-
-      <div class="card">
-        <div class="stat-label">未確定の仮説</div>
-        <div class="stat-number">1</div>
-      </div>
-
-      <div class="card">
-        <div class="stat-label">封印された探索ルート</div>
-        <div class="stat-number">0</div>
-      </div>
-
-    </section>
-
-
-    <!-- Results -->
-
-    <section class="section">
-
-      <div class="section-header">
-
-        <h2>研究結果</h2>
-
-        <span style="color:#7f8baa;font-size:13px;">
-          最新100件を表示
-        </span>
-
-      </div>
-
-      <div id="results"></div>
-
-    </section>
-
-
-    <!-- AI Chat -->
-
-    <section class="section chat">
-
-      <div class="section-header">
-        <h2>研究AI</h2>
-        <span style="color:#7f8baa;font-size:13px;">
-          現在はデモモード
-        </span>
-      </div>
-
-      <div class="messages" id="messages">
-
-        <div class="message ai">
-          研究AIへようこそ。<br>
-          現在は画面の土台を構築しています。<br><br>
-          次の段階でSupabaseと接続し、研究記憶を永続化します。
         </div>
 
+
+        <div class="status">
+          ● Research Engine 準備中
+        </div>
+
+      </header>
+
+
+      <!-- Statistics -->
+
+      <div class="grid">
+
+
+        <div class="card">
+
+          <div class="card-title">
+            保存された研究結果
+          </div>
+
+          <div
+            id="stat-results"
+            class="card-number"
+          >
+            0
+          </div>
+
+          <div class="card-small">
+            最新100件を画面表示
+          </div>
+
+        </div>
+
+
+        <div class="card">
+
+          <div class="card-title">
+            未確定の仮説
+          </div>
+
+          <div
+            id="stat-hypotheses"
+            class="card-number"
+          >
+            0
+          </div>
+
+          <div class="card-small">
+            △
+          </div>
+
+        </div>
+
+
+        <div class="card">
+
+          <div class="card-title">
+            封印されたルート
+          </div>
+
+          <div
+            id="stat-banned"
+            class="card-number"
+          >
+            0
+          </div>
+
+          <div class="card-small">
+            3回以上試行
+          </div>
+
+        </div>
+
+
+        <div class="card">
+
+          <div class="card-title">
+            検証方針
+          </div>
+
+          <div class="card-number">
+            厳格
+          </div>
+
+          <div class="card-small">
+            数値結果 ≠ 証明
+          </div>
+
+        </div>
+
+
       </div>
 
-      <div class="chat-input">
 
-        <input
-          id="chatInput"
-          placeholder="研究について入力..."
+      <!-- Results -->
+
+      <section class="section">
+
+        <div class="section-header">
+
+          <h2>
+            研究結果
+          </h2>
+
+          <span
+            style="
+              color:#7f8baa;
+              font-size:12px;
+            "
+          >
+            ○ / △ / ×
+          </span>
+
+        </div>
+
+
+        <div id="results"></div>
+
+      </section>
+
+
+      <!-- Chat -->
+
+      <section class="section">
+
+        <div class="section-header">
+
+          <h2>
+            研究AI
+          </h2>
+
+          <span
+            style="
+              color:#7f8baa;
+              font-size:12px;
+            "
+          >
+            API未接続
+          </span>
+
+        </div>
+
+
+        <div
+          id="chatMessages"
+          class="chat-messages"
         >
 
-        <button class="send" onclick="sendMessage()">
-          送信
-        </button>
+          <div class="message ai">
 
-      </div>
+            <div class="message-label">
+              研究AI
+            </div>
+
+            こんにちは。
+            現在は研究システムのUIを構築しています。
+            次の段階でSupabaseの永続研究記憶を接続します。
+
+          </div>
+
+        </div>
+
+
+        <div class="chat-input">
+
+          <input
+            id="chatInput"
+            type="text"
+            placeholder="研究について入力..."
+          >
+
+          <button
+            class="btn btn-primary"
+            onclick="sendMessage()"
+          >
+            送信
+          </button>
+
+        </div>
+
+      </section>
+
 
     </section>
+
+
+    <!-- =====================================
+         Hypotheses
+    ====================================== -->
+
+    <section
+      id="page-hypotheses"
+      class="page"
+    >
+
+      <header class="header">
+
+        <div>
+
+          <h1>仮説</h1>
+
+          <p>
+            AIが提案した仮説を検証可能な形で管理
+          </p>
+
+        </div>
+
+      </header>
+
+
+      <section class="section">
+
+        <div
+          id="hypotheses"
+        ></div>
+
+      </section>
+
+    </section>
+
+
+    <!-- =====================================
+         Calculations
+    ====================================== -->
+
+    <section
+      id="page-calculations"
+      class="page"
+    >
+
+      <header class="header">
+
+        <div>
+
+          <h1>計算</h1>
+
+          <p>
+            数値実験・探索ジョブ
+          </p>
+
+        </div>
+
+
+        <button
+          class="btn btn-primary"
+          onclick="startCalculation()"
+        >
+          計算を開始
+        </button>
+
+      </header>
+
+
+      <section class="section">
+
+        <div class="section-header">
+
+          <h2>
+            計算ジョブ
+          </h2>
+
+          <span
+            style="
+              color:#7f8baa;
+              font-size:12px;
+            "
+          >
+            Prototype
+          </span>
+
+        </div>
+
+
+        <div
+          id="jobs"
+          class="section-body"
+        ></div>
+
+      </section>
+
+    </section>
+
+
+    <!-- =====================================
+         Proofs
+    ====================================== -->
+
+    <section
+      id="page-proofs"
+      class="page"
+    >
+
+      <header class="header">
+
+        <div>
+
+          <h1>証明</h1>
+
+          <p>
+            証明状態と検証根拠
+          </p>
+
+        </div>
+
+      </header>
+
+
+      <section class="section">
+
+        <div class="section-body">
+
+          <div class="detail-block">
+
+            <div class="detail-label">
+              現在のルール
+            </div>
+
+            数値実験だけでは「証明済み」にしない。
+
+          </div>
+
+
+          <div class="detail-block">
+
+            <div class="detail-label">
+              形式検証
+            </div>
+
+            Lean + Mathlib
+            接続予定。
+
+          </div>
+
+
+          <div class="detail-block">
+
+            <div class="detail-label">
+              文献確認
+            </div>
+
+            関連論文を確認するまで
+            「新規」と断定しない。
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </section>
+
+
+    <!-- =====================================
+         3D Models
+    ====================================== -->
+
+    <section
+      id="page-models"
+      class="page"
+    >
+
+      <header class="header">
+
+        <div>
+
+          <h1>3D数学モデル</h1>
+
+          <p>
+            数学的構造を視覚化・操作する
+          </p>
+
+        </div>
+
+      </header>
+
+
+      <section class="section">
+
+        <div class="model-viewer">
+
+          <div class="model-placeholder">
+
+            <div class="big">
+              ◇
+            </div>
+
+            <div>
+              Three.jsモデルエンジン
+            </div>
+
+            <div
+              style="
+                margin-top:7px;
+                font-size:12px;
+              "
+            >
+              接続予定
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </section>
+
+
+    <!-- =====================================
+         Memory
+    ====================================== -->
+
+    <section
+      id="page-memory"
+      class="page"
+    >
+
+      <header class="header">
+
+        <div>
+
+          <h1>研究記憶</h1>
+
+          <p>
+            過去の仮説・反例・失敗・発見を永続的に保存
+          </p>
+
+        </div>
+
+      </header>
+
+
+      <section class="section">
+
+        <div id="memory"></div>
+
+      </section>
+
+    </section>
+
+
+    <!-- =====================================
+         Routes
+    ====================================== -->
+
+    <section
+      id="page-routes"
+      class="page"
+    >
+
+      <header class="header">
+
+        <div>
+
+          <h1>探索ルート</h1>
+
+          <p>
+            同じ失敗を繰り返さないための探索履歴
+          </p>
+
+        </div>
+
+      </header>
+
+
+      <section class="section">
+
+        <div class="section-header">
+
+          <h2>
+            探索ルート
+          </h2>
+
+          <span
+            style="
+              color:#7f8baa;
+              font-size:12px;
+            "
+          >
+            3回以上で封印
+          </span>
+
+        </div>
+
+
+        <div id="routes"></div>
+
+      </section>
+
+    </section>
+
 
   </main>
 
 </div>
 
 
-<!-- Detail Modal -->
+<!-- =========================================
+     Modal
+========================================== -->
 
-<div class="modal-bg" id="modal">
+<div
+  id="modal"
+  class="modal-bg"
+>
 
-  <div class="modal">
-
-    <button class="close" onclick="closeModal()">×</button>
-
-    <div id="modalContent"></div>
-
-  </div>
+  <div
+    id="modalContent"
+    class="modal"
+  ></div>
 
 </div>
 
 
-<script>
-
-  /*
-   * 現在はプロトタイプ。
-   * 次の段階でSupabaseに置き換える。
-   */
-
-  const results = [
-    {
-      id: 1,
-      status: "good",
-      mark: "○",
-      title: "仮説 H-001",
-      description: "数値実験において予想された不変量を確認。",
-      date: "2026-08-14",
-      hypothesis: "特定の変換に対して量 I(x) が保存される。",
-      calculation: "10,000回の数値実験を実施。",
-      verification: "現段階では数値的に支持。形式証明は未実施。",
-      next: "一般条件での証明を試す。"
-    },
-    {
-      id: 2,
-      status: "maybe",
-      mark: "△",
-      title: "仮説 H-002",
-      description: "数値的には支持されているが証明が未完成。",
-      date: "2026-08-14",
-      hypothesis: "条件Aのもとで関数 f(x) は単調性を持つ。",
-      calculation: "100,000回のランダム探索。",
-      verification: "反例は発見されていない。",
-      next: "境界条件を確認し、反例探索を拡張する。"
-    },
-    {
-      id: 3,
-      status: "bad",
-      mark: "×",
-      title: "仮説 H-003",
-      description: "反例が発見されたため仮説を棄却。",
-      date: "2026-08-14",
-      hypothesis: "すべての x に対して P(x) が成立する。",
-      calculation: "50,000回の探索。",
-      verification: "x = 3.72 付近で反例候補を発見。",
-      next: "仮説の条件を見直す。"
-    }
-  ];
-
-
-  function renderResults() {
-
-    const container = document.getElementById("results");
-
-    container.innerHTML = "";
-
-    results.forEach(result => {
-
-      const div = document.createElement("div");
-
-      div.className = "result";
-
-      div.innerHTML = `
-        <div class="result-mark ${result.status}">
-          ${result.mark}
-        </div>
-
-        <div class="result-content">
-
-          <div class="result-title">
-            ${result.title}
-          </div>
-
-          <div class="result-description">
-            ${result.description}
-          </div>
-
-        </div>
-
-        <div class="result-date">
-          ${result.date}
-        </div>
-
-        <button
-          class="details-button"
-          onclick="openResult(${result.id})"
-        >
-          詳細
-        </button>
-      `;
-
-      container.appendChild(div);
-
-    });
-
-    document.getElementById("resultCount").textContent =
-      results.length;
-  }
-
-
-  function openResult(id) {
-
-    const result = results.find(r => r.id === id);
-
-    if (!result) return;
-
-    document.getElementById("modalContent").innerHTML = `
-
-      <div class="result-mark ${result.status}">
-        ${result.mark}
-      </div>
-
-      <h2>${result.title}</h2>
-
-      <div class="detail-block">
-
-        <div class="detail-label">
-          仮説
-        </div>
-
-        ${result.hypothesis}
-
-      </div>
-
-      <div class="detail-block">
-
-        <div class="detail-label">
-          計算
-        </div>
-
-        ${result.calculation}
-
-      </div>
-
-      <div class="detail-block">
-
-        <div class="detail-label">
-          検証状態
-        </div>
-
-        ${result.verification}
-
-      </div>
-
-      <div class="detail-block">
-
-        <div class="detail-label">
-          次に試すこと
-        </div>
-
-        ${result.next}
-
-      </div>
-
-    `;
-
-    document.getElementById("modal").classList.add("show");
-
-  }
-
-
-  function closeModal() {
-
-    document
-      .getElementById("modal")
-      .classList.remove("show");
-
-  }
-
-
-  function sendMessage() {
-
-    const input = document.getElementById("chatInput");
-
-    const text = input.value.trim();
-
-    if (!text) return;
-
-    const messages = document.getElementById("messages");
-
-    const userMessage =
-      document.createElement("div");
-
-    userMessage.className = "message";
-
-    userMessage.textContent = text;
-
-    messages.appendChild(userMessage);
-
-    input.value = "";
-
-    setTimeout(() => {
-
-      const aiMessage =
-        document.createElement("div");
-
-      aiMessage.className = "message ai";
-
-      aiMessage.textContent =
-        "現在はデモモードです。次の段階でAI APIとSupabase研究記憶を接続します。";
-
-      messages.appendChild(aiMessage);
-
-    }, 400);
-
-  }
-
-
-  renderResults();
-
-</script>
+<script src="app.js"></script>
 
 </body>
+
 </html>
