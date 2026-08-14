@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="ja">
 
 <head>
@@ -13,10 +12,32 @@
 
   <meta
     name="description"
-    content="数学研究AI Lab"
+    content="数学研究AI Lab - 仮説、計算、反証、証明、研究記憶を統合する研究環境"
+  >
+
+  <meta
+    name="theme-color"
+    content="#080c18"
   >
 
   <title>Research AI Lab</title>
+
+  <!--
+    ==========================================
+    Supabase JavaScript SDK
+    ==========================================
+  -->
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+  ></script>
+
+
+  <!--
+    ==========================================
+    Research AI Lab Styles
+    ==========================================
+  -->
 
   <link
     rel="stylesheet"
@@ -32,9 +53,9 @@
 <div class="app">
 
 
-  <!-- =========================================
-       Sidebar
-  ========================================== -->
+  <!-- =====================================================
+       SIDEBAR
+  ====================================================== -->
 
   <aside class="sidebar">
 
@@ -45,12 +66,18 @@
 
     <nav class="nav">
 
+
       <button
         class="nav-button active"
         data-page="research"
       >
-        <span class="nav-icon">⌂</span>
+
+        <span class="nav-icon">
+          ⌂
+        </span>
+
         研究
+
       </button>
 
 
@@ -58,8 +85,13 @@
         class="nav-button"
         data-page="hypotheses"
       >
-        <span class="nav-icon">◉</span>
+
+        <span class="nav-icon">
+          ◉
+        </span>
+
         仮説
+
       </button>
 
 
@@ -67,8 +99,13 @@
         class="nav-button"
         data-page="calculations"
       >
-        <span class="nav-icon">∿</span>
+
+        <span class="nav-icon">
+          ∿
+        </span>
+
         計算
+
       </button>
 
 
@@ -76,8 +113,13 @@
         class="nav-button"
         data-page="proofs"
       >
-        <span class="nav-icon">◇</span>
+
+        <span class="nav-icon">
+          ◇
+        </span>
+
         証明
+
       </button>
 
 
@@ -85,8 +127,13 @@
         class="nav-button"
         data-page="models"
       >
-        <span class="nav-icon">△</span>
+
+        <span class="nav-icon">
+          △
+        </span>
+
         3Dモデル
+
       </button>
 
 
@@ -94,8 +141,13 @@
         class="nav-button"
         data-page="memory"
       >
-        <span class="nav-icon">▣</span>
+
+        <span class="nav-icon">
+          ▣
+        </span>
+
         研究記憶
+
       </button>
 
 
@@ -103,30 +155,38 @@
         class="nav-button"
         data-page="routes"
       >
-        <span class="nav-icon">↗</span>
+
+        <span class="nav-icon">
+          ↗
+        </span>
+
         探索ルート
+
       </button>
+
 
     </nav>
 
   </aside>
 
 
-  <!-- =========================================
-       Main
-  ========================================== -->
+
+  <!-- =====================================================
+       MAIN
+  ====================================================== -->
 
   <main class="main">
 
 
-    <!-- =====================================
-         Research
-    ====================================== -->
+    <!-- =================================================
+         RESEARCH
+    ================================================== -->
 
     <section
       id="page-research"
       class="page active"
     >
+
 
       <header class="header">
 
@@ -143,14 +203,22 @@
         </div>
 
 
-        <div class="status">
-          ● Research Engine 準備中
+        <div
+          class="status"
+          id="connectionStatus"
+        >
+
+          ● Supabase 接続準備中
+
         </div>
 
       </header>
 
 
-      <!-- Statistics -->
+
+      <!-- ===============================================
+           STATISTICS
+      ================================================ -->
 
       <div class="grid">
 
@@ -169,10 +237,11 @@
           </div>
 
           <div class="card-small">
-            最新100件を画面表示
+            最新100件を表示
           </div>
 
         </div>
+
 
 
         <div class="card">
@@ -189,16 +258,17 @@
           </div>
 
           <div class="card-small">
-            △
+            △ 未確定
           </div>
 
         </div>
 
 
+
         <div class="card">
 
           <div class="card-title">
-            封印されたルート
+            封印された探索ルート
           </div>
 
           <div
@@ -209,10 +279,11 @@
           </div>
 
           <div class="card-small">
-            3回以上試行
+            3回以上の試行
           </div>
 
         </div>
+
 
 
         <div class="card">
@@ -226,7 +297,7 @@
           </div>
 
           <div class="card-small">
-            数値結果 ≠ 証明
+            数値結果 ≠ 数学的証明
           </div>
 
         </div>
@@ -235,15 +306,20 @@
       </div>
 
 
-      <!-- Results -->
+
+      <!-- ===============================================
+           RESEARCH RESULTS
+      ================================================ -->
 
       <section class="section">
+
 
         <div class="section-header">
 
           <h2>
             研究結果
           </h2>
+
 
           <span
             style="
@@ -257,14 +333,27 @@
         </div>
 
 
-        <div id="results"></div>
+        <div id="results">
+
+          <div class="empty">
+
+            研究結果を読み込んでいます...
+
+          </div>
+
+        </div>
+
 
       </section>
 
 
-      <!-- Chat -->
+
+      <!-- ===============================================
+           AI CHAT
+      ================================================ -->
 
       <section class="section">
+
 
         <div class="section-header">
 
@@ -272,16 +361,19 @@
             研究AI
           </h2>
 
+
           <span
+            id="aiStatus"
             style="
               color:#7f8baa;
               font-size:12px;
             "
           >
-            API未接続
+            AI API 未接続
           </span>
 
         </div>
+
 
 
         <div
@@ -295,31 +387,74 @@
               研究AI
             </div>
 
-            こんにちは。
-            現在は研究システムのUIを構築しています。
-            次の段階でSupabaseの永続研究記憶を接続します。
+            <div>
+
+              研究環境を起動しています。
+
+              <br><br>
+
+              現在は、
+
+              <br>
+
+              ・研究結果
+
+              <br>
+
+              ・仮説
+
+              <br>
+
+              ・探索ルート
+
+              <br>
+
+              ・研究記憶
+
+              <br>
+
+              ・計算ジョブ
+
+              <br><br>
+
+              のデータベース接続を準備しています。
+
+              <br><br>
+
+              ※現在のAI応答はまだ本物のAI APIには接続されていません。
+
+            </div>
 
           </div>
 
         </div>
 
 
+
         <div class="chat-input">
+
 
           <input
             id="chatInput"
             type="text"
+            autocomplete="off"
             placeholder="研究について入力..."
           >
 
+
           <button
+            id="sendMessageButton"
             class="btn btn-primary"
-            onclick="sendMessage()"
+            type="button"
           >
+
             送信
+
           </button>
 
+
         </div>
+
 
       </section>
 
@@ -327,74 +462,117 @@
     </section>
 
 
-    <!-- =====================================
-         Hypotheses
-    ====================================== -->
+
+    <!-- =================================================
+         HYPOTHESES
+    ================================================== -->
 
     <section
       id="page-hypotheses"
       class="page"
     >
 
-      <header class="header">
-
-        <div>
-
-          <h1>仮説</h1>
-
-          <p>
-            AIが提案した仮説を検証可能な形で管理
-          </p>
-
-        </div>
-
-      </header>
-
-
-      <section class="section">
-
-        <div
-          id="hypotheses"
-        ></div>
-
-      </section>
-
-    </section>
-
-
-    <!-- =====================================
-         Calculations
-    ====================================== -->
-
-    <section
-      id="page-calculations"
-      class="page"
-    >
 
       <header class="header">
 
         <div>
 
-          <h1>計算</h1>
+          <h1>
+            仮説
+          </h1>
 
           <p>
-            数値実験・探索ジョブ
+            検証可能な形で研究仮説を管理
           </p>
 
         </div>
 
 
         <button
+          id="newHypothesisButton"
           class="btn btn-primary"
-          onclick="startCalculation()"
+          type="button"
         >
-          計算を開始
+
+          ＋ 仮説を作る
+
         </button>
 
       </header>
 
 
+
       <section class="section">
+
+
+        <div class="section-header">
+
+          <h2>
+            現在の仮説
+          </h2>
+
+        </div>
+
+
+        <div id="hypotheses">
+
+          <div class="empty">
+
+            仮説を読み込んでいます...
+
+          </div>
+
+        </div>
+
+
+      </section>
+
+
+    </section>
+
+
+
+    <!-- =================================================
+         CALCULATIONS
+    ================================================== -->
+
+    <section
+      id="page-calculations"
+      class="page"
+    >
+
+
+      <header class="header">
+
+        <div>
+
+          <h1>
+            計算
+          </h1>
+
+          <p>
+            数値実験・探索・計算ジョブを管理
+          </p>
+
+        </div>
+
+
+        <button
+          id="startCalculationButton"
+          class="btn btn-primary"
+          type="button"
+        >
+
+          ▶ 計算を開始
+
+        </button>
+
+      </header>
+
+
+
+      <section class="section">
+
 
         <div class="section-header">
 
@@ -402,13 +580,14 @@
             計算ジョブ
           </h2>
 
+
           <span
             style="
               color:#7f8baa;
               font-size:12px;
             "
           >
-            Prototype
+            Research Compute
           </span>
 
         </div>
@@ -417,30 +596,103 @@
         <div
           id="jobs"
           class="section-body"
-        ></div>
+        >
+
+          <div class="empty">
+
+            計算ジョブはありません。
+
+          </div>
+
+        </div>
+
 
       </section>
+
+
+      <!-- ===============================================
+           COMPUTATION RULES
+      ================================================ -->
+
+      <section class="section">
+
+
+        <div class="section-header">
+
+          <h2>
+            計算ポリシー
+          </h2>
+
+        </div>
+
+
+        <div class="section-body">
+
+
+          <div class="detail-block">
+
+            <div class="detail-label">
+              原則
+            </div>
+
+            数値実験の結果だけから数学的証明を主張しない。
+
+          </div>
+
+
+          <div class="detail-block">
+
+            <div class="detail-label">
+              反例探索
+            </div>
+
+            仮説が成立する例だけでなく、
+            反例となる入力を積極的に探索する。
+
+          </div>
+
+
+          <div class="detail-block">
+
+            <div class="detail-label">
+              再現性
+            </div>
+
+            同一条件で再計算し、結果が再現するか確認する。
+
+          </div>
+
+
+        </div>
+
+
+      </section>
+
 
     </section>
 
 
-    <!-- =====================================
-         Proofs
-    ====================================== -->
+
+    <!-- =================================================
+         PROOFS
+    ================================================== -->
 
     <section
       id="page-proofs"
       class="page"
     >
 
+
       <header class="header">
 
         <div>
 
-          <h1>証明</h1>
+          <h1>
+            証明
+          </h1>
 
           <p>
-            証明状態と検証根拠
+            数学的根拠・形式検証・文献確認
           </p>
 
         </div>
@@ -448,17 +700,65 @@
       </header>
 
 
+
       <section class="section">
 
+
+        <div class="section-header">
+
+          <h2>
+            検証基準
+          </h2>
+
+        </div>
+
+
         <div class="section-body">
+
 
           <div class="detail-block">
 
             <div class="detail-label">
-              現在のルール
+              ○ 支持
             </div>
 
-            数値実験だけでは「証明済み」にしない。
+            現在確認された条件・証拠の範囲で
+            命題を支持する結果。
+
+          </div>
+
+
+          <div class="detail-block">
+
+            <div class="detail-label">
+              △ 未確定
+            </div>
+
+            数値実験や部分的な議論では支持されているが、
+            一般的な数学的証明が完了していない。
+
+          </div>
+
+
+          <div class="detail-block">
+
+            <div class="detail-label">
+              × 棄却
+            </div>
+
+            反例、矛盾、または前提条件の破綻が確認されたもの。
+
+          </div>
+
+
+          <div class="detail-block">
+
+            <div class="detail-label">
+              新規性
+            </div>
+
+            関連論文・既知の定理・既存手法との比較が完了するまで
+            「新しい数学」と断定しない。
 
           </div>
 
@@ -469,8 +769,250 @@
               形式検証
             </div>
 
-            Lean + Mathlib
-            接続予定。
+            将来的に Lean / Mathlib などとの接続を行う。
+
+          </div>
+
+
+        </div>
+
+
+      </section>
+
+
+    </section>
+
+
+
+    <!-- =================================================
+         3D MODELS
+    ================================================== -->
+
+    <section
+      id="page-models"
+      class="page"
+    >
+
+
+      <header class="header">
+
+        <div>
+
+          <h1>
+            3D数学モデル
+          </h1>
+
+          <p>
+            数学的構造を立体的に表示・操作
+          </p>
+
+        </div>
+
+
+        <span class="status">
+          Three.js 準備中
+        </span>
+
+      </header>
+
+
+
+      <section class="section">
+
+
+        <div
+          id="modelViewer"
+          class="model-viewer"
+        >
+
+
+          <div class="model-placeholder">
+
+
+            <div class="big">
+              ◇
+            </div>
+
+
+            <div>
+              3D数学モデルエンジン
+            </div>
+
+
+            <div
+              style="
+                margin-top:8px;
+                font-size:12px;
+              "
+            >
+
+              Three.js 接続予定
+
+            </div>
+
+
+          </div>
+
+
+        </div>
+
+
+      </section>
+
+
+
+      <section class="section">
+
+
+        <div class="section-header">
+
+          <h2>
+            将来のモデル
+          </h2>
+
+        </div>
+
+
+        <div class="section-body">
+
+
+          <div class="detail-block">
+
+            曲面・多様体
+
+          </div>
+
+
+          <div class="detail-block">
+
+            グラフ・ネットワーク
+
+          </div>
+
+
+          <div class="detail-block">
+
+            力学系
+
+          </div>
+
+
+          <div class="detail-block">
+
+            数値解の軌跡
+
+          </div>
+
+
+          <div class="detail-block">
+
+            AIが生成した数学モデル
+
+          </div>
+
+
+        </div>
+
+
+      </section>
+
+
+    </section>
+
+
+
+    <!-- =================================================
+         MEMORY
+    ================================================== -->
+
+    <section
+      id="page-memory"
+      class="page"
+    >
+
+
+      <header class="header">
+
+        <div>
+
+          <h1>
+            研究記憶
+          </h1>
+
+          <p>
+            仮説・反例・失敗・発見・研究ルールを保存
+          </p>
+
+        </div>
+
+
+        <span class="status">
+          永続記憶
+        </span>
+
+      </header>
+
+
+
+      <section class="section">
+
+
+        <div class="section-header">
+
+          <h2>
+            Research Memory
+          </h2>
+
+
+          <span
+            style="
+              color:#7f8baa;
+              font-size:12px;
+            "
+          >
+            研究結果とは別管理
+          </span>
+
+        </div>
+
+
+        <div id="memory">
+
+          <div class="empty">
+
+            研究記憶を読み込んでいます...
+
+          </div>
+
+        </div>
+
+
+      </section>
+
+
+      <section class="section">
+
+
+        <div class="section-header">
+
+          <h2>
+            記憶ルール
+          </h2>
+
+        </div>
+
+
+        <div class="section-body">
+
+
+          <div class="detail-block">
+
+            <div class="detail-label">
+              保存対象
+            </div>
+
+            仮説・反例・計算結果・失敗した探索・
+            研究上の重要な判断を保存。
 
           </div>
 
@@ -478,124 +1020,43 @@
           <div class="detail-block">
 
             <div class="detail-label">
-              文献確認
+              結果の表示制限
             </div>
 
-            関連論文を確認するまで
-            「新規」と断定しない。
+            画面上では最新100件を表示。
+            古い結果を自動的に消す場合でも、
+            AIが必要とする重要な研究記憶とは分離する。
 
           </div>
 
+
         </div>
 
+
       </section>
+
 
     </section>
 
 
-    <!-- =====================================
-         3D Models
-    ====================================== -->
 
-    <section
-      id="page-models"
-      class="page"
-    >
-
-      <header class="header">
-
-        <div>
-
-          <h1>3D数学モデル</h1>
-
-          <p>
-            数学的構造を視覚化・操作する
-          </p>
-
-        </div>
-
-      </header>
-
-
-      <section class="section">
-
-        <div class="model-viewer">
-
-          <div class="model-placeholder">
-
-            <div class="big">
-              ◇
-            </div>
-
-            <div>
-              Three.jsモデルエンジン
-            </div>
-
-            <div
-              style="
-                margin-top:7px;
-                font-size:12px;
-              "
-            >
-              接続予定
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
-    </section>
-
-
-    <!-- =====================================
-         Memory
-    ====================================== -->
-
-    <section
-      id="page-memory"
-      class="page"
-    >
-
-      <header class="header">
-
-        <div>
-
-          <h1>研究記憶</h1>
-
-          <p>
-            過去の仮説・反例・失敗・発見を永続的に保存
-          </p>
-
-        </div>
-
-      </header>
-
-
-      <section class="section">
-
-        <div id="memory"></div>
-
-      </section>
-
-    </section>
-
-
-    <!-- =====================================
-         Routes
-    ====================================== -->
+    <!-- =================================================
+         ROUTES
+    ================================================== -->
 
     <section
       id="page-routes"
       class="page"
     >
 
+
       <header class="header">
 
         <div>
 
-          <h1>探索ルート</h1>
+          <h1>
+            探索ルート
+          </h1>
 
           <p>
             同じ失敗を繰り返さないための探索履歴
@@ -606,7 +1067,9 @@
       </header>
 
 
+
       <section class="section">
+
 
         <div class="section-header">
 
@@ -614,48 +1077,242 @@
             探索ルート
           </h2>
 
+
           <span
             style="
               color:#7f8baa;
               font-size:12px;
             "
           >
-            3回以上で封印
+
+            3回以上の同一ルートは封印
+
           </span>
 
         </div>
 
 
-        <div id="routes"></div>
+        <div id="routes">
+
+          <div class="empty">
+
+            探索ルートを読み込んでいます...
+
+          </div>
+
+        </div>
+
 
       </section>
+
+
+
+      <section class="section">
+
+
+        <div class="section-header">
+
+          <h2>
+            ルート探索ルール
+          </h2>
+
+        </div>
+
+
+        <div class="section-body">
+
+
+          <div class="detail-block">
+
+            <div class="detail-label">
+              ルール 01
+            </div>
+
+            同じ探索ルートを無制限に繰り返さない。
+
+          </div>
+
+
+          <div class="detail-block">
+
+            <div class="detail-label">
+              ルール 02
+            </div>
+
+            3回以上試行されたルートは
+            自動的に封印する。
+
+          </div>
+
+
+          <div class="detail-block">
+
+            <div class="detail-label">
+              ルール 03
+            </div>
+
+            封印されたルートをAIが再利用する場合、
+            明確な新条件・新しい数学的理由が必要。
+
+          </div>
+
+
+          <div class="detail-block">
+
+            <div class="detail-label">
+              ルール 04
+            </div>
+
+            既存の証明方法をただ言い換えるだけでなく、
+            可能な場合は異なる探索戦略を試す。
+
+          </div>
+
+
+        </div>
+
+
+      </section>
+
 
     </section>
 
 
   </main>
 
+
 </div>
 
 
-<!-- =========================================
-     Modal
-========================================== -->
+
+<!-- =====================================================
+     RESULT DETAIL MODAL
+====================================================== -->
 
 <div
   id="modal"
   class="modal-bg"
 >
 
+
   <div
     id="modalContent"
     class="modal"
-  ></div>
+  >
+
+  </div>
+
 
 </div>
 
 
+
+<!-- =====================================================
+     NEW HYPOTHESIS MODAL
+====================================================== -->
+
+<div
+  id="hypothesisModal"
+  class="modal-bg"
+>
+
+
+  <div class="modal">
+
+
+    <button
+      id="closeHypothesisModal"
+      class="close"
+      type="button"
+    >
+
+      ×
+
+    </button>
+
+
+    <h2>
+      新しい仮説
+    </h2>
+
+
+    <div class="detail-block">
+
+
+      <div class="detail-label">
+        仮説名
+      </div>
+
+
+      <input
+        id="hypothesisTitle"
+        type="text"
+        placeholder="例：新しい不変量の存在"
+        style="
+          width:100%;
+          padding:12px;
+          border:1px solid #2b3754;
+          border-radius:9px;
+          background:#0b1120;
+          color:white;
+        "
+      >
+
+
+    </div>
+
+
+    <div class="detail-block">
+
+
+      <div class="detail-label">
+        命題
+      </div>
+
+
+      <textarea
+        id="hypothesisStatement"
+        placeholder="検証したい数学的命題..."
+        rows="6"
+        style="
+          width:100%;
+          padding:12px;
+          border:1px solid #2b3754;
+          border-radius:9px;
+          background:#0b1120;
+          color:white;
+          resize:vertical;
+        "
+      ></textarea>
+
+
+    </div>
+
+
+    <button
+      id="saveHypothesisButton"
+      class="btn btn-primary"
+      type="button"
+    >
+
+      仮説を保存
+
+    </button>
+
+
+  </div>
+
+
+</div>
+
+
+
+<!-- =====================================================
+     APPLICATION JAVASCRIPT
+====================================================== -->
+
 <script src="app.js"></script>
+
 
 </body>
 
