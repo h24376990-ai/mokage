@@ -1,26 +1,26 @@
 /* =========================================================
    Research AI Lab
    app.js
+   Supabase connected version
    ========================================================= */
 
 
 /* =========================================================
-   1. CONFIGURATION
+   1. SUPABASE CONFIG
    ========================================================= */
 
-const SUPABASE_URL = "ここにSupabase URL";
-const SUPABASE_KEY = "ここにPublishable key";
+const SUPABASE_URL =
+    "https://hiefdcodifkfhnqvruzn.supabase.co";
+
+const SUPABASE_KEY =
+    "sb_publishable_HmcPY6BGvUQTPESGHVe7Hw_W4NlTPqj";
 
 
 /* =========================================================
-   2. SUPABASE
+   2. SUPABASE CLIENT
    ========================================================= */
 
 let supabaseClient = null;
-
-let currentProject = null;
-
-let currentConversation = null;
 
 
 /* =========================================================
@@ -28,6 +28,8 @@ let currentConversation = null;
    ========================================================= */
 
 const state = {
+
+    project: null,
 
     results: [],
 
@@ -39,6 +41,8 @@ const state = {
 
     jobs: [],
 
+    conversations: [],
+
     messages: [],
 
     sources: [],
@@ -47,26 +51,37 @@ const state = {
 
     currentPage: "research",
 
-    loading: false
+    connected: false
 
 };
 
 
 /* =========================================================
-   4. INITIALIZE
+   4. START
    ========================================================= */
 
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener(
+    "DOMContentLoaded",
+    initializeApp
+);
+
+
+async function initializeApp() {
+
+    console.log(
+        "Research AI Lab starting..."
+    );
+
 
     initializeNavigation();
 
     initializeButtons();
 
-    initializeModal();
+    initializeModals();
 
     initializeSupabase();
 
-});
+}
 
 
 /* =========================================================
@@ -76,62 +91,33 @@ document.addEventListener("DOMContentLoaded", async () => {
 function initializeSupabase() {
 
     const status =
-        document.getElementById("connectionStatus");
-
-
-    if (
-        !SUPABASE_URL ||
-        SUPABASE_URL.includes("ここに")
-    ) {
-
-        if (status) {
-
-            status.textContent =
-                "● Supabase API設定待ち";
-
-        }
-
-        console.warn(
-            "Supabase URL / Key が設定されていません。"
+        document.getElementById(
+            "connectionStatus"
         );
-
-        renderEmptyState();
-
-        return;
-
-    }
-
-
-    if (
-        !SUPABASE_KEY ||
-        SUPABASE_KEY.includes("ここに")
-    ) {
-
-        if (status) {
-
-            status.textContent =
-                "● Supabase API設定待ち";
-
-        }
-
-        console.warn(
-            "Supabase Key が設定されていません。"
-        );
-
-        renderEmptyState();
-
-        return;
-
-    }
 
 
     try {
+
+        if (
+            !window.supabase ||
+            !window.supabase.createClient
+        ) {
+
+            throw new Error(
+                "Supabase SDKが読み込まれていません。"
+            );
+
+        }
+
 
         supabaseClient =
             window.supabase.createClient(
                 SUPABASE_URL,
                 SUPABASE_KEY
             );
+
+
+        state.connected = true;
 
 
         if (status) {
@@ -148,9 +134,12 @@ function initializeSupabase() {
     } catch (error) {
 
         console.error(
-            "Supabase initialization error:",
+            "Supabase initialization failed:",
             error
         );
+
+
+        state.connected = false;
 
 
         if (status) {
@@ -166,7 +155,7 @@ function initializeSupabase() {
 
 
 /* =========================================================
-   6. LOAD APPLICATION
+   6. LOAD EVERYTHING
    ========================================================= */
 
 async function loadApplication() {
@@ -175,10 +164,11 @@ async function loadApplication() {
 
         await loadProject();
 
-        if (!currentProject) {
 
-            console.warn(
-                "研究プロジェクトが見つかりません。"
+        if (!state.project) {
+
+            showConnectionError(
+                "research_projects に研究プロジェクトがありません。"
             );
 
             return;
@@ -218,6 +208,11 @@ async function loadApplication() {
         }
 
 
+        console.log(
+            "Research AI Lab loaded successfully."
+        );
+
+
     } catch (error) {
 
         console.error(
@@ -226,18 +221,9 @@ async function loadApplication() {
         );
 
 
-        const status =
-            document.getElementById(
-                "connectionStatus"
-            );
-
-
-        if (status) {
-
-            status.textContent =
-                "● データ読み込みエラー";
-
-        }
+        showConnectionError(
+            "Supabaseからデータを読み込めませんでした。"
+        );
 
     }
 
@@ -245,7 +231,7 @@ async function loadApplication() {
 
 
 /* =========================================================
-   7. LOAD PROJECT
+   7. PROJECT
    ========================================================= */
 
 async function loadProject() {
@@ -271,15 +257,26 @@ async function loadProject() {
 
     if (error) {
 
+        console.error(
+            "Project loading error:",
+            error
+        );
+
         throw error;
 
     }
 
 
-    currentProject =
+    state.project =
         data && data.length
             ? data[0]
             : null;
+
+
+    console.log(
+        "Current project:",
+        state.project
+    );
 
 }
 
@@ -290,7 +287,7 @@ async function loadProject() {
 
 async function loadResults() {
 
-    if (!currentProject) return;
+    if (!state.project) return;
 
 
     const {
@@ -304,7 +301,7 @@ async function loadResults() {
 
         .eq(
             "project_id",
-            currentProject.id
+            state.project.id
         )
 
         .order(
@@ -320,7 +317,7 @@ async function loadResults() {
     if (error) {
 
         console.error(
-            "Results loading error:",
+            "Results error:",
             error
         );
 
@@ -329,7 +326,8 @@ async function loadResults() {
     }
 
 
-    state.results = data || [];
+    state.results =
+        data || [];
 
 
     renderResults();
@@ -340,7 +338,9 @@ async function loadResults() {
 function renderResults() {
 
     const container =
-        document.getElementById("results");
+        document.getElementById(
+            "results"
+        );
 
 
     if (!container) return;
@@ -356,8 +356,8 @@ function renderResults() {
 
                 <br><br>
 
-                AIまたは計算エンジンによる
-                最初の研究結果がここに保存されます。
+                AIによる仮説検証や計算結果が
+                ここに保存されます。
 
             </div>
 
@@ -370,24 +370,23 @@ function renderResults() {
 
     container.innerHTML =
         state.results
-            .map(result =>
-                createResultHTML(result)
-            )
+            .map(createResultHTML)
             .join("");
 
 
     container
-        .querySelectorAll("[data-result-id]")
+        .querySelectorAll(
+            "[data-result-id]"
+        )
         .forEach(element => {
 
             element.addEventListener(
                 "click",
                 () => {
 
-                    const id =
-                        element.dataset.resultId;
-
-                    openResultDetail(id);
+                    openResultDetail(
+                        element.dataset.resultId
+                    );
 
                 }
             );
@@ -400,23 +399,15 @@ function renderResults() {
 function createResultHTML(result) {
 
     const status =
-        normalizeResultStatus(
+        normalizeStatus(
             result.status
         );
-
-
-    const symbol =
-        getStatusSymbol(status);
-
-
-    const className =
-        getStatusClass(status);
 
 
     return `
 
         <div
-            class="result-card ${className}"
+            class="result-card ${getStatusClass(status)}"
             data-result-id="${escapeHTML(result.id)}"
             style="cursor:pointer;"
         >
@@ -424,31 +415,29 @@ function createResultHTML(result) {
             <div
                 style="
                     display:flex;
-                    align-items:center;
+                    align-items:flex-start;
                     gap:14px;
                 "
             >
 
                 <div
                     style="
-                        font-size:30px;
-                        min-width:36px;
+                        font-size:31px;
+                        min-width:35px;
+                        line-height:1;
                     "
                 >
-                    ${symbol}
+                    ${getStatusSymbol(status)}
                 </div>
 
 
-                <div
-                    style="
-                        flex:1;
-                    "
-                >
+                <div style="flex:1;">
 
                     <div
                         style="
                             font-weight:700;
-                            margin-bottom:5px;
+                            color:#edf1f8;
+                            margin-bottom:6px;
                         "
                     >
                         ${escapeHTML(
@@ -460,16 +449,16 @@ function createResultHTML(result) {
 
                     <div
                         style="
-                            color:#8d99b5;
+                            color:#8c98b1;
                             font-size:13px;
-                            line-height:1.6;
+                            line-height:1.65;
                         "
                     >
                         ${escapeHTML(
                             truncate(
                                 result.description ||
                                 "説明なし",
-                                180
+                                220
                             )
                         )}
                     </div>
@@ -482,7 +471,7 @@ function createResultHTML(result) {
             <div
                 style="
                     margin-top:12px;
-                    color:#66728f;
+                    color:#5e6b86;
                     font-size:11px;
                 "
             >
@@ -494,63 +483,6 @@ function createResultHTML(result) {
         </div>
 
     `;
-
-}
-
-
-function normalizeResultStatus(status) {
-
-    if (
-        status === "good" ||
-        status === "supported"
-    ) return "good";
-
-
-    if (
-        status === "maybe" ||
-        status === "uncertain"
-    ) return "maybe";
-
-
-    if (
-        status === "bad" ||
-        status === "rejected"
-    ) return "bad";
-
-
-    return "unknown";
-
-}
-
-
-function getStatusSymbol(status) {
-
-    if (status === "good")
-        return "○";
-
-    if (status === "maybe")
-        return "△";
-
-    if (status === "bad")
-        return "×";
-
-    return "?";
-
-}
-
-
-function getStatusClass(status) {
-
-    if (status === "good")
-        return "result-good";
-
-    if (status === "maybe")
-        return "result-maybe";
-
-    if (status === "bad")
-        return "result-bad";
-
-    return "result-unknown";
 
 }
 
@@ -571,7 +503,9 @@ function openResultDetail(id) {
 
 
     const modal =
-        document.getElementById("modal");
+        document.getElementById(
+            "modal"
+        );
 
 
     const content =
@@ -584,7 +518,7 @@ function openResultDetail(id) {
 
 
     const status =
-        normalizeResultStatus(
+        normalizeStatus(
             result.status
         );
 
@@ -593,6 +527,7 @@ function openResultDetail(id) {
 
         <button
             class="close"
+            type="button"
             onclick="closeModal()"
         >
             ×
@@ -601,8 +536,8 @@ function openResultDetail(id) {
 
         <div
             style="
-                font-size:42px;
-                margin-bottom:10px;
+                font-size:45px;
+                margin-bottom:5px;
             "
         >
             ${getStatusSymbol(status)}
@@ -612,14 +547,12 @@ function openResultDetail(id) {
         <h2>
             ${escapeHTML(
                 result.title ||
-                "無題"
+                "無題の研究結果"
             )}
         </h2>
 
 
-        <div
-            class="detail-block"
-        >
+        <div class="detail-block">
 
             <div class="detail-label">
                 判定
@@ -630,9 +563,7 @@ function openResultDetail(id) {
         </div>
 
 
-        <div
-            class="detail-block"
-        >
+        <div class="detail-block">
 
             <div class="detail-label">
                 概要
@@ -646,9 +577,7 @@ function openResultDetail(id) {
         </div>
 
 
-        <div
-            class="detail-block"
-        >
+        <div class="detail-block">
 
             <div class="detail-label">
                 仮説
@@ -662,20 +591,13 @@ function openResultDetail(id) {
         </div>
 
 
-        <div
-            class="detail-block"
-        >
+        <div class="detail-block">
 
             <div class="detail-label">
                 計算
             </div>
 
-            <pre
-                style="
-                    white-space:pre-wrap;
-                    overflow-wrap:anywhere;
-                "
-            >${escapeHTML(
+            <pre>${escapeHTML(
                 result.calculation ||
                 "計算記録なし"
             )}</pre>
@@ -683,9 +605,7 @@ function openResultDetail(id) {
         </div>
 
 
-        <div
-            class="detail-block"
-        >
+        <div class="detail-block">
 
             <div class="detail-label">
                 検証
@@ -699,12 +619,10 @@ function openResultDetail(id) {
         </div>
 
 
-        <div
-            class="detail-block"
-        >
+        <div class="detail-block">
 
             <div class="detail-label">
-                次の行動
+                次の探索
             </div>
 
             ${escapeHTML(
@@ -715,9 +633,7 @@ function openResultDetail(id) {
         </div>
 
 
-        <div
-            class="detail-block"
-        >
+        <div class="detail-block">
 
             <div class="detail-label">
                 保存日時
@@ -732,23 +648,9 @@ function openResultDetail(id) {
     `;
 
 
-    modal.classList.add("active");
-
-}
-
-
-function getStatusText(status) {
-
-    if (status === "good")
-        return "○ 支持";
-
-    if (status === "maybe")
-        return "△ 未確定";
-
-    if (status === "bad")
-        return "× 棄却";
-
-    return "? 未判定";
+    modal.classList.add(
+        "active"
+    );
 
 }
 
@@ -759,7 +661,7 @@ function getStatusText(status) {
 
 async function loadHypotheses() {
 
-    if (!currentProject) return;
+    if (!state.project) return;
 
 
     const {
@@ -773,7 +675,7 @@ async function loadHypotheses() {
 
         .eq(
             "project_id",
-            currentProject.id
+            state.project.id
         )
 
         .order(
@@ -787,7 +689,7 @@ async function loadHypotheses() {
     if (error) {
 
         console.error(
-            "Hypotheses loading error:",
+            "Hypotheses error:",
             error
         );
 
@@ -824,6 +726,10 @@ function renderHypotheses() {
 
                 仮説はまだありません。
 
+                <br>
+
+                「＋ 仮説を作る」から追加できます。
+
             </div>
 
         `;
@@ -835,87 +741,98 @@ function renderHypotheses() {
 
     container.innerHTML =
         state.hypotheses
-            .map(hypothesis => `
+            .map(
+                hypothesis => `
 
-                <div class="result-card">
+                    <div class="result-card">
 
-                    <div
-                        style="
-                            display:flex;
-                            justify-content:space-between;
-                            gap:20px;
-                        "
-                    >
+                        <div
+                            style="
+                                display:flex;
+                                justify-content:space-between;
+                                gap:20px;
+                            "
+                        >
 
-                        <div>
+                            <div>
 
-                            <div
-                                style="
-                                    color:#7885a5;
-                                    font-size:11px;
-                                    margin-bottom:6px;
-                                "
-                            >
-                                ${escapeHTML(
-                                    hypothesis.code ||
-                                    ""
-                                )}
+                                <div
+                                    style="
+                                        color:#71809e;
+                                        font-size:11px;
+                                        margin-bottom:5px;
+                                    "
+                                >
+                                    ${escapeHTML(
+                                        hypothesis.code ||
+                                        ""
+                                    )}
+                                </div>
+
+
+                                <div
+                                    style="
+                                        color:#edf1f8;
+                                        font-weight:700;
+                                        margin-bottom:7px;
+                                    "
+                                >
+                                    ${escapeHTML(
+                                        hypothesis.title ||
+                                        "無題の仮説"
+                                    )}
+                                </div>
+
+
+                                <div
+                                    style="
+                                        color:#929db6;
+                                        font-size:13px;
+                                        line-height:1.65;
+                                    "
+                                >
+                                    ${escapeHTML(
+                                        hypothesis.statement ||
+                                        ""
+                                    )}
+                                </div>
+
                             </div>
 
 
                             <div
                                 style="
-                                    font-weight:700;
-                                    margin-bottom:8px;
+                                    font-size:24px;
                                 "
                             >
-                                ${escapeHTML(
-                                    hypothesis.title
+                                ${getStatusSymbol(
+                                    normalizeStatus(
+                                        hypothesis.status
+                                    )
                                 )}
                             </div>
-
-
-                            <div
-                                style="
-                                    color:#909bb6;
-                                    line-height:1.6;
-                                    font-size:13px;
-                                "
-                            >
-                                ${escapeHTML(
-                                    hypothesis.statement
-                                )}
-                            </div>
-
-                        </div>
-
-
-                        <div>
-
-                            ${getStatusSymbol(
-                                normalizeResultStatus(
-                                    hypothesis.status
-                                )
-                            )}
 
                         </div>
 
                     </div>
 
-                </div>
-
-            `)
+                `
+            )
             .join("");
 
 }
 
 
+/* =========================================================
+   11. CREATE HYPOTHESIS
+   ========================================================= */
+
 async function createHypothesis() {
 
-    if (!currentProject) {
+    if (!state.project) {
 
         alert(
-            "研究プロジェクトが読み込まれていません。"
+            "研究プロジェクトがありません。"
         );
 
         return;
@@ -924,15 +841,21 @@ async function createHypothesis() {
 
 
     const title =
-        document.getElementById(
-            "hypothesisTitle"
-        ).value.trim();
+        document
+            .getElementById(
+                "hypothesisTitle"
+            )
+            ?.value
+            .trim();
 
 
     const statement =
-        document.getElementById(
-            "hypothesisStatement"
-        ).value.trim();
+        document
+            .getElementById(
+                "hypothesisStatement"
+            )
+            ?.value
+            .trim();
 
 
     if (!title || !statement) {
@@ -957,6 +880,7 @@ async function createHypothesis() {
 
 
     const {
+        data,
         error
     } = await supabaseClient
 
@@ -965,7 +889,7 @@ async function createHypothesis() {
         .insert({
 
             project_id:
-                currentProject.id,
+                state.project.id,
 
             code,
 
@@ -976,15 +900,22 @@ async function createHypothesis() {
             status:
                 "unknown"
 
-        });
+        })
+
+        .select()
+        .single();
 
 
     if (error) {
 
-        console.error(error);
+        console.error(
+            "Hypothesis insert error:",
+            error
+        );
 
         alert(
-            "仮説の保存に失敗しました。"
+            "仮説の保存に失敗しました。\n\n" +
+            error.message
         );
 
         return;
@@ -992,33 +923,53 @@ async function createHypothesis() {
     }
 
 
+    state.hypotheses.unshift(
+        data
+    );
+
+
+    renderHypotheses();
+
+    updateStatistics();
+
     closeHypothesisModal();
 
 
-    document.getElementById(
-        "hypothesisTitle"
-    ).value = "";
+    const titleInput =
+        document.getElementById(
+            "hypothesisTitle"
+        );
 
 
-    document.getElementById(
-        "hypothesisStatement"
-    ).value = "";
+    const statementInput =
+        document.getElementById(
+            "hypothesisStatement"
+        );
 
 
-    await loadHypotheses();
+    if (titleInput)
+        titleInput.value = "";
 
-    updateStatistics();
+
+    if (statementInput)
+        statementInput.value = "";
+
+
+    console.log(
+        "Hypothesis saved:",
+        data
+    );
 
 }
 
 
 /* =========================================================
-   11. MEMORY
+   12. MEMORY
    ========================================================= */
 
 async function loadMemory() {
 
-    if (!currentProject) return;
+    if (!state.project) return;
 
 
     const {
@@ -1032,7 +983,7 @@ async function loadMemory() {
 
         .eq(
             "project_id",
-            currentProject.id
+            state.project.id
         )
 
         .order(
@@ -1053,7 +1004,7 @@ async function loadMemory() {
     if (error) {
 
         console.error(
-            "Memory loading error:",
+            "Memory error:",
             error
         );
 
@@ -1087,7 +1038,15 @@ function renderMemory() {
         container.innerHTML = `
 
             <div class="empty">
-                研究記憶はありません。
+
+                研究記憶はまだありません。
+
+                <br><br>
+
+                AIが研究を進めると、
+                重要な発見・失敗・反例などが
+                ここに保存されます。
+
             </div>
 
         `;
@@ -1099,87 +1058,97 @@ function renderMemory() {
 
     container.innerHTML =
         state.memory
-            .map(memory => `
+            .map(
+                memory => `
 
-                <div class="result-card">
-
-                    <div
-                        style="
-                            display:flex;
-                            justify-content:space-between;
-                            gap:15px;
-                        "
-                    >
-
-                        <div>
-
-                            <div
-                                style="
-                                    font-size:11px;
-                                    color:#72809e;
-                                    margin-bottom:5px;
-                                "
-                            >
-                                ${escapeHTML(
-                                    memory.memory_type
-                                )}
-                            </div>
-
-
-                            <div
-                                style="
-                                    font-weight:700;
-                                    margin-bottom:7px;
-                                "
-                            >
-                                ${escapeHTML(
-                                    memory.title
-                                )}
-                            </div>
-
-
-                            <div
-                                style="
-                                    color:#929db6;
-                                    font-size:13px;
-                                    line-height:1.6;
-                                "
-                            >
-                                ${escapeHTML(
-                                    memory.content
-                                )}
-                            </div>
-
-                        </div>
-
+                    <div class="result-card">
 
                         <div
                             style="
-                                color:#aeb9d2;
-                                font-size:11px;
+                                display:flex;
+                                justify-content:space-between;
+                                gap:15px;
                             "
                         >
-                            P${memory.importance}
+
+                            <div>
+
+                                <div
+                                    style="
+                                        color:#71809e;
+                                        font-size:11px;
+                                        margin-bottom:5px;
+                                    "
+                                >
+                                    ${escapeHTML(
+                                        memory.memory_type ||
+                                        "memory"
+                                    )}
+                                </div>
+
+
+                                <div
+                                    style="
+                                        color:#edf1f8;
+                                        font-weight:700;
+                                        margin-bottom:7px;
+                                    "
+                                >
+                                    ${escapeHTML(
+                                        memory.title ||
+                                        "無題"
+                                    )}
+                                </div>
+
+
+                                <div
+                                    style="
+                                        color:#929db6;
+                                        font-size:13px;
+                                        line-height:1.65;
+                                    "
+                                >
+                                    ${escapeHTML(
+                                        memory.content ||
+                                        ""
+                                    )}
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                style="
+                                    color:#aab5cb;
+                                    font-size:11px;
+                                    white-space:nowrap;
+                                "
+                            >
+                                P${escapeHTML(
+                                    memory.importance ??
+                                    0
+                                )}
+
+                            </div>
 
                         </div>
 
                     </div>
 
-                </div>
-
-            `)
+                `
+            )
             .join("");
 
 }
 
 
 /* =========================================================
-   12. EXPLORATION ROUTES
+   13. ROUTES
    ========================================================= */
 
 async function loadRoutes() {
 
-    if (!currentProject) return;
+    if (!state.project) return;
 
 
     const {
@@ -1193,7 +1162,7 @@ async function loadRoutes() {
 
         .eq(
             "project_id",
-            currentProject.id
+            state.project.id
         )
 
         .order(
@@ -1207,7 +1176,7 @@ async function loadRoutes() {
     if (error) {
 
         console.error(
-            "Routes loading error:",
+            "Routes error:",
             error
         );
 
@@ -1242,7 +1211,7 @@ function renderRoutes() {
 
             <div class="empty">
 
-                探索ルートはありません。
+                探索ルートはまだありません。
 
             </div>
 
@@ -1255,82 +1224,93 @@ function renderRoutes() {
 
     container.innerHTML =
         state.routes
-            .map(route => {
+            .map(
+                route => {
 
-                const banned =
-                    route.status === "banned";
-
-
-                return `
-
-                    <div class="result-card">
-
-                        <div
-                            style="
-                                display:flex;
-                                justify-content:space-between;
-                                gap:15px;
-                            "
-                        >
-
-                            <div>
-
-                                <div
-                                    style="
-                                        font-weight:700;
-                                        margin-bottom:7px;
-                                    "
-                                >
-                                    ${escapeHTML(
-                                        route.name
-                                    )}
-                                </div>
+                    const banned =
+                        route.status ===
+                        "banned";
 
 
-                                <div
-                                    style="
-                                        color:#8c98b2;
-                                        font-size:13px;
-                                    "
-                                >
-                                    ${escapeHTML(
-                                        route.description ||
-                                        ""
-                                    )}
-                                </div>
+                    return `
 
-                            </div>
-
+                        <div class="result-card">
 
                             <div
                                 style="
-                                    text-align:right;
-                                    white-space:nowrap;
+                                    display:flex;
+                                    justify-content:space-between;
+                                    gap:20px;
                                 "
                             >
 
                                 <div>
 
-                                    ${route.attempts}
-                                    / 3
+                                    <div
+                                        style="
+                                            color:#edf1f8;
+                                            font-weight:700;
+                                            margin-bottom:6px;
+                                        "
+                                    >
+                                        ${escapeHTML(
+                                            route.name ||
+                                            "無名ルート"
+                                        )}
+                                    </div>
+
+
+                                    <div
+                                        style="
+                                            color:#8995ae;
+                                            font-size:13px;
+                                        "
+                                    >
+                                        ${escapeHTML(
+                                            route.description ||
+                                            ""
+                                        )}
+                                    </div>
 
                                 </div>
 
 
                                 <div
                                     style="
-                                        margin-top:5px;
-                                        font-size:11px;
-                                        color:
-                                            ${banned
-                                                ? "#ff7d8b"
-                                                : "#8b97b1"};
+                                        text-align:right;
+                                        white-space:nowrap;
                                     "
                                 >
 
-                                    ${banned
-                                        ? "封印"
-                                        : "使用可能"}
+                                    <div>
+                                        ${escapeHTML(
+                                            route.attempts ??
+                                            0
+                                        )}
+                                        / 3
+                                    </div>
+
+
+                                    <div
+                                        style="
+                                            color:
+                                            ${
+                                                banned
+                                                    ? "#dc7582"
+                                                    : "#8390aa"
+                                            };
+                                            font-size:11px;
+                                            margin-top:4px;
+                                        "
+                                    >
+
+                                        ${
+                                            banned
+                                                ? "× 封印"
+                                                : "使用可能"
+                                        }
+
+                                    </div>
 
                                 </div>
 
@@ -1338,23 +1318,22 @@ function renderRoutes() {
 
                         </div>
 
-                    </div>
+                    `;
 
-                `;
-
-            })
+                }
+            )
             .join("");
 
 }
 
 
 /* =========================================================
-   13. CALCULATION JOBS
+   14. CALCULATION JOBS
    ========================================================= */
 
 async function loadJobs() {
 
-    if (!currentProject) return;
+    if (!state.project) return;
 
 
     const {
@@ -1368,7 +1347,7 @@ async function loadJobs() {
 
         .eq(
             "project_id",
-            currentProject.id
+            state.project.id
         )
 
         .order(
@@ -1384,7 +1363,7 @@ async function loadJobs() {
     if (error) {
 
         console.error(
-            "Jobs loading error:",
+            "Jobs error:",
             error
         );
 
@@ -1421,6 +1400,11 @@ function renderJobs() {
 
                 計算ジョブはありません。
 
+                <br><br>
+
+                「▶ 計算を開始」から
+                ジョブを作成できます。
+
             </div>
 
         `;
@@ -1432,104 +1416,112 @@ function renderJobs() {
 
     container.innerHTML =
         state.jobs
-            .map(job => `
+            .map(
+                job => {
 
-                <div class="result-card">
-
-                    <div
-                        style="
-                            display:flex;
-                            justify-content:space-between;
-                        "
-                    >
-
-                        <div>
-
-                            <div
-                                style="
-                                    font-weight:700;
-                                "
-                            >
-                                ${escapeHTML(
-                                    job.job_type
-                                )}
-                            </div>
-
-
-                            <div
-                                style="
-                                    color:#8793ad;
-                                    font-size:12px;
-                                    margin-top:5px;
-                                "
-                            >
-                                ${escapeHTML(
-                                    job.status
-                                )}
-                            </div>
-
-                        </div>
-
-
-                        <div>
-
-                            ${Math.round(
+                    const progress =
+                        Math.max(
+                            0,
+                            Math.min(
+                                100,
                                 Number(
                                     job.progress || 0
                                 )
-                            )}%
+                            )
+                        );
+
+
+                    return `
+
+                        <div class="result-card">
+
+                            <div
+                                style="
+                                    display:flex;
+                                    justify-content:space-between;
+                                    gap:15px;
+                                "
+                            >
+
+                                <div>
+
+                                    <div
+                                        style="
+                                            font-weight:700;
+                                            color:#edf1f8;
+                                        "
+                                    >
+                                        ${escapeHTML(
+                                            job.job_type ||
+                                            "計算"
+                                        )}
+                                    </div>
+
+
+                                    <div
+                                        style="
+                                            color:#7f8ca7;
+                                            font-size:12px;
+                                            margin-top:5px;
+                                        "
+                                    >
+                                        ${escapeHTML(
+                                            job.status ||
+                                            "unknown"
+                                        )}
+                                    </div>
+
+                                </div>
+
+
+                                <div>
+                                    ${progress}%
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                style="
+                                    height:5px;
+                                    margin-top:12px;
+                                    background:#192238;
+                                    border-radius:20px;
+                                    overflow:hidden;
+                                "
+                            >
+
+                                <div
+                                    style="
+                                        width:${progress}%;
+                                        height:100%;
+                                        background:#718cff;
+                                    "
+                                ></div>
+
+                            </div>
 
                         </div>
 
-                    </div>
+                    `;
 
-
-                    <div
-                        style="
-                            height:5px;
-                            background:#182138;
-                            border-radius:10px;
-                            margin-top:12px;
-                            overflow:hidden;
-                        "
-                    >
-
-                        <div
-                            style="
-                                width:${Math.max(
-                                    0,
-                                    Math.min(
-                                        100,
-                                        Number(
-                                            job.progress || 0
-                                        )
-                                    )
-                                )}%;
-                                height:100%;
-                                background:#718cff;
-                            "
-                        ></div>
-
-                    </div>
-
-                </div>
-
-            `)
+                }
+            )
             .join("");
 
 }
 
 
 /* =========================================================
-   14. CREATE CALCULATION JOB
+   15. CREATE CALCULATION JOB
    ========================================================= */
 
 async function createCalculationJob() {
 
-    if (!currentProject) {
+    if (!state.project) {
 
         alert(
-            "研究プロジェクトが読み込まれていません。"
+            "研究プロジェクトがありません。"
         );
 
         return;
@@ -1547,7 +1539,7 @@ async function createCalculationJob() {
         .insert({
 
             project_id:
-                currentProject.id,
+                state.project.id,
 
             job_type:
                 "exploration",
@@ -1557,8 +1549,8 @@ async function createCalculationJob() {
                 mode:
                     "experimental",
 
-                created_by:
-                    "research_ui"
+                source:
+                    "Research AI Lab"
 
             },
 
@@ -1571,16 +1563,19 @@ async function createCalculationJob() {
         })
 
         .select()
-
         .single();
 
 
     if (error) {
 
-        console.error(error);
+        console.error(
+            "Job creation error:",
+            error
+        );
 
         alert(
-            "計算ジョブを作成できませんでした。"
+            "計算ジョブの作成に失敗しました。\n\n" +
+            error.message
         );
 
         return;
@@ -1588,97 +1583,37 @@ async function createCalculationJob() {
     }
 
 
-    state.jobs.unshift(data);
+    state.jobs.unshift(
+        data
+    );
+
 
     renderJobs();
 
 
     /*
-       注意：
+       現在はDBへのジョブ登録まで。
 
-       ここではまだ本当の計算は実行していない。
+       本物の計算は次の段階で
 
-       今後、
-
-       Browser
-          ↓
-       Job Queue
-          ↓
-       Compute Worker
-          ↓
+       calculation_jobs
+              ↓
+       Worker
+              ↓
        Python / 数式エンジン
-          ↓
-       Supabase
+              ↓
+       結果検証
+              ↓
+       research_results
 
-       という構造にする。
+       にする。
     */
 
 
-    simulateJobDisplay(data.id);
-
-}
-
-
-/* =========================================================
-   15. TEMPORARY JOB DISPLAY
-   ========================================================= */
-
-function simulateJobDisplay(jobId) {
-
-    let progress = 0;
-
-
-    const timer =
-        setInterval(
-            async () => {
-
-                progress += 5;
-
-
-                if (progress >= 100) {
-
-                    progress = 100;
-
-                    clearInterval(timer);
-
-                }
-
-
-                const job =
-                    state.jobs.find(
-                        item =>
-                            item.id === jobId
-                    );
-
-
-                if (job) {
-
-                    job.progress =
-                        progress;
-
-                    job.status =
-                        progress >= 100
-                            ? "completed"
-                            : "running";
-
-                }
-
-
-                renderJobs();
-
-
-                /*
-                   これは仮表示。
-
-                   実際の24時間計算では
-                   この部分をサーバー側Workerに置き換える。
-                */
-
-            },
-
-            500
-
-        );
+    console.log(
+        "Calculation job created:",
+        data
+    );
 
 }
 
@@ -1715,20 +1650,18 @@ async function sendMessage() {
 
 
     /*
-       現在はAI API未接続。
+       Claude APIはまだ接続していない。
 
-       後で、
+       APIキーをブラウザへ直接置かず、
 
        Browser
-          ↓
-       Secure API
-          ↓
+           ↓
+       Server / Edge Function
+           ↓
        Claude
-          ↓
-       Research Context
-          ↓
+           ↓
        Research Memory
-          ↓
+           ↓
        Response
 
        にする。
@@ -1736,11 +1669,8 @@ async function sendMessage() {
 
 
     addChatMessage(
-
         "assistant",
-
-        "現在は研究AI APIが未接続です。Supabaseへの保存機能を確認後、Claude接続を追加します。"
-
+        "メッセージを受け取りました。現在はClaude API接続前の段階です。研究記憶・仮説・過去の探索結果をAIへ渡す機構を次に実装します。"
     );
 
 }
@@ -1750,7 +1680,10 @@ async function sendMessage() {
    17. CHAT UI
    ========================================================= */
 
-function addChatMessage(role, content) {
+function addChatMessage(
+    role,
+    content
+) {
 
     const container =
         document.getElementById(
@@ -1803,6 +1736,18 @@ function addChatMessage(role, content) {
     container.scrollTop =
         container.scrollHeight;
 
+
+    state.messages.push({
+
+        role,
+
+        content,
+
+        created_at:
+            new Date().toISOString()
+
+    });
+
 }
 
 
@@ -1812,28 +1757,24 @@ function addChatMessage(role, content) {
 
 function initializeNavigation() {
 
-    const buttons =
-        document.querySelectorAll(
+    document
+        .querySelectorAll(
             ".nav-button"
-        );
+        )
+        .forEach(button => {
 
+            button.addEventListener(
+                "click",
+                () => {
 
-    buttons.forEach(button => {
+                    switchPage(
+                        button.dataset.page
+                    );
 
-        button.addEventListener(
-            "click",
-            () => {
+                }
+            );
 
-                const page =
-                    button.dataset.page;
-
-
-                switchPage(page);
-
-            }
-        );
-
-    });
+        });
 
 }
 
@@ -1852,7 +1793,8 @@ function switchPage(page) {
 
             button.classList.toggle(
                 "active",
-                button.dataset.page === page
+                button.dataset.page ===
+                page
             );
 
         });
@@ -1867,7 +1809,7 @@ function switchPage(page) {
             section.classList.toggle(
                 "active",
                 section.id ===
-                    `page-${page}`
+                `page-${page}`
             );
 
         });
@@ -1881,15 +1823,15 @@ function switchPage(page) {
 
 function initializeButtons() {
 
-    const sendButton =
+    const send =
         document.getElementById(
             "sendMessageButton"
         );
 
 
-    if (sendButton) {
+    if (send) {
 
-        sendButton.addEventListener(
+        send.addEventListener(
             "click",
             sendMessage
         );
@@ -1897,20 +1839,21 @@ function initializeButtons() {
     }
 
 
-    const chatInput =
+    const input =
         document.getElementById(
             "chatInput"
         );
 
 
-    if (chatInput) {
+    if (input) {
 
-        chatInput.addEventListener(
+        input.addEventListener(
             "keydown",
             event => {
 
                 if (
-                    event.key === "Enter"
+                    event.key ===
+                    "Enter"
                 ) {
 
                     sendMessage();
@@ -1971,15 +1914,15 @@ function initializeButtons() {
     }
 
 
-    const startCalculation =
+    const calculation =
         document.getElementById(
             "startCalculationButton"
         );
 
 
-    if (startCalculation) {
+    if (calculation) {
 
-        startCalculation.addEventListener(
+        calculation.addEventListener(
             "click",
             createCalculationJob
         );
@@ -1993,7 +1936,7 @@ function initializeButtons() {
    20. MODALS
    ========================================================= */
 
-function initializeModal() {
+function initializeModals() {
 
     const modal =
         document.getElementById(
@@ -2143,11 +2086,22 @@ function updateStatistics() {
 
         hypotheses.textContent =
             state.hypotheses.filter(
-                item =>
-                    normalizeResultStatus(
-                        item.status
-                    ) === "maybe" ||
-                    item.status === "unknown"
+                hypothesis => {
+
+                    const status =
+                        normalizeStatus(
+                            hypothesis.status
+                        );
+
+                    return (
+                        status ===
+                        "maybe"
+                    ) || (
+                        status ===
+                        "unknown"
+                    );
+
+                }
             ).length;
 
     }
@@ -2158,7 +2112,8 @@ function updateStatistics() {
         banned.textContent =
             state.routes.filter(
                 route =>
-                    route.status === "banned"
+                    route.status ===
+                    "banned"
             ).length;
 
     }
@@ -2167,56 +2122,153 @@ function updateStatistics() {
 
 
 /* =========================================================
-   22. EMPTY STATE
+   22. STATUS
    ========================================================= */
 
-function renderEmptyState() {
+function normalizeStatus(
+    status
+) {
 
-    const containers = [
+    if (
+        status === "good" ||
+        status === "supported"
+    ) {
 
-        "results",
+        return "good";
 
-        "hypotheses",
-
-        "memory",
-
-        "routes",
-
-        "jobs"
-
-    ];
+    }
 
 
-    containers.forEach(id => {
+    if (
+        status === "maybe" ||
+        status === "uncertain"
+    ) {
 
-        const element =
-            document.getElementById(id);
+        return "maybe";
+
+    }
 
 
-        if (!element) return;
+    if (
+        status === "bad" ||
+        status === "rejected"
+    ) {
+
+        return "bad";
+
+    }
 
 
-        element.innerHTML = `
+    return "unknown";
 
-            <div class="empty">
+}
 
-                Supabase接続を設定すると
-                研究データが表示されます。
 
-            </div>
+function getStatusSymbol(
+    status
+) {
 
-        `;
+    switch (status) {
 
-    });
+        case "good":
+            return "○";
+
+        case "maybe":
+            return "△";
+
+        case "bad":
+            return "×";
+
+        default:
+            return "?";
+
+    }
+
+}
+
+
+function getStatusClass(
+    status
+) {
+
+    switch (status) {
+
+        case "good":
+            return "result-good";
+
+        case "maybe":
+            return "result-maybe";
+
+        case "bad":
+            return "result-bad";
+
+        default:
+            return "result-unknown";
+
+    }
+
+}
+
+
+function getStatusText(
+    status
+) {
+
+    switch (status) {
+
+        case "good":
+            return "○ 支持";
+
+        case "maybe":
+            return "△ 未確定";
+
+        case "bad":
+            return "× 棄却";
+
+        default:
+            return "? 未判定";
+
+    }
 
 }
 
 
 /* =========================================================
-   23. UTILITY
+   23. ERROR DISPLAY
    ========================================================= */
 
-function escapeHTML(value) {
+function showConnectionError(
+    message
+) {
+
+    console.warn(
+        message
+    );
+
+
+    const status =
+        document.getElementById(
+            "connectionStatus"
+        );
+
+
+    if (status) {
+
+        status.textContent =
+            "● データ接続確認中";
+
+    }
+
+}
+
+
+/* =========================================================
+   24. UTILITIES
+   ========================================================= */
+
+function escapeHTML(
+    value
+) {
 
     if (
         value === null ||
@@ -2283,7 +2335,8 @@ function truncate(
         value.slice(
             0,
             length
-        ) + "..."
+        ) +
+        "..."
     );
 
 }
@@ -2318,8 +2371,34 @@ function formatDate(
 
 
 /* =========================================================
-   24. GLOBAL FUNCTIONS
+   25. GLOBAL DEBUG API
    ========================================================= */
+
+window.ResearchLab = {
+
+    state,
+
+    reload:
+        loadApplication,
+
+    loadProject,
+
+    loadResults,
+
+    loadHypotheses,
+
+    loadMemory,
+
+    loadRoutes,
+
+    loadJobs,
+
+    createHypothesis,
+
+    createCalculationJob
+
+};
+
 
 window.closeModal =
     closeModal;
@@ -2331,33 +2410,6 @@ window.openHypothesisModal =
 
 window.closeHypothesisModal =
     closeHypothesisModal;
-
-
-/* =========================================================
-   25. DEBUG
-   ========================================================= */
-
-window.ResearchLab = {
-
-    state,
-
-    getProject:
-        () => currentProject,
-
-    reload:
-        loadApplication,
-
-    loadResults,
-
-    loadHypotheses,
-
-    loadMemory,
-
-    loadRoutes,
-
-    loadJobs
-
-};
 
 
 console.log(
