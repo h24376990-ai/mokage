@@ -1,3609 +1,2352 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
+  <meta charset="UTF-8" />
 
-<meta
+  <meta
     name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
->
+    content="width=device-width, initial-scale=1.0"
+  />
 
-<title>Research AI Lab</title>
+  <title>Research AI Lab</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<style>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-:root {
-    --bg: #080b12;
-    --panel: #101521;
-    --panel2: #151c2b;
-    --border: #273149;
-    --text: #edf1f8;
-    --muted: #8995ae;
-    --accent: #6ea8ff;
-    --accent2: #8f7cff;
-    --good: #5bd68a;
-    --maybe: #f0c75e;
-    --bad: #ef7373;
-    --shadow: 0 14px 40px rgba(0,0,0,.25);
-}
+    :root {
+      --bg: #f5f6f8;
+      --card: #ffffff;
+      --text: #202124;
+      --sub: #6b7280;
+      --line: #e5e7eb;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --good: #16a34a;
+      --maybe: #d97706;
+      --bad: #dc2626;
+      --shadow:
+        0 8px 30px rgba(0, 0, 0, 0.07);
+    }
 
-* {
-    box-sizing: border-box;
-}
-
-html,
-body {
-    margin: 0;
-    padding: 0;
-    min-height: 100%;
-    background: var(--bg);
-    color: var(--text);
-    font-family:
+    body {
+      margin: 0;
+      font-family:
         -apple-system,
         BlinkMacSystemFont,
         "Segoe UI",
+        "Noto Sans JP",
         sans-serif;
-}
 
-body {
-    overflow-x: hidden;
-}
-
-button,
-input,
-textarea,
-select {
-    font: inherit;
-}
-
-button {
-    cursor: pointer;
-}
-
-button:disabled {
-    opacity: .5;
-    cursor: not-allowed;
-}
-
-.app {
-    min-height: 100vh;
-    display: flex;
-}
-
-
-/* =========================================================
-   SIDEBAR
-   ========================================================= */
-
-.sidebar {
-    width: 250px;
-    min-height: 100vh;
-    border-right: 1px solid var(--border);
-    background: #0b0f18;
-    padding: 22px 16px;
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 50;
-}
-
-.logo {
-    font-size: 21px;
-    font-weight: 800;
-    letter-spacing: .2px;
-    margin-bottom: 5px;
-}
-
-.logo-sub {
-    color: var(--muted);
-    font-size: 12px;
-    margin-bottom: 28px;
-}
-
-.nav {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-}
-
-.nav-button {
-    width: 100%;
-    border: 1px solid transparent;
-    background: transparent;
-    color: var(--muted);
-    padding: 12px 13px;
-    border-radius: 10px;
-    text-align: left;
-}
-
-.nav-button:hover {
-    background: var(--panel);
-    color: var(--text);
-}
-
-.nav-button.active {
-    background: var(--panel2);
-    border-color: var(--border);
-    color: var(--text);
-}
-
-.connection {
-    position: absolute;
-    left: 16px;
-    right: 16px;
-    bottom: 20px;
-    padding: 10px 11px;
-    border-radius: 10px;
-    background: var(--panel);
-    border: 1px solid var(--border);
-    color: var(--muted);
-    font-size: 12px;
-}
-
-
-/* =========================================================
-   MAIN
-   ========================================================= */
-
-.main {
-    margin-left: 250px;
-    width: calc(100% - 250px);
-    min-height: 100vh;
-}
-
-.topbar {
-    position: sticky;
-    top: 0;
-    z-index: 30;
-    background: rgba(8,11,18,.88);
-    backdrop-filter: blur(14px);
-    border-bottom: 1px solid var(--border);
-    padding: 18px 26px;
-}
-
-.topbar-title {
-    font-size: 20px;
-    font-weight: 750;
-}
-
-.topbar-sub {
-    color: var(--muted);
-    font-size: 12px;
-    margin-top: 4px;
-}
-
-.content {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 26px;
-}
-
-.page {
-    display: none;
-}
-
-.page.active {
-    display: block;
-}
-
-
-/* =========================================================
-   CARDS
-   ========================================================= */
-
-.grid {
-    display: grid;
-    grid-template-columns:
-        repeat(3, minmax(0, 1fr));
-    gap: 14px;
-}
-
-.card {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 15px;
-    padding: 18px;
-    box-shadow: var(--shadow);
-}
-
-.card-title {
-    font-size: 13px;
-    color: var(--muted);
-}
-
-.card-value {
-    font-size: 30px;
-    font-weight: 800;
-    margin-top: 7px;
-}
-
-.section {
-    margin-top: 22px;
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
-}
-
-.section-title {
-    font-size: 18px;
-    font-weight: 750;
-}
-
-.section-description {
-    color: var(--muted);
-    font-size: 13px;
-    margin-top: 5px;
-}
-
-
-/* =========================================================
-   BUTTONS
-   ========================================================= */
-
-.btn {
-    border: 1px solid var(--border);
-    background: var(--panel2);
-    color: var(--text);
-    padding: 10px 14px;
-    border-radius: 9px;
-    transition: .15s;
-}
-
-.btn:hover {
-    transform: translateY(-1px);
-    border-color: #3b4866;
-}
-
-.btn-primary {
-    background: var(--accent);
-    color: #07101f;
-    border-color: transparent;
-    font-weight: 750;
-}
-
-.btn-danger {
-    background: rgba(239,115,115,.12);
-    color: var(--bad);
-}
-
-.btn-small {
-    padding: 7px 10px;
-    font-size: 12px;
-}
-
-
-/* =========================================================
-   FORM
-   ========================================================= */
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-label {
-    display: block;
-    color: var(--muted);
-    font-size: 12px;
-    margin-bottom: 7px;
-}
-
-input,
-textarea,
-select {
-    width: 100%;
-    background: #0b101b;
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    padding: 11px 12px;
-    outline: none;
-}
-
-input:focus,
-textarea:focus,
-select:focus {
-    border-color: var(--accent);
-}
-
-textarea {
-    resize: vertical;
-    min-height: 100px;
-}
-
-
-/* =========================================================
-   STATUS
-   ========================================================= */
-
-.status-symbol {
-    font-size: 31px;
-    line-height: 1;
-    font-weight: 800;
-}
-
-.status-good {
-    color: var(--good);
-}
-
-.status-maybe {
-    color: var(--maybe);
-}
-
-.status-bad {
-    color: var(--bad);
-}
-
-.status-unknown {
-    color: var(--muted);
-}
-
-
-/* =========================================================
-   RESULTS
-   ========================================================= */
-
-.list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.result-card {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 13px;
-    padding: 15px;
-    transition: .15s;
-}
-
-.result-card:hover {
-    border-color: #3b4866;
-    transform: translateY(-1px);
-}
-
-.result-title {
-    font-weight: 750;
-}
-
-.result-description {
-    color: var(--muted);
-    font-size: 13px;
-    line-height: 1.6;
-    margin-top: 6px;
-}
-
-.meta {
-    color: #71809e;
-    font-size: 11px;
-    margin-top: 9px;
-}
-
-.empty {
-    border: 1px dashed var(--border);
-    color: var(--muted);
-    border-radius: 13px;
-    padding: 28px;
-    text-align: center;
-}
-
-
-/* =========================================================
-   CHAT
-   ========================================================= */
-
-.chat-shell {
-    height: calc(100vh - 130px);
-    min-height: 550px;
-    display: flex;
-    flex-direction: column;
-}
-
-.chat-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 5px 2px 18px;
-}
-
-.message {
-    max-width: 900px;
-    margin-bottom: 14px;
-    padding: 14px 16px;
-    border-radius: 13px;
-    border: 1px solid var(--border);
-    line-height: 1.75;
-    white-space: pre-wrap;
-}
-
-.message.user {
-    margin-left: auto;
-    background: #142038;
-}
-
-.message.ai {
-    margin-right: auto;
-    background: var(--panel);
-}
-
-.message-label {
-    color: var(--muted);
-    font-size: 11px;
-    margin-bottom: 5px;
-}
-
-.chat-input-row {
-    display: flex;
-    gap: 10px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
-}
-
-.chat-input {
-    min-height: 52px;
-    max-height: 160px;
-    resize: vertical;
-}
-
-
-/* =========================================================
-   MODAL
-   ========================================================= */
-
-.modal-bg {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.72);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    padding: 18px;
-}
-
-.modal-bg.active {
-    display: flex;
-}
-
-.modal {
-    width: min(760px, 100%);
-    max-height: 92vh;
-    overflow-y: auto;
-    background: #0d131f;
-    border: 1px solid var(--border);
-    border-radius: 17px;
-    padding: 22px;
-    box-shadow: 0 25px 90px rgba(0,0,0,.5);
-    position: relative;
-}
-
-.modal h2 {
-    margin-top: 0;
-}
-
-.close {
-    position: absolute;
-    right: 14px;
-    top: 12px;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 1px solid var(--border);
-    background: var(--panel);
-    color: var(--text);
-    font-size: 22px;
-}
-
-.detail-block {
-    margin-top: 18px;
-    padding-top: 14px;
-    border-top: 1px solid var(--border);
-}
-
-.detail-label {
-    color: var(--muted);
-    font-size: 11px;
-    margin-bottom: 6px;
-    text-transform: uppercase;
-    letter-spacing: .04em;
-}
-
-pre {
-    overflow-x: auto;
-    background: #080c14;
-    padding: 12px;
-    border-radius: 8px;
-}
-
-
-/* =========================================================
-   BADGE
-   ========================================================= */
-
-.badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 9px;
-    border-radius: 999px;
-    background: var(--panel2);
-    border: 1px solid var(--border);
-    color: var(--muted);
-    font-size: 11px;
-}
-
-.badge-good {
-    color: var(--good);
-}
-
-.badge-maybe {
-    color: var(--maybe);
-}
-
-.badge-bad {
-    color: var(--bad);
-}
-
-
-/* =========================================================
-   MOBILE / IPAD
-   ========================================================= */
-
-@media (max-width: 900px) {
-
-    .sidebar {
-        width: 205px;
+      background: var(--bg);
+      color: var(--text);
     }
 
-    .main {
-        margin-left: 205px;
-        width: calc(100% - 205px);
+    button,
+    textarea {
+      font: inherit;
     }
 
-    .grid {
-        grid-template-columns:
-            repeat(2, minmax(0, 1fr));
-    }
-
-}
-
-@media (max-width: 700px) {
-
-    .sidebar {
-        position: static;
-        width: 100%;
-        min-height: auto;
-        padding: 14px;
+    button {
+      cursor: pointer;
     }
 
     .app {
-        display: block;
+      width: min(1200px, 100%);
+      margin: 0 auto;
+      padding: 20px;
     }
 
-    .main {
-        margin-left: 0;
-        width: 100%;
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #111827;
+      color: white;
+      font-weight: 700;
+    }
+
+    .brand h1 {
+      font-size: 20px;
+      margin: 0;
+    }
+
+    .brand p {
+      margin: 3px 0 0;
+      color: var(--sub);
+      font-size: 12px;
     }
 
     .connection {
-        position: static;
-        margin-top: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 13px;
     }
 
-    .nav {
-        flex-direction: row;
-        overflow-x: auto;
+    .connection-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #9ca3af;
     }
 
-    .nav-button {
-        white-space: nowrap;
+    .connection-dot.ok {
+      background: var(--good);
     }
 
-    .grid {
+    .connection-dot.error {
+      background: var(--bad);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 20px;
+    }
+
+    @media (max-width: 850px) {
+      .layout {
         grid-template-columns: 1fr;
+      }
+
+      header {
+        align-items: flex-start;
+      }
     }
 
-    .content {
-        padding: 15px;
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
     }
 
-    .topbar {
-        padding: 14px 15px;
+    .research-card {
+      padding: 20px;
     }
 
-    .chat-shell {
-        min-height: 600px;
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
     }
 
-    .chat-input-row {
-        flex-direction: column;
+    .section-title h2 {
+      margin: 0;
+      font-size: 17px;
     }
 
-}
+    .section-title span {
+      color: var(--sub);
+      font-size: 12px;
+    }
 
-</style>
+    textarea {
+      width: 100%;
+      min-height: 170px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 15px;
+      outline: none;
+      background: #fafafa;
+    }
+
+    textarea:focus {
+      border-color: var(--accent);
+      background: white;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .primary,
+    .secondary {
+      border: none;
+      border-radius: 11px;
+      padding: 11px 16px;
+      font-weight: 600;
+    }
+
+    .primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .secondary {
+      background: #eef0f3;
+      color: #374151;
+    }
+
+    .primary:disabled,
+    .secondary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .status-box {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: #f8fafc;
+      border: 1px solid var(--line);
+      font-size: 13px;
+      white-space: pre-wrap;
+      display: none;
+    }
+
+    .status-box.show {
+      display: block;
+    }
+
+    .status-box.error {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: #991b1b;
+    }
+
+    .status-box.success {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+      color: #166534;
+    }
+
+    .latest {
+      margin-top: 20px;
+    }
+
+    .latest-content {
+      padding: 18px;
+    }
+
+    .result-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .result-title {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .result-date {
+      color: var(--sub);
+      font-size: 11px;
+      margin-top: 5px;
+    }
+
+    .symbol {
+      min-width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 700;
+      border: 1px solid var(--line);
+    }
+
+    .symbol.good {
+      color: var(--good);
+      background: #f0fdf4;
+    }
+
+    .symbol.maybe {
+      color: var(--maybe);
+      background: #fffbeb;
+    }
+
+    .symbol.bad {
+      color: var(--bad);
+      background: #fef2f2;
+    }
+
+    .symbol.unknown {
+      color: #6b7280;
+      background: #f3f4f6;
+    }
+
+    .result-summary {
+      margin-top: 14px;
+      line-height: 1.7;
+      white-space: pre-wrap;
+    }
+
+    .result-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 14px;
+    }
+
+    .tag {
+      background: #f3f4f6;
+      border-radius: 999px;
+      padding: 5px 9px;
+      color: #4b5563;
+      font-size: 11px;
+    }
+
+    .details {
+      margin-top: 15px;
+      border-top: 1px solid var(--line);
+      padding-top: 15px;
+    }
+
+    .detail-block {
+      margin-bottom: 18px;
+    }
+
+    .detail-block h3 {
+      margin: 0 0 7px;
+      font-size: 13px;
+    }
+
+    .detail-block p {
+      margin: 0;
+      white-space: pre-wrap;
+      line-height: 1.7;
+      font-size: 13px;
+      color: #374151;
+    }
+
+    .right-card {
+      padding: 18px;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      max-height: 650px;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 11px;
+      background: white;
+      transition: 0.15s;
+    }
+
+    .history-item:hover {
+      border-color: #cbd5e1;
+      background: #fafafa;
+    }
+
+    .history-main {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .history-symbol {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .history-symbol.good {
+      color: var(--good);
+      background: #f0fdf4;
+    }
+
+    .history-symbol.maybe {
+      color: var(--maybe);
+      background: #fffbeb;
+    }
+
+    .history-symbol.bad {
+      color: var(--bad);
+      background: #fef2f2;
+    }
+
+    .history-symbol.unknown {
+      color: #6b7280;
+      background: #f3f4f6;
+    }
+
+    .history-title {
+      font-size: 13px;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .history-date {
+      color: var(--sub);
+      font-size: 10px;
+      margin-top: 3px;
+    }
+
+    .history-empty {
+      text-align: center;
+      color: var(--sub);
+      padding: 30px 10px;
+      font-size: 13px;
+    }
+
+    .small-note {
+      color: var(--sub);
+      font-size: 11px;
+      line-height: 1.6;
+      margin-top: 10px;
+    }
+
+    .progress {
+      margin-top: 14px;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      color: var(--sub);
+      font-size: 11px;
+      margin-bottom: 6px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      overflow: hidden;
+    }
+
+    .progress-value {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      transition: width 0.25s;
+    }
+
+    .evaluation-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 15px;
+    }
+
+    .evaluation-item {
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fafafa;
+    }
+
+    .evaluation-item .label {
+      font-size: 10px;
+      color: var(--sub);
+    }
+
+    .evaluation-item .value {
+      margin-top: 3px;
+      font-weight: 700;
+      font-size: 17px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
 </head>
-
 
 <body>
 
 <div class="app">
 
+  <!-- =====================================================
+       HEADER
+  ====================================================== -->
 
-<!-- ======================================================
-     SIDEBAR
-======================================================= -->
+  <header>
 
-<aside class="sidebar">
+    <div class="brand">
 
-    <div class="logo">
-        Research AI Lab
+      <div class="brand-icon">
+        ∑
+      </div>
+
+      <div>
+        <h1>
+          Research AI Lab
+        </h1>
+
+        <p>
+          数学研究・仮説探索・検証システム
+        </p>
+      </div>
+
     </div>
 
-    <div class="logo-sub">
-        Mathematical Research System
+
+    <div class="connection">
+
+      <span
+        id="connectionDot"
+        class="connection-dot"
+      ></span>
+
+      <span id="connectionText">
+        Supabase 接続確認中...
+      </span>
+
     </div>
 
-
-    <nav class="nav">
-
-        <button
-            class="nav-button active"
-            data-page="dashboard"
-        >
-            🏠 ダッシュボード
-        </button>
-
-        <button
-            class="nav-button"
-            data-page="hypotheses"
-        >
-            🧠 仮説
-        </button>
-
-        <button
-            class="nav-button"
-            data-page="results"
-        >
-            📊 研究結果
-        </button>
-
-        <button
-            class="nav-button"
-            data-page="chat"
-        >
-            💬 研究AI
-        </button>
-
-        <button
-            class="nav-button"
-            data-page="calculation"
-        >
-            ⚙️ 計算
-        </button>
-
-    </nav>
+  </header>
 
 
-    <div
-        class="connection"
-        id="connectionStatus"
-    >
-        ● 接続確認中
-    </div>
+  <!-- =====================================================
+       MAIN
+  ====================================================== -->
 
-</aside>
+  <div class="layout">
 
 
-<!-- ======================================================
-     MAIN
-======================================================= -->
+    <!-- ===================================================
+         LEFT
+    ==================================================== -->
 
-<main class="main">
-
-
-    <header class="topbar">
-
-        <div class="topbar-title">
-            Mathematical Research
-        </div>
-
-        <div class="topbar-sub">
-            仮説 → 計算 → 検証 → 記憶 → 新しい探索
-        </div>
-
-    </header>
+    <main>
 
 
-    <div class="content">
-
-
-<!-- ======================================================
-     DASHBOARD
-======================================================= -->
-
-<section
-    id="page-dashboard"
-    class="page active"
->
-
-    <div class="section">
+      <section class="card research-card">
 
         <div class="section-title">
-            Research Overview
+
+          <h2>
+            新しい研究
+          </h2>
+
+          <span>
+            AI研究ルートを自動記録
+          </span>
+
         </div>
 
-        <div class="section-description">
-            AIの回答と数学的に検証された結果を分離して管理します。
+
+        <textarea
+          id="questionInput"
+          placeholder="数学的な問題・仮説・疑問を入力してください。
+
+例：
+素数の分布について、既存の定理を単に使うのではなく、別の不変量から新しい見方ができないか検討したい。"
+        ></textarea>
+
+
+        <div class="actions">
+
+          <button
+            id="researchButton"
+            class="primary"
+          >
+            研究開始
+          </button>
+
+          <button
+            id="clearButton"
+            class="secondary"
+          >
+            入力を消去
+          </button>
+
         </div>
 
-    </div>
+
+        <div
+          id="statusBox"
+          class="status-box"
+        ></div>
 
 
-    <div
-        class="grid"
-        style="margin-top:18px;"
-    >
+        <div
+          id="progress"
+          class="progress hidden"
+        >
 
-        <div class="card">
+          <div class="progress-label">
 
-            <div class="card-title">
-                仮説
-            </div>
+            <span id="progressText">
+              準備中...
+            </span>
+
+            <span id="progressPercent">
+              0%
+            </span>
+
+          </div>
+
+          <div class="progress-bar">
 
             <div
-                class="card-value"
-                id="stat-hypotheses"
-            >
-                0
-            </div>
+              id="progressValue"
+              class="progress-value"
+            ></div>
+
+          </div>
 
         </div>
 
-
-        <div class="card">
-
-            <div class="card-title">
-                研究結果
-            </div>
-
-            <div
-                class="card-value"
-                id="stat-results"
-            >
-                0
-            </div>
-
-        </div>
+      </section>
 
 
-        <div class="card">
+      <!-- =================================================
+           LATEST RESULT
+      ================================================== -->
 
-            <div class="card-title">
-                AI研究
-            </div>
+      <section
+        id="latestSection"
+        class="card latest hidden"
+      >
 
-            <div
-                class="card-value"
-                id="stat-ai"
-            >
-                Claude
-            </div>
+        <div class="latest-content">
 
-        </div>
+          <div class="section-title">
 
-    </div>
+            <h2>
+              最新の研究結果
+            </h2>
 
+            <span>
+              タップして詳細を表示
+            </span>
 
-    <div class="section">
-
-        <div class="card">
-
-            <div class="section-title">
-                このシステムの原則
-            </div>
+          </div>
 
 
-            <div
-                style="
-                    margin-top:15px;
-                    color:var(--muted);
-                    line-height:1.9;
-                "
-            >
-
-                <div>
-                    ✓ 未検証の主張を証明済みと扱わない
-                </div>
-
-                <div>
-                    ✓ 数値実験と数学的証明を区別する
-                </div>
-
-                <div>
-                    ✓ 反例を積極的に探す
-                </div>
-
-                <div>
-                    ✓ 過去の研究履歴を記憶する
-                </div>
-
-                <div>
-                    ✓ 同じ失敗を繰り返さない
-                </div>
-
-                <div>
-                    ✓ 「新しい」と「未確認」を区別する
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <div class="section">
-
-        <div class="section-header">
+          <div class="result-head">
 
             <div>
 
-                <div class="section-title">
-                    最新の研究結果
-                </div>
+              <h2
+                id="latestTitle"
+                class="result-title"
+              ></h2>
 
-                <div class="section-description">
-                    クリックすると詳細を表示します。
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <div
-            class="list"
-            id="dashboardResults"
-        >
-
-            <div class="empty">
-                読み込み中…
-            </div>
-
-        </div>
-
-    </div>
-
-</section>
-
-
-<!-- ======================================================
-     HYPOTHESES
-======================================================= -->
-
-<section
-    id="page-hypotheses"
-    class="page"
->
-
-    <div class="section-header">
-
-        <div>
-
-            <div class="section-title">
-                仮説
-            </div>
-
-            <div class="section-description">
-                検証前のアイデアを保存します。
-            </div>
-
-        </div>
-
-
-        <button
-            class="btn btn-primary"
-            id="newHypothesisButton"
-        >
-            ＋ 新しい仮説
-        </button>
-
-    </div>
-
-
-    <div
-        class="list"
-        id="hypothesesList"
-    >
-
-        <div class="empty">
-            読み込み中…
-        </div>
-
-    </div>
-
-</section>
-
-
-<!-- ======================================================
-     RESULTS
-======================================================= -->
-
-<section
-    id="page-results"
-    class="page"
->
-
-    <div class="section-header">
-
-        <div>
-
-            <div class="section-title">
-                研究結果
-            </div>
-
-            <div class="section-description">
-                ○ 支持 / △ 未確定 / × 反証
-            </div>
-
-        </div>
-
-
-        <button
-            class="btn btn-primary"
-            id="newResultButton"
-        >
-            ＋ 結果を登録
-        </button>
-
-    </div>
-
-
-    <div
-        class="list"
-        id="resultsList"
-    >
-
-        <div class="empty">
-            読み込み中…
-        </div>
-
-    </div>
-
-</section>
-
-
-<!-- ======================================================
-     CHAT
-======================================================= -->
-
-<section
-    id="page-chat"
-    class="page"
->
-
-    <div class="section">
-
-        <div class="section-title">
-            研究AI
-        </div>
-
-        <div class="section-description">
-            保存済みの仮説・研究結果を参照しながら探索します。
-        </div>
-
-    </div>
-
-
-    <div
-        class="card chat-shell"
-        style="margin-top:16px;"
-    >
-
-        <div
-            id="chatMessages"
-            class="chat-messages"
-        >
-
-            <div class="message ai">
-
-                <div class="message-label">
-                    研究AI
-                </div>
-
-                <div>
-                    研究テーマや仮説を入力してください。
-                    過去の研究履歴を参照して、異なるアプローチを検討します。
-                </div>
+              <div
+                id="latestDate"
+                class="result-date"
+              ></div>
 
             </div>
 
-        </div>
+
+            <div
+              id="latestSymbol"
+              class="symbol unknown"
+            >
+              ?
+            </div>
+
+          </div>
 
 
-        <div class="chat-input-row">
+          <div
+            id="latestSummary"
+            class="result-summary"
+          ></div>
 
-            <textarea
-                id="chatInput"
-                class="chat-input"
-                placeholder="例：この仮説について、直接証明以外のアプローチを3つ考えて"
-            ></textarea>
 
+          <div
+            id="latestMeta"
+            class="result-meta"
+          ></div>
+
+
+          <div class="actions">
 
             <button
-                id="sendMessageButton"
-                class="btn btn-primary"
-                style="min-width:100px;"
+              id="evaluateButton"
+              class="primary"
             >
-                送信
+              この結果を評価
             </button>
 
-        </div>
-
-    </div>
-
-</section>
-
-
-<!-- ======================================================
-     CALCULATION
-======================================================= -->
-
-<section
-    id="page-calculation"
-    class="page"
->
-
-    <div class="section">
-
-        <div class="section-title">
-            計算
-        </div>
-
-        <div class="section-description">
-            今後ここを数値実験・反例探索・高速計算エンジンへ拡張します。
-        </div>
-
-    </div>
-
-
-    <div
-        class="card"
-        style="margin-top:16px;"
-    >
-
-        <div class="section-title">
-            計算ジョブ
-        </div>
-
-        <p
-            style="
-                color:var(--muted);
-                line-height:1.7;
-            "
-        >
-            現在はジョブ作成部分を準備しています。
-            次段階でバックグラウンド計算エンジンと接続します。
-        </p>
-
-
-        <button
-            class="btn btn-primary"
-            id="startCalculationButton"
-        >
-            計算ジョブを開始
-        </button>
-
-    </div>
-
-</section>
-
-
-    </div>
-
-</main>
-
-</div>
-
-
-<!-- ======================================================
-     HYPOTHESIS MODAL
-======================================================= -->
-
-<div
-    class="modal-bg"
-    id="hypothesisModal"
->
-
-    <div class="modal">
-
-        <button
-            class="close"
-            id="closeHypothesisModal"
-        >
-            ×
-        </button>
-
-
-        <h2>
-            新しい仮説
-        </h2>
-
-
-        <div class="form-group">
-
-            <label>
-                タイトル
-            </label>
-
-            <input
-                id="hypothesisTitle"
-                type="text"
-                placeholder="例：素数分布に関する仮説"
+            <button
+              id="toggleDetailsButton"
+              class="secondary"
             >
+              詳細を表示
+            </button>
 
-        </div>
-
-
-        <div class="form-group">
-
-            <label>
-                仮説・命題
-            </label>
-
-            <textarea
-                id="hypothesisStatement"
-                placeholder="数学的に検証したい内容"
-            ></textarea>
-
-        </div>
+          </div>
 
 
-        <button
-            class="btn btn-primary"
-            id="saveHypothesisButton"
-        >
-            仮説を保存
-        </button>
+          <div
+            id="details"
+            class="details hidden"
+          >
 
-    </div>
+            <div class="detail-block">
 
-</div>
-
-
-<!-- ======================================================
-     RESULT MODAL
-======================================================= -->
-
-<div
-    class="modal-bg"
-    id="resultModal"
->
-
-    <div class="modal">
-
-        <button
-            class="close"
-            id="closeResultModal"
-        >
-            ×
-        </button>
-
-
-        <h2>
-            研究結果を登録
-        </h2>
-
-
-        <div class="form-group">
-
-            <label>
-                対象仮説
-            </label>
-
-            <select
-                id="resultHypothesisId"
-            >
-                <option value="">
-                    仮説なし
-                </option>
-            </select>
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>
-                結果名
-            </label>
-
-            <input
-                id="resultTitle"
-                type="text"
-                placeholder="例：n=100000まで反例なし"
-            >
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>
-                判定
-            </label>
-
-            <select
-                id="resultStatus"
-            >
-
-                <option value="maybe">
-                    △ 未確定
-                </option>
-
-                <option value="good">
-                    ○ 支持
-                </option>
-
-                <option value="bad">
-                    × 反証
-                </option>
-
-            </select>
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>
-                信頼度 0〜1
-            </label>
-
-            <input
-                id="resultConfidence"
-                type="number"
-                min="0"
-                max="1"
-                step="0.01"
-                value="0"
-            >
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>
-                概要
-            </label>
-
-            <textarea
-                id="resultDescription"
-            ></textarea>
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>
+              <h3>
                 仮説
-            </label>
+              </h3>
 
-            <textarea
-                id="resultHypothesis"
-            ></textarea>
+              <p id="detailHypothesis"></p>
 
-        </div>
+            </div>
 
 
-        <div class="form-group">
+            <div class="detail-block">
 
-            <label>
+              <h3>
                 計算
-            </label>
+              </h3>
 
-            <textarea
-                id="resultCalculation"
-            ></textarea>
+              <p id="detailCalculation"></p>
 
-        </div>
+            </div>
 
 
-        <div class="form-group">
+            <div class="detail-block">
 
-            <label>
+              <h3>
                 検証
-            </label>
+              </h3>
 
-            <textarea
-                id="resultVerification"
-            ></textarea>
+              <p id="detailVerification"></p>
 
-        </div>
+            </div>
 
 
-        <div class="form-group">
+            <div class="detail-block">
 
-            <label>
+              <h3>
                 次の行動
-            </label>
+              </h3>
 
-            <textarea
-                id="resultNextAction"
-            ></textarea>
+              <p id="detailNextAction"></p>
+
+            </div>
+
+
+            <div class="detail-block">
+
+              <h3>
+                研究ルート
+              </h3>
+
+              <p id="detailRoute"></p>
+
+            </div>
+
+
+            <div class="detail-block">
+
+              <h3>
+                評価理由
+              </h3>
+
+              <p id="detailReason"></p>
+
+            </div>
+
+
+            <div
+              id="evaluationGrid"
+              class="evaluation-grid"
+            ></div>
+
+          </div>
 
         </div>
 
+      </section>
 
-        <button
-            class="btn btn-primary"
-            id="saveResultButton"
-        >
-            研究結果を保存
-        </button>
-
-    </div>
-
-</div>
+    </main>
 
 
-<!-- ======================================================
-     DETAIL MODAL
-======================================================= -->
+    <!-- ===================================================
+         RIGHT
+    ==================================================== -->
 
-<div
-    class="modal-bg"
-    id="detailModal"
->
+    <aside class="card right-card">
 
-    <div
-        class="modal"
-        id="detailContent"
-    >
+      <div class="section-title">
 
-    </div>
+        <h2>
+          研究履歴
+        </h2>
+
+        <span id="historyCount">
+          0件
+        </span>
+
+      </div>
+
+
+      <div
+        id="historyList"
+        class="history-list"
+      >
+
+        <div class="history-empty">
+          まだ研究結果がありません。
+        </div>
+
+      </div>
+
+
+      <p class="small-note">
+        最新100件を表示します。
+        保存された研究結果はAI側からも参照できます。
+      </p>
+
+    </aside>
+
+  </div>
 
 </div>
 
 
 <script>
 
-/* =========================================================
-   CONFIG
-========================================================= */
+/* ==========================================================
+   SUPABASE CONFIG
+========================================================== */
 
 const SUPABASE_URL =
-    "https://hiefdcodifkfhnqvruzn.supabase.co";
+  "https://hiefdcodifkfhnqvruzn.supabase.co";
 
 const SUPABASE_PUBLISHABLE_KEY =
-    "sb_publishable_HmcPY6BGvUQTPESGHVe7Hw_W4NlTPqj";
-
-const PROJECT_ID =
-    "4253800d-a89e-45e2-a36a-cc52eb6c510b";
-
-/*
- * Supabase Edge Function名。
- *
- * 今作ったFunctionの名前が
- * 「research」なら research
- * 「research-ai」なら research-ai
- *
- * 今回はあなたが作った名前に合わせて
- * research にしている。
- */
-const EDGE_FUNCTION_NAME =
-    "research";
+  "sb_publishable_HmcPY6BGvUQTPESGHVe7Hw_W4NlTPqj";
 
 
-const MAX_RESULTS =
-    100;
+/* ==========================================================
+   FUNCTION NAMES
+========================================================== */
+
+const RESEARCH_FUNCTION =
+  "research";
+
+const EVALUATE_FUNCTION =
+  "evaluate";
 
 
-/* =========================================================
-   STATE
-========================================================= */
+/* ==========================================================
+   PROJECT ID
+========================================================== */
 
-let db = null;
-
-let hypotheses = [];
-
-let results = [];
-
-let aiBusy = false;
+const DEFAULT_PROJECT_ID =
+  "4253800d-a89e-45e2-a36a-cc52eb6c510b";
 
 
-/* =========================================================
-   START
-========================================================= */
-
-document.addEventListener(
-    "DOMContentLoaded",
-    async () => {
-
-        initializeUI();
-
-        await connectSupabase();
-
-        if (!db) {
-            return;
-        }
-
-        await Promise.all([
-            loadHypotheses(),
-            loadResults()
-        ]);
-
-        renderEverything();
-
-    }
-);
-
-
-/* =========================================================
+/* ==========================================================
    SUPABASE
-========================================================= */
+========================================================== */
 
-async function connectSupabase() {
-
-    try {
-
-        if (
-            !window.supabase ||
-            !window.supabase.createClient
-        ) {
-
-            setConnection(
-                "× Supabase SDK読み込み失敗"
-            );
-
-            return;
-
-        }
+const supabase =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY,
+  );
 
 
-        db =
-            window.supabase.createClient(
-                SUPABASE_URL,
-                SUPABASE_PUBLISHABLE_KEY
-            );
+/* ==========================================================
+   STATE
+========================================================== */
 
+let currentProjectId =
+  localStorage.getItem(
+    "research_project_id",
+  );
 
-        const {
-            error
-        } =
-            await db
-                .from("hypotheses")
-                .select("id")
-                .eq(
-                    "project_id",
-                    PROJECT_ID
-                )
-                .limit(1);
+if (!currentProjectId) {
 
+  currentProjectId =
+    DEFAULT_PROJECT_ID;
 
-        if (error) {
-
-            console.error(
-                error
-            );
-
-            setConnection(
-                "× Supabase 接続エラー"
-            );
-
-            return;
-
-        }
-
-
-        setConnection(
-            "● Supabase 接続済み"
-        );
-
-
-    } catch (error) {
-
-        console.error(
-            error
-        );
-
-        setConnection(
-            "× Supabase 接続失敗"
-        );
-
-    }
-
+  localStorage.setItem(
+    "research_project_id",
+    currentProjectId,
+  );
 }
 
 
-function setConnection(text) {
-
-    const element =
-        document.getElementById(
-            "connectionStatus"
-        );
-
-    if (element) {
-        element.textContent =
-            text;
-    }
-
-}
+let latestResult = null;
 
 
-/* =========================================================
-   LOAD HYPOTHESES
-========================================================= */
+/* ==========================================================
+   DOM
+========================================================== */
 
-async function loadHypotheses() {
+const questionInput =
+  document.getElementById(
+    "questionInput",
+  );
+
+const researchButton =
+  document.getElementById(
+    "researchButton",
+  );
+
+const clearButton =
+  document.getElementById(
+    "clearButton",
+  );
+
+const statusBox =
+  document.getElementById(
+    "statusBox",
+  );
+
+const connectionDot =
+  document.getElementById(
+    "connectionDot",
+  );
+
+const connectionText =
+  document.getElementById(
+    "connectionText",
+  );
+
+const progress =
+  document.getElementById(
+    "progress",
+  );
+
+const progressText =
+  document.getElementById(
+    "progressText",
+  );
+
+const progressPercent =
+  document.getElementById(
+    "progressPercent",
+  );
+
+const progressValue =
+  document.getElementById(
+    "progressValue",
+  );
+
+const latestSection =
+  document.getElementById(
+    "latestSection",
+  );
+
+const latestTitle =
+  document.getElementById(
+    "latestTitle",
+  );
+
+const latestDate =
+  document.getElementById(
+    "latestDate",
+  );
+
+const latestSymbol =
+  document.getElementById(
+    "latestSymbol",
+  );
+
+const latestSummary =
+  document.getElementById(
+    "latestSummary",
+  );
+
+const latestMeta =
+  document.getElementById(
+    "latestMeta",
+  );
+
+const evaluateButton =
+  document.getElementById(
+    "evaluateButton",
+  );
+
+const toggleDetailsButton =
+  document.getElementById(
+    "toggleDetailsButton",
+  );
+
+const details =
+  document.getElementById(
+    "details",
+  );
+
+const historyList =
+  document.getElementById(
+    "historyList",
+  );
+
+const historyCount =
+  document.getElementById(
+    "historyCount",
+  );
+
+
+/* ==========================================================
+   CONNECTION CHECK
+========================================================== */
+
+async function checkConnection() {
+
+  try {
 
     const {
-        data,
-        error
+      error,
     } =
-        await db
-            .from("hypotheses")
-            .select(
-                `
-                id,
-                project_id,
-                code,
-                title,
-                statement,
-                status,
-                confidence,
-                created_at,
-                updated_at
-                `
-            )
-            .eq(
-                "project_id",
-                PROJECT_ID
-            )
-            .order(
-                "created_at",
-                {
-                    ascending: false
-                }
-            );
+      await supabase
+        .from("research_results")
+        .select(
+          "id",
+          {
+            count: "exact",
+            head: true,
+          },
+        )
+        .eq(
+          "project_id",
+          currentProjectId,
+        );
 
 
     if (error) {
-
-        console.error(
-            error
-        );
-
-        return;
-
+      throw error;
     }
 
 
-    hypotheses =
-        data || [];
+    connectionDot
+      .classList
+      .remove("error");
 
+    connectionDot
+      .classList
+      .add("ok");
+
+    connectionText.textContent =
+      "Supabase 接続済み";
+
+
+    return true;
+
+  } catch (error) {
+
+    console.error(
+      "Supabase connection error:",
+      error,
+    );
+
+
+    connectionDot
+      .classList
+      .remove("ok");
+
+    connectionDot
+      .classList
+      .add("error");
+
+    connectionText.textContent =
+      "Supabase 接続エラー";
+
+
+    return false;
+  }
 }
 
 
-/* =========================================================
-   LOAD RESULTS
-========================================================= */
+/* ==========================================================
+   STATUS
+========================================================== */
 
-async function loadResults() {
+function showStatus(
+  message,
+  type = "",
+) {
 
-    const {
+  statusBox.textContent =
+    message;
+
+  statusBox.className =
+    "status-box show";
+
+  if (type) {
+    statusBox.classList.add(type);
+  }
+}
+
+
+function hideStatus() {
+
+  statusBox.className =
+    "status-box";
+}
+
+
+/* ==========================================================
+   PROGRESS
+========================================================== */
+
+function setProgress(
+  percent,
+  text,
+) {
+
+  progress.classList.remove(
+    "hidden",
+  );
+
+  const safe =
+    Math.max(
+      0,
+      Math.min(
+        100,
+        percent,
+      ),
+    );
+
+  progressValue.style.width =
+    `${safe}%`;
+
+  progressPercent.textContent =
+    `${Math.round(safe)}%`;
+
+  progressText.textContent =
+    text;
+}
+
+
+/* ==========================================================
+   RESEARCH
+========================================================== */
+
+async function runResearch() {
+
+  const message =
+    questionInput.value.trim();
+
+
+  if (!message) {
+
+    showStatus(
+      "研究したい数学的な問題を入力してください。",
+      "error",
+    );
+
+    questionInput.focus();
+
+    return;
+  }
+
+
+  researchButton.disabled =
+    true;
+
+  clearButton.disabled =
+    true;
+
+  evaluateButton.disabled =
+    true;
+
+
+  setProgress(
+    5,
+    "研究を準備しています...",
+  );
+
+
+  showStatus(
+    "研究AIに接続しています...",
+  );
+
+
+  try {
+
+    setProgress(
+      15,
+      "過去の研究履歴を確認しています...",
+    );
+
+
+    const response =
+      await supabase.functions.invoke(
+        RESEARCH_FUNCTION,
+        {
+          body: {
+            message,
+
+            project_id:
+              currentProjectId,
+          },
+        },
+      );
+
+
+    if (response.error) {
+
+      throw new Error(
+        response.error.message ||
+        "Edge Functionの呼び出しに失敗しました。",
+      );
+    }
+
+
+    const data =
+      response.data;
+
+
+    if (!data) {
+
+      throw new Error(
+        "AIからデータが返ってきませんでした。",
+      );
+    }
+
+
+    if (!data.ok) {
+
+      throw new Error(
+        data.error ||
+        data.detail ||
+        "研究AIでエラーが発生しました。",
+      );
+    }
+
+
+    setProgress(
+      70,
+      "研究結果を受け取りました...",
+    );
+
+
+    /*
+     * 3回ルート禁止に該当した場合
+     */
+
+    if (data.blocked) {
+
+      setProgress(
+        100,
+        "既使用ルートを検出しました。",
+      );
+
+
+      showStatus(
+        [
+          "この研究ルートは3回以上使用されています。",
+          "",
+          data.answer || "",
+          "",
+          "別のアプローチを探します。",
+        ].join("\n"),
+        "success",
+      );
+
+
+      /*
+       * ここではDBに新規結果を保存していないため、
+       * 最新結果は更新しない。
+       */
+
+      await loadHistory();
+
+      return;
+    }
+
+
+    /*
+     * 正常な研究結果
+     */
+
+    if (!data.result_id) {
+
+      console.warn(
+        "result_id がありません。",
         data,
-        error
-    } =
-        await db
-            .from("research_results")
-            .select(
-                `
-                id,
-                project_id,
-                hypothesis_id,
-                title,
-                description,
-                status,
-                hypothesis,
-                calculation,
-                verification,
-                next_action,
-                evidence,
-                created_at
-                `
-            )
-            .eq(
-                "project_id",
-                PROJECT_ID
-            )
-            .order(
-                "created_at",
-                {
-                    ascending: false
-                }
-            )
-            .limit(
-                MAX_RESULTS
-            );
-
-
-    if (error) {
-
-        console.error(
-            error
-        );
-
-        return;
+      );
 
     }
 
 
-    results =
-        data || [];
+    latestResult = {
 
-}
+      id:
+        data.result_id,
 
+      title:
+        data.research?.title ||
+        "AI研究回答",
 
-/* =========================================================
-   RENDER
-========================================================= */
+      description:
+        data.research?.summary ||
+        "",
 
-function renderEverything() {
+      status:
+        data.research?.status ||
+        "maybe",
 
-    renderStatistics();
+      hypothesis:
+        data.research?.hypothesis ||
+        "",
 
-    renderHypotheses();
+      calculation:
+        data.research?.calculation ||
+        "",
 
-    renderResults();
+      verification:
+        data.research?.verification ||
+        "",
 
-    renderDashboardResults();
+      next_action:
+        data.research?.next_action ||
+        "",
 
-}
-
-
-/* =========================================================
-   STATISTICS
-========================================================= */
-
-function renderStatistics() {
-
-    document.getElementById(
-        "stat-hypotheses"
-    ).textContent =
-        hypotheses.length;
-
-
-    document.getElementById(
-        "stat-results"
-    ).textContent =
-        results.length;
-
-}
-
-
-/* =========================================================
-   HYPOTHESES RENDER
-========================================================= */
-
-function renderHypotheses() {
-
-    const container =
-        document.getElementById(
-            "hypothesesList"
-        );
-
-
-    if (!container) {
-        return;
-    }
-
-
-    if (
-        hypotheses.length === 0
-    ) {
-
-        container.innerHTML =
-            `
-            <div class="empty">
-                仮説はまだありません。
-            </div>
-            `;
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        hypotheses
-            .map(
-                h => {
-
-                    const status =
-                        normalizeStatus(
-                            h.status
-                        );
-
-
-                    return `
-                    <div
-                        class="result-card"
-                        data-hypothesis-id="${escapeHTML(h.id)}"
-                    >
-
-                        <div
-                            style="
-                                display:flex;
-                                gap:14px;
-                                align-items:flex-start;
-                            "
-                        >
-
-                            <div
-                                class="status-symbol ${statusClass(status)}"
-                            >
-                                ${statusSymbol(status)}
-                            </div>
-
-                            <div style="flex:1;">
-
-                                <div class="result-title">
-                                    ${escapeHTML(
-                                        h.title ||
-                                        "無題の仮説"
-                                    )}
-                                </div>
-
-                                <div class="result-description">
-                                    ${escapeHTML(
-                                        h.statement ||
-                                        ""
-                                    )}
-                                </div>
-
-                                <div class="meta">
-                                    信頼度：
-                                    ${
-                                        h.confidence === null ||
-                                        h.confidence === undefined
-                                            ? "未評価"
-                                            : Number(
-                                                h.confidence
-                                              ).toFixed(2)
-                                    }
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-                    `;
-
-                }
-            )
-            .join("");
-
-
-    container
-        .querySelectorAll(
-            "[data-hypothesis-id]"
-        )
-        .forEach(
-            element => {
-
-                element.addEventListener(
-                    "click",
-                    () => {
-
-                        const id =
-                            element.dataset
-                                .hypothesisId;
-
-                        showHypothesisDetail(
-                            id
-                        );
-
-                    }
-                );
-
-            }
-        );
-
-}
-
-
-/* =========================================================
-   RESULTS RENDER
-========================================================= */
-
-function renderResults() {
-
-    const container =
-        document.getElementById(
-            "resultsList"
-        );
-
-
-    if (!container) {
-        return;
-    }
-
-
-    if (
-        results.length === 0
-    ) {
-
-        container.innerHTML =
-            `
-            <div class="empty">
-                研究結果はまだありません。
-            </div>
-            `;
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        results
-            .map(
-                result => {
-
-                    const status =
-                        normalizeStatus(
-                            result.status
-                        );
-
-
-                    const confidence =
-                        getConfidence(
-                            result.evidence
-                        );
-
-
-                    return `
-                    <div
-                        class="result-card"
-                        data-result-id="${escapeHTML(result.id)}"
-                    >
-
-                        <div
-                            style="
-                                display:flex;
-                                gap:14px;
-                                align-items:flex-start;
-                            "
-                        >
-
-                            <div
-                                class="status-symbol ${statusClass(status)}"
-                            >
-                                ${statusSymbol(status)}
-                            </div>
-
-                            <div style="flex:1;">
-
-                                <div class="result-title">
-                                    ${escapeHTML(
-                                        result.title ||
-                                        "無題の研究結果"
-                                    )}
-                                </div>
-
-                                <div class="result-description">
-                                    ${escapeHTML(
-                                        result.description ||
-                                        ""
-                                    )}
-                                </div>
-
-                                <div class="meta">
-
-                                    信頼度：
-                                    ${
-                                        confidence === null
-                                            ? "未評価"
-                                            : Number(
-                                                confidence
-                                              ).toFixed(2)
-                                    }
-
-                                    ・
-
-                                    ${
-                                        formatDate(
-                                            result.created_at
-                                        )
-                                    }
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-                    `;
-
-                }
-            )
-            .join("");
-
-
-    container
-        .querySelectorAll(
-            "[data-result-id]"
-        )
-        .forEach(
-            element => {
-
-                element.addEventListener(
-                    "click",
-                    () => {
-
-                        showResultDetail(
-                            element.dataset
-                                .resultId
-                        );
-
-                    }
-                );
-
-            }
-        );
-
-}
-
-
-/* =========================================================
-   DASHBOARD
-========================================================= */
-
-function renderDashboardResults() {
-
-    const container =
-        document.getElementById(
-            "dashboardResults"
-        );
-
-
-    if (!container) {
-        return;
-    }
-
-
-    const latest =
-        results.slice(
-            0,
-            5
-        );
-
-
-    if (
-        latest.length === 0
-    ) {
-
-        container.innerHTML =
-            `
-            <div class="empty">
-                まだ研究結果がありません。
-            </div>
-            `;
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        latest
-            .map(
-                result => {
-
-                    const status =
-                        normalizeStatus(
-                            result.status
-                        );
-
-
-                    return `
-                    <div
-                        class="result-card"
-                        data-dashboard-result-id="${escapeHTML(result.id)}"
-                    >
-
-                        <div
-                            style="
-                                display:flex;
-                                gap:12px;
-                                align-items:center;
-                            "
-                        >
-
-                            <div
-                                class="status-symbol ${statusClass(status)}"
-                            >
-                                ${statusSymbol(status)}
-                            </div>
-
-                            <div>
-
-                                <div class="result-title">
-                                    ${escapeHTML(
-                                        result.title ||
-                                        "無題"
-                                    )}
-                                </div>
-
-                                <div class="meta">
-                                    ${formatDate(
-                                        result.created_at
-                                    )}
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-                    `;
-
-                }
-            )
-            .join("");
-
-
-    container
-        .querySelectorAll(
-            "[data-dashboard-result-id]"
-        )
-        .forEach(
-            element => {
-
-                element.addEventListener(
-                    "click",
-                    () => {
-
-                        showResultDetail(
-                            element.dataset
-                                .dashboardResultId
-                        );
-
-                    }
-                );
-
-            }
-        );
-
-}
-
-
-/* =========================================================
-   CREATE HYPOTHESIS
-========================================================= */
-
-async function createHypothesis() {
-
-    const title =
-        document.getElementById(
-            "hypothesisTitle"
-        ).value.trim();
-
-
-    const statement =
-        document.getElementById(
-            "hypothesisStatement"
-        ).value.trim();
-
-
-    if (!title) {
-
-        alert(
-            "タイトルを入力してください。"
-        );
-
-        return;
-
-    }
-
-
-    if (!statement) {
-
-        alert(
-            "仮説を入力してください。"
-        );
-
-        return;
-
-    }
-
-
-    const code =
-        JSON.stringify(
-            {
-                version: 1,
-                type: "mathematical_hypothesis",
-                title,
-                statement,
-                status: "unknown",
-                confidence: 0
-            },
-            null,
-            2
-        );
-
-
-    const {
-        data,
-        error
-    } =
-        await db
-            .from("hypotheses")
-            .insert({
-                project_id:
-                    PROJECT_ID,
-
-                code,
-
-                title,
-
-                statement,
-
-                status:
-                    "unknown",
-
-                confidence:
-                    0
-            })
-            .select()
-            .single();
-
-
-    if (error) {
-
-        alert(
-            "保存失敗：\n" +
-            error.message
-        );
-
-        return;
-
-    }
-
-
-    hypotheses.unshift(
-        data
-    );
-
-
-    renderEverything();
-
-    closeModal(
-        "hypothesisModal"
-    );
-
-
-    document.getElementById(
-        "hypothesisTitle"
-    ).value = "";
-
-
-    document.getElementById(
-        "hypothesisStatement"
-    ).value = "";
-
-
-    notify(
-        "仮説を保存しました"
-    );
-
-}
-
-
-/* =========================================================
-   CREATE RESULT
-========================================================= */
-
-async function createResult() {
-
-    const title =
-        document.getElementById(
-            "resultTitle"
-        ).value.trim();
-
-
-    if (!title) {
-
-        alert(
-            "結果名を入力してください。"
-        );
-
-        return;
-
-    }
-
-
-    const status =
-        document.getElementById(
-            "resultStatus"
-        ).value;
-
-
-    let confidence =
-        Number(
-            document.getElementById(
-                "resultConfidence"
-            ).value
-        );
-
-
-    if (
-        !Number.isFinite(
-            confidence
-        )
-    ) {
-
-        confidence = 0;
-
-    }
-
-
-    confidence =
-        Math.max(
-            0,
-            Math.min(
-                1,
-                confidence
-            )
-        );
-
-
-    const evidence = {
-
-        confidence,
-
-        confidence_basis:
-            "user_entered",
+      evidence: {
 
         route:
-            null,
+          data.research?.route ||
+          "",
 
-        sources:
-            [],
+        route_key:
+          data.research?.route_key ||
+          "",
 
-        calculations:
-            [],
+        route_count:
+          data.research?.route_count ||
+          1,
 
-        counterexamples:
-            [],
+        confidence:
+          data.research?.confidence ||
+          0,
 
-        literature_check:
-            null,
+      },
 
-        reproducibility:
-            null
+      created_at:
+        new Date().toISOString(),
 
     };
 
 
+    renderLatestResult(
+      latestResult,
+    );
+
+
+    setProgress(
+      85,
+      "研究結果を保存しました。評価準備中...",
+    );
+
+
+    showStatus(
+      "研究結果を保存しました。必要なら「この結果を評価」で○△×判定できます。",
+      "success",
+    );
+
+
+    await loadHistory();
+
+
+    setProgress(
+      100,
+      "研究完了",
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      "Research error:",
+      error,
+    );
+
+
+    showStatus(
+      formatError(error),
+      "error",
+    );
+
+
+    setProgress(
+      100,
+      "エラーで終了",
+    );
+
+
+  } finally {
+
+    researchButton.disabled =
+      false;
+
+    clearButton.disabled =
+      false;
+
+    evaluateButton.disabled =
+      !latestResult;
+
+  }
+}
+
+
+/* ==========================================================
+   EVALUATE
+========================================================== */
+
+async function evaluateLatest() {
+
+  if (!latestResult?.id) {
+
+    showStatus(
+      "評価する研究結果がありません。",
+      "error",
+    );
+
+    return;
+  }
+
+
+  evaluateButton.disabled =
+    true;
+
+  researchButton.disabled =
+    true;
+
+
+  setProgress(
+    50,
+    "研究結果を検証しています...",
+  );
+
+
+  showStatus(
+    "評価AIが研究結果を確認しています...",
+  );
+
+
+  try {
+
+    const response =
+      await supabase.functions.invoke(
+        EVALUATE_FUNCTION,
+        {
+          body: {
+
+            project_id:
+              currentProjectId,
+
+            result_id:
+              latestResult.id,
+
+          },
+        },
+      );
+
+
+    if (response.error) {
+
+      throw new Error(
+        response.error.message ||
+        "評価Functionの呼び出しに失敗しました。",
+      );
+    }
+
+
+    const data =
+      response.data;
+
+
+    if (!data) {
+
+      throw new Error(
+        "評価AIからデータが返ってきませんでした。",
+      );
+    }
+
+
+    if (!data.ok) {
+
+      throw new Error(
+        data.error ||
+        data.detail ||
+        "評価AIでエラーが発生しました。",
+      );
+    }
+
+
+    const evaluation =
+      data.evaluation;
+
+
+    /*
+     * 最新結果に評価を追加
+     */
+
+    latestResult.evidence =
+      latestResult.evidence ||
+      {};
+
+    latestResult.evidence.evaluation =
+      evaluation;
+
+
+    renderLatestResult(
+      latestResult,
+    );
+
+
+    setProgress(
+      100,
+      "評価完了",
+    );
+
+
+    showStatus(
+      `評価完了：${evaluation.overall_symbol || "△"}\n\n${evaluation.reason || ""}`,
+      "success",
+    );
+
+
+    /*
+     * 履歴も再取得
+     */
+
+    await loadHistory();
+
+
+    /*
+     * 詳細を自動表示
+     */
+
+    details.classList.remove(
+      "hidden",
+    );
+
+    toggleDetailsButton.textContent =
+      "詳細を閉じる";
+
+
+  } catch (error) {
+
+    console.error(
+      "Evaluation error:",
+      error,
+    );
+
+
+    showStatus(
+      formatError(error),
+      "error",
+    );
+
+
+    setProgress(
+      100,
+      "評価エラー",
+    );
+
+
+  } finally {
+
+    evaluateButton.disabled =
+      false;
+
+    researchButton.disabled =
+      false;
+
+  }
+}
+
+
+/* ==========================================================
+   LOAD HISTORY
+========================================================== */
+
+async function loadHistory() {
+
+  try {
+
     const {
-        data,
-        error
+      data,
+      error,
     } =
-        await db
-            .from("research_results")
-            .insert({
-
-                project_id:
-                    PROJECT_ID,
-
-                hypothesis_id:
-                    document.getElementById(
-                        "resultHypothesisId"
-                    ).value ||
-                    null,
-
-                title,
-
-                description:
-                    document.getElementById(
-                        "resultDescription"
-                    ).value.trim(),
-
-                status,
-
-                hypothesis:
-                    document.getElementById(
-                        "resultHypothesis"
-                    ).value.trim(),
-
-                calculation:
-                    document.getElementById(
-                        "resultCalculation"
-                    ).value.trim(),
-
-                verification:
-                    document.getElementById(
-                        "resultVerification"
-                    ).value.trim(),
-
-                next_action:
-                    document.getElementById(
-                        "resultNextAction"
-                    ).value.trim(),
-
-                evidence
-
-            })
-            .select()
-            .single();
+      await supabase
+        .from("research_results")
+        .select(`
+          id,
+          project_id,
+          hypothesis_id,
+          title,
+          description,
+          status,
+          hypothesis,
+          calculation,
+          verification,
+          next_action,
+          evidence,
+          created_at
+        `)
+        .eq(
+          "project_id",
+          currentProjectId,
+        )
+        .order(
+          "created_at",
+          {
+            ascending: false,
+          },
+        )
+        .limit(100);
 
 
     if (error) {
-
-        alert(
-            "保存失敗：\n" +
-            error.message
-        );
-
-        return;
-
+      throw error;
     }
 
 
-    results.unshift(
-        data
+    renderHistory(
+      data || [],
     );
 
 
-    results =
-        results.slice(
-            0,
-            MAX_RESULTS
-        );
+  } catch (error) {
 
-
-    renderEverything();
-
-    closeModal(
-        "resultModal"
+    console.error(
+      "History error:",
+      error,
     );
 
-    clearResultForm();
 
-    notify(
-        "研究結果を保存しました"
-    );
-
+    historyList.innerHTML = `
+      <div class="history-empty">
+        履歴を読み込めませんでした。
+      </div>
+    `;
+  }
 }
 
 
-/* =========================================================
-   AI CHAT
-========================================================= */
+/* ==========================================================
+   RENDER HISTORY
+========================================================== */
 
-async function sendAIMessage() {
-
-    if (aiBusy) {
-        return;
-    }
-
-
-    const input =
-        document.getElementById(
-            "chatInput"
-        );
-
-
-    const message =
-        input.value.trim();
-
-
-    if (!message) {
-        return;
-    }
-
-
-    aiBusy =
-        true;
-
-
-    const sendButton =
-        document.getElementById(
-            "sendMessageButton"
-        );
-
-
-    sendButton.disabled =
-        true;
-
-
-    addChatMessage(
-        "user",
-        message
-    );
-
-
-    input.value = "";
-
-
-    const loading =
-        addChatMessage(
-            "ai",
-            "研究履歴を確認し、探索しています…"
-        );
-
-
-    try {
-
-        const {
-            data,
-            error
-        } =
-            await db.functions.invoke(
-                EDGE_FUNCTION_NAME,
-                {
-                    body: {
-                        message,
-                        project_id:
-                            PROJECT_ID
-                    }
-                }
-            );
-
-
-        if (error) {
-
-            throw error;
-
-        }
-
-
-        if (
-            !data ||
-            !data.ok
-        ) {
-
-            throw new Error(
-                data?.error ||
-                "AIから有効な回答がありません。"
-            );
-
-        }
-
-
-        if (loading) {
-            loading.remove();
-        }
-
-
-        addChatMessage(
-            "ai",
-            data.answer ||
-            "回答がありませんでした。"
-        );
-
-
-        /*
-         * ここではAIの回答を
-         * 自動的に「証明済み結果」として保存しない。
-         *
-         * AIの推論
-         * ↓
-         * 人間/検証エンジンによる検証
-         * ↓
-         * research_results
-         *
-         * と分離する。
-         */
-
-
-    } catch (error) {
-
-        console.error(
-            "AI ERROR",
-            error
-        );
-
-
-        if (loading) {
-            loading.remove();
-        }
-
-
-        addChatMessage(
-            "ai",
-            "AI接続エラー\n\n" +
-            (
-                error?.message ||
-                String(error)
-            )
-        );
-
-    }
-
-
-    aiBusy =
-        false;
-
-
-    sendButton.disabled =
-        false;
-
-}
-
-
-function addChatMessage(
-    role,
-    text
+function renderHistory(
+  results,
 ) {
 
-    const container =
-        document.getElementById(
-            "chatMessages"
-        );
+  historyCount.textContent =
+    `${results.length}件`;
 
 
-    const message =
-        document.createElement(
-            "div"
-        );
+  if (!results.length) {
+
+    historyList.innerHTML = `
+      <div class="history-empty">
+        まだ研究結果がありません。
+      </div>
+    `;
+
+    return;
+  }
 
 
-    message.className =
-        role === "user"
-            ? "message user"
-            : "message ai";
+  historyList.innerHTML =
+    results
+      .map(
+        result =>
+          createHistoryItem(
+            result,
+          ),
+      )
+      .join("");
 
 
-    message.innerHTML =
-        `
-        <div class="message-label">
-            ${
-                role === "user"
-                    ? "あなた"
-                    : "研究AI"
+  /*
+   * 履歴クリック
+   */
+
+  historyList
+    .querySelectorAll(
+      "[data-result-id]",
+    )
+    .forEach(
+      element => {
+
+        element.addEventListener(
+          "click",
+          () => {
+
+            const id =
+              element.dataset.resultId;
+
+            const result =
+              results.find(
+                item =>
+                  item.id === id,
+              );
+
+            if (result) {
+
+              latestResult =
+                result;
+
+              renderLatestResult(
+                result,
+              );
+
+              window.scrollTo({
+                top: 0,
+                behavior: "smooth",
+              });
             }
-        </div>
 
-        <div>
-            ${escapeHTML(text)}
-        </div>
-        `;
-
-
-    container.appendChild(
-        message
-    );
-
-
-    container.scrollTop =
-        container.scrollHeight;
-
-
-    return message;
-
-}
-
-
-/* =========================================================
-   CALCULATION JOB
-========================================================= */
-
-async function createCalculationJob() {
-
-    const {
-        error
-    } =
-        await db
-            .from("calculation_jobs")
-            .insert({
-                project_id:
-                    PROJECT_ID
-            });
-
-
-    if (error) {
-
-        /*
-         * まだ calculation_jobs テーブルが
-         * 作られていない場合はこちら。
-         */
-
-        alert(
-            "計算ジョブ用テーブルがまだ準備されていません。\n\n" +
-            error.message
+          },
         );
-
-        return;
-
-    }
-
-
-    notify(
-        "計算ジョブを作成しました"
+      },
     );
-
 }
 
 
-/* =========================================================
-   DETAILS
-========================================================= */
+/* ==========================================================
+   HISTORY ITEM
+========================================================== */
 
-function showResultDetail(
-    id
+function createHistoryItem(
+  result,
 ) {
 
-    const result =
-        results.find(
-            item =>
-                String(item.id) ===
-                String(id)
-        );
+  const evaluation =
+    result?.evidence?.evaluation;
 
 
-    if (!result) {
-        return;
-    }
+  const status =
+    evaluation?.overall ||
+    result.status ||
+    "maybe";
 
 
-    const status =
-        normalizeStatus(
-            result.status
-        );
+  const symbol =
+    evaluation?.overall_symbol ||
+    statusToSymbol(status);
 
 
-    const confidence =
-        getConfidence(
-            result.evidence
-        );
+  const title =
+    escapeHtml(
+      result.title ||
+      "無題の研究",
+    );
 
 
-    const content =
-        document.getElementById(
-            "detailContent"
-        );
+  const date =
+    formatDate(
+      result.created_at,
+    );
 
 
-    content.innerHTML =
-        `
-        <button
-            class="close"
-            onclick="closeModal('detailModal')"
-        >
-            ×
-        </button>
+  return `
+    <div
+      class="history-item"
+      data-result-id="${escapeHtml(result.id)}"
+    >
+
+      <div class="history-main">
 
         <div
-            class="status-symbol ${statusClass(status)}"
-            style="font-size:48px;"
+          class="history-symbol ${statusClass(status)}"
         >
-            ${statusSymbol(status)}
+          ${escapeHtml(symbol)}
         </div>
 
-        <h2>
-            ${escapeHTML(
-                result.title ||
-                "無題"
-            )}
-        </h2>
+        <div style="min-width:0">
 
-        <div class="detail-block">
+          <div class="history-title">
+            ${title}
+          </div>
 
-            <div class="detail-label">
-                判定
-            </div>
-
-            ${statusLabel(status)}
+          <div class="history-date">
+            ${date}
+          </div>
 
         </div>
 
-        <div class="detail-block">
+      </div>
 
-            <div class="detail-label">
-                信頼度
-            </div>
-
-            ${
-                confidence === null
-                    ? "未評価"
-                    : Number(
-                        confidence
-                      ).toFixed(2)
-            }
-
-        </div>
-
-        <div class="detail-block">
-
-            <div class="detail-label">
-                概要
-            </div>
-
-            ${escapeHTML(
-                result.description ||
-                "記録なし"
-            )}
-
-        </div>
-
-        <div class="detail-block">
-
-            <div class="detail-label">
-                仮説
-            </div>
-
-            ${escapeHTML(
-                result.hypothesis ||
-                "記録なし"
-            )}
-
-        </div>
-
-        <div class="detail-block">
-
-            <div class="detail-label">
-                計算
-            </div>
-
-            <pre>${escapeHTML(
-                result.calculation ||
-                "記録なし"
-            )}</pre>
-
-        </div>
-
-        <div class="detail-block">
-
-            <div class="detail-label">
-                検証
-            </div>
-
-            ${escapeHTML(
-                result.verification ||
-                "記録なし"
-            )}
-
-        </div>
-
-        <div class="detail-block">
-
-            <div class="detail-label">
-                次の行動
-            </div>
-
-            ${escapeHTML(
-                result.next_action ||
-                "記録なし"
-            )}
-
-        </div>
-
-        <div class="detail-block">
-
-            <div class="detail-label">
-                根拠・Evidence
-            </div>
-
-            <pre>${escapeHTML(
-                JSON.stringify(
-                    result.evidence ||
-                    {},
-                    null,
-                    2
-                )
-            )}</pre>
-
-        </div>
-
-        <div class="meta">
-            保存日時：
-            ${formatDate(
-                result.created_at
-            )}
-        </div>
-        `;
+    </div>
+  `;
+}
 
 
-    openModal(
-        "detailModal"
+/* ==========================================================
+   RENDER LATEST
+========================================================== */
+
+function renderLatestResult(
+  result,
+) {
+
+  latestSection.classList.remove(
+    "hidden",
+  );
+
+
+  latestTitle.textContent =
+    result.title ||
+    "AI研究回答";
+
+
+  latestDate.textContent =
+    formatDate(
+      result.created_at,
     );
+
+
+  const evaluation =
+    result?.evidence?.evaluation;
+
+
+  const status =
+    evaluation?.overall ||
+    result.status ||
+    "maybe";
+
+
+  const symbol =
+    evaluation?.overall_symbol ||
+    statusToSymbol(status);
+
+
+  latestSymbol.textContent =
+    symbol;
+
+
+  latestSymbol.className =
+    `symbol ${statusClass(status)}`;
+
+
+  latestSummary.textContent =
+    result.description ||
+    result.evidence?.summary ||
+    "研究結果が保存されています。";
+
+
+  latestMeta.innerHTML = "";
+
+
+  addTag(
+    latestMeta,
+    `状態: ${statusLabel(status)}`,
+  );
+
+
+  if (
+    result?.evidence?.route
+  ) {
+
+    addTag(
+      latestMeta,
+      `ルート: ${result.evidence.route}`,
+    );
+
+  }
+
+
+  if (
+    result?.evidence?.route_count
+  ) {
+
+    addTag(
+      latestMeta,
+      `使用回数: ${result.evidence.route_count}`,
+    );
+
+  }
+
+
+  if (
+    typeof result?.evidence?.confidence ===
+    "number"
+  ) {
+
+    addTag(
+      latestMeta,
+      `信頼度: ${Math.round(
+        result.evidence.confidence * 100,
+      )}%`,
+    );
+
+  }
+
+
+  /*
+   * 詳細
+   */
+
+  document.getElementById(
+    "detailHypothesis",
+  ).textContent =
+    result.hypothesis ||
+    "記録なし";
+
+
+  document.getElementById(
+    "detailCalculation",
+  ).textContent =
+    result.calculation ||
+    "記録なし";
+
+
+  document.getElementById(
+    "detailVerification",
+  ).textContent =
+    result.verification ||
+    "記録なし";
+
+
+  document.getElementById(
+    "detailNextAction",
+  ).textContent =
+    result.next_action ||
+    "記録なし";
+
+
+  document.getElementById(
+    "detailRoute",
+  ).textContent =
+    result?.evidence?.route ||
+    "記録なし";
+
+
+  document.getElementById(
+    "detailReason",
+  ).textContent =
+    evaluation?.reason ||
+    "まだ評価されていません。";
+
+
+  renderEvaluationGrid(
+    evaluation,
+  );
+
+
+  evaluateButton.disabled =
+    !result.id;
 
 }
 
 
-function showHypothesisDetail(
-    id
+/* ==========================================================
+   EVALUATION GRID
+========================================================== */
+
+function renderEvaluationGrid(
+  evaluation,
 ) {
 
-    const h =
-        hypotheses.find(
-            item =>
-                String(item.id) ===
-                String(id)
-        );
+  const grid =
+    document.getElementById(
+      "evaluationGrid",
+    );
 
 
-    if (!h) {
-        return;
+  if (!evaluation) {
+
+    grid.innerHTML = `
+      <div class="evaluation-item">
+        <div class="label">
+          評価
+        </div>
+        <div class="value">
+          未評価
+        </div>
+      </div>
+    `;
+
+    return;
+  }
+
+
+  const items = [
+
+    [
+      "総合",
+      evaluation.overall_symbol ||
+      "△",
+    ],
+
+    [
+      "仮説",
+      evaluation.hypothesis_symbol ||
+      "△",
+    ],
+
+    [
+      "計算",
+      evaluation.calculation_symbol ||
+      "△",
+    ],
+
+    [
+      "検証",
+      evaluation.verification_symbol ||
+      "△",
+    ],
+
+    [
+      "論理",
+      evaluation.logic_symbol ||
+      "△",
+    ],
+
+  ];
+
+
+  grid.innerHTML =
+    items
+      .map(
+        ([label, value]) => `
+          <div class="evaluation-item">
+
+            <div class="label">
+              ${escapeHtml(label)}
+            </div>
+
+            <div class="value">
+              ${escapeHtml(value)}
+            </div>
+
+          </div>
+        `,
+      )
+      .join("");
+}
+
+
+/* ==========================================================
+   TAG
+========================================================== */
+
+function addTag(
+  container,
+  text,
+) {
+
+  const element =
+    document.createElement(
+      "span",
+    );
+
+  element.className =
+    "tag";
+
+  element.textContent =
+    text;
+
+  container.appendChild(
+    element,
+  );
+}
+
+
+/* ==========================================================
+   DETAILS
+========================================================== */
+
+toggleDetailsButton.addEventListener(
+  "click",
+  () => {
+
+    const hidden =
+      details.classList.contains(
+        "hidden",
+      );
+
+
+    details.classList.toggle(
+      "hidden",
+    );
+
+
+    toggleDetailsButton.textContent =
+      hidden
+        ? "詳細を閉じる"
+        : "詳細を表示";
+
+  },
+);
+
+
+/* ==========================================================
+   BUTTONS
+========================================================== */
+
+researchButton.addEventListener(
+  "click",
+  runResearch,
+);
+
+
+evaluateButton.addEventListener(
+  "click",
+  evaluateLatest,
+);
+
+
+clearButton.addEventListener(
+  "click",
+  () => {
+
+    questionInput.value =
+      "";
+
+    hideStatus();
+
+    progress.classList.add(
+      "hidden",
+    );
+
+  },
+);
+
+
+/* ==========================================================
+   ENTER KEY
+========================================================== */
+
+questionInput.addEventListener(
+  "keydown",
+  event => {
+
+    /*
+     * Mac / iPadの
+     * Command + Enter
+     */
+
+    if (
+      (event.metaKey ||
+        event.ctrlKey) &&
+      event.key === "Enter"
+    ) {
+
+      event.preventDefault();
+
+      runResearch();
     }
 
+  },
+);
 
-    const content =
-        document.getElementById(
-            "detailContent"
-        );
 
-
-    content.innerHTML =
-        `
-        <button
-            class="close"
-            onclick="closeModal('detailModal')"
-        >
-            ×
-        </button>
-
-        <h2>
-            ${escapeHTML(
-                h.title ||
-                "無題の仮説"
-            )}
-        </h2>
-
-        <div class="detail-block">
-
-            <div class="detail-label">
-                命題
-            </div>
-
-            ${escapeHTML(
-                h.statement ||
-                ""
-            )}
-
-        </div>
-
-        <div class="detail-block">
-
-            <div class="detail-label">
-                状態
-            </div>
-
-            ${escapeHTML(
-                h.status ||
-                "unknown"
-            )}
-
-        </div>
-
-        <div class="detail-block">
-
-            <div class="detail-label">
-                信頼度
-            </div>
-
-            ${
-                h.confidence === null ||
-                h.confidence === undefined
-                    ? "未評価"
-                    : Number(
-                        h.confidence
-                      ).toFixed(2)
-            }
-
-        </div>
-
-        <div class="detail-block">
-
-            <div class="detail-label">
-                Code / Internal Data
-            </div>
-
-            <pre>${escapeHTML(
-                h.code ||
-                ""
-            )}</pre>
-
-        </div>
-        `;
-
-
-    openModal(
-        "detailModal"
-    );
-
-}
-
-
-/* =========================================================
-   UI
-========================================================= */
-
-function initializeUI() {
-
-    document
-        .querySelectorAll(
-            ".nav-button"
-        )
-        .forEach(
-            button => {
-
-                button.addEventListener(
-                    "click",
-                    () => {
-
-                        switchPage(
-                            button.dataset.page
-                        );
-
-                    }
-                );
-
-            }
-        );
-
-
-    document
-        .getElementById(
-            "newHypothesisButton"
-        )
-        .addEventListener(
-            "click",
-            () => {
-
-                openModal(
-                    "hypothesisModal"
-                );
-
-            }
-        );
-
-
-    document
-        .getElementById(
-            "closeHypothesisModal"
-        )
-        .addEventListener(
-            "click",
-            () => {
-
-                closeModal(
-                    "hypothesisModal"
-                );
-
-            }
-        );
-
-
-    document
-        .getElementById(
-            "saveHypothesisButton"
-        )
-        .addEventListener(
-            "click",
-            createHypothesis
-        );
-
-
-    document
-        .getElementById(
-            "newResultButton"
-        )
-        .addEventListener(
-            "click",
-            openResultModal
-        );
-
-
-    document
-        .getElementById(
-            "closeResultModal"
-        )
-        .addEventListener(
-            "click",
-            () => {
-
-                closeModal(
-                    "resultModal"
-                );
-
-            }
-        );
-
-
-    document
-        .getElementById(
-            "saveResultButton"
-        )
-        .addEventListener(
-            "click",
-            createResult
-        );
-
-
-    document
-        .getElementById(
-            "sendMessageButton"
-        )
-        .addEventListener(
-            "click",
-            sendAIMessage
-        );
-
-
-    document
-        .getElementById(
-            "chatInput"
-        )
-        .addEventListener(
-            "keydown",
-            event => {
-
-                if (
-                    event.key ===
-                    "Enter" &&
-                    !event.shiftKey
-                ) {
-
-                    event.preventDefault();
-
-                    sendAIMessage();
-
-                }
-
-            }
-        );
-
-
-    document
-        .getElementById(
-            "startCalculationButton"
-        )
-        .addEventListener(
-            "click",
-            createCalculationJob
-        );
-
-
-    document
-        .querySelectorAll(
-            ".modal-bg"
-        )
-        .forEach(
-            modal => {
-
-                modal.addEventListener(
-                    "click",
-                    event => {
-
-                        if (
-                            event.target ===
-                            modal
-                        ) {
-
-                            closeModal(
-                                modal.id
-                            );
-
-                        }
-
-                    }
-                );
-
-            }
-        );
-
-}
-
-
-/* =========================================================
-   NAV
-========================================================= */
-
-function switchPage(
-    page
-) {
-
-    document
-        .querySelectorAll(
-            ".nav-button"
-        )
-        .forEach(
-            button => {
-
-                button.classList.toggle(
-                    "active",
-                    button.dataset.page ===
-                    page
-                );
-
-            }
-        );
-
-
-    document
-        .querySelectorAll(
-            ".page"
-        )
-        .forEach(
-            section => {
-
-                section.classList.toggle(
-                    "active",
-                    section.id ===
-                    "page-" +
-                    page
-                );
-
-            }
-        );
-
-}
-
-
-/* =========================================================
-   RESULT MODAL
-========================================================= */
-
-function openResultModal() {
-
-    populateHypothesisSelect();
-
-    openModal(
-        "resultModal"
-    );
-
-}
-
-
-function populateHypothesisSelect() {
-
-    const select =
-        document.getElementById(
-            "resultHypothesisId"
-        );
-
-
-    select.innerHTML =
-        `
-        <option value="">
-            仮説なし
-        </option>
-        `;
-
-
-    hypotheses.forEach(
-        h => {
-
-            const option =
-                document.createElement(
-                    "option"
-                );
-
-
-            option.value =
-                h.id;
-
-
-            option.textContent =
-                h.title ||
-                "無題";
-
-
-            select.appendChild(
-                option
-            );
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   MODALS
-========================================================= */
-
-function openModal(
-    id
-) {
-
-    const modal =
-        document.getElementById(
-            id
-        );
-
-
-    if (modal) {
-        modal.classList.add(
-            "active"
-        );
-    }
-
-}
-
-
-function closeModal(
-    id
-) {
-
-    const modal =
-        document.getElementById(
-            id
-        );
-
-
-    if (modal) {
-        modal.classList.remove(
-            "active"
-        );
-    }
-
-}
-
-
-/* =========================================================
+/* ==========================================================
    HELPERS
-========================================================= */
+========================================================== */
 
-function normalizeStatus(
-    status
+function statusToSymbol(
+  status,
 ) {
 
-    if (
-        status === "good" ||
-        status === "supported" ||
-        status === "support"
-    ) {
+  if (status === "good") {
+    return "○";
+  }
 
-        return "good";
+  if (status === "bad") {
+    return "×";
+  }
 
-    }
-
-
-    if (
-        status === "bad" ||
-        status === "rejected" ||
-        status === "refuted"
-    ) {
-
-        return "bad";
-
-    }
-
-
-    return "maybe";
-
-}
-
-
-function statusSymbol(
-    status
-) {
-
-    if (
-        status === "good"
-    ) {
-
-        return "○";
-
-    }
-
-
-    if (
-        status === "bad"
-    ) {
-
-        return "×";
-
-    }
-
-
-    return "△";
-
+  return "△";
 }
 
 
 function statusClass(
-    status
+  status,
 ) {
 
-    if (
-        status === "good"
-    ) {
+  if (status === "good") {
+    return "good";
+  }
 
-        return "status-good";
+  if (status === "bad") {
+    return "bad";
+  }
 
-    }
+  if (status === "maybe") {
+    return "maybe";
+  }
 
-
-    if (
-        status === "bad"
-    ) {
-
-        return "status-bad";
-
-    }
-
-
-    return "status-maybe";
-
+  return "unknown";
 }
 
 
 function statusLabel(
-    status
+  status,
 ) {
 
-    if (
-        status === "good"
-    ) {
+  if (status === "good") {
+    return "良";
+  }
 
-        return "○ 支持";
+  if (status === "bad") {
+    return "不成立・問題あり";
+  }
 
-    }
-
-
-    if (
-        status === "bad"
-    ) {
-
-        return "× 反証";
-
-    }
-
-
-    return "△ 未確定";
-
-}
-
-
-function getConfidence(
-    evidence
-) {
-
-    if (
-        !evidence ||
-        typeof evidence !==
-            "object"
-    ) {
-
-        return null;
-
-    }
-
-
-    if (
-        typeof evidence.confidence ===
-        "number"
-    ) {
-
-        return evidence.confidence;
-
-    }
-
-
-    return null;
-
+  return "要検証";
 }
 
 
 function formatDate(
-    date
+  date,
 ) {
 
-    if (!date) {
-        return "";
-    }
+  if (!date) {
+    return "";
+  }
 
 
-    try {
-
-        return new Date(
-            date
-        ).toLocaleString(
-            "ja-JP"
-        );
-
-    } catch {
-
-        return String(
-            date
-        );
-
-    }
-
-}
+  const value =
+    new Date(date);
 
 
-function escapeHTML(
-    value
-) {
-
-    if (
-        value === null ||
-        value === undefined
-    ) {
-
-        return "";
-    }
-
-
-    return String(
-        value
+  if (
+    Number.isNaN(
+      value.getTime(),
     )
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
-        );
+  ) {
+    return "";
+  }
 
+
+  return value.toLocaleString(
+    "ja-JP",
+    {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    },
+  );
 }
 
 
-function clearResultForm() {
-
-    [
-        "resultTitle",
-        "resultDescription",
-        "resultHypothesis",
-        "resultCalculation",
-        "resultVerification",
-        "resultNextAction"
-    ]
-    .forEach(
-        id => {
-
-            const element =
-                document.getElementById(
-                    id
-                );
-
-            if (element) {
-                element.value = "";
-            }
-
-        }
-    );
-
-
-    document.getElementById(
-        "resultConfidence"
-    ).value =
-        "0";
-
-
-    document.getElementById(
-        "resultStatus"
-    ).value =
-        "maybe";
-
-}
-
-
-function notify(
-    text
+function escapeHtml(
+  value,
 ) {
 
-    const element =
-        document.createElement(
-            "div"
-        );
-
-
-    element.textContent =
-        text;
-
-
-    element.style.position =
-        "fixed";
-
-    element.style.bottom =
-        "22px";
-
-    element.style.right =
-        "22px";
-
-    element.style.zIndex =
-        "9999";
-
-    element.style.background =
-        "#151c2b";
-
-    element.style.border =
-        "1px solid #273149";
-
-    element.style.borderRadius =
-        "10px";
-
-    element.style.padding =
-        "12px 16px";
-
-    element.style.color =
-        "#edf1f8";
-
-    document.body.appendChild(
-        element
+  return String(value ?? "")
+    .replace(
+      /&/g,
+      "&amp;",
+    )
+    .replace(
+      /</g,
+      "&lt;",
+    )
+    .replace(
+      />/g,
+      "&gt;",
+    )
+    .replace(
+      /"/g,
+      "&quot;",
+    )
+    .replace(
+      /'/g,
+      "&#039;",
     );
+}
 
 
-    setTimeout(
-        () => {
+function formatError(
+  error,
+) {
 
-            element.remove();
+  if (!error) {
+    return "不明なエラーです。";
+  }
 
-        },
-        2500
-    );
+
+  let message =
+    error.message ||
+    String(error);
+
+
+  /*
+   * よくあるSupabaseエラーを
+   * 少し分かりやすくする。
+   */
+
+  if (
+    message.includes(
+      "Failed to send a request to the Edge Function",
+    )
+  ) {
+
+    return [
+      "Edge Functionへの接続に失敗しました。",
+      "",
+      "SupabaseのEdge Functionsで",
+      "research / evaluate がDeploy済みか確認してください。",
+    ].join("\n");
+  }
+
+
+  return message;
+}
+
+
+/* ==========================================================
+   INITIALIZE
+========================================================== */
+
+async function initialize() {
+
+  await checkConnection();
+
+  await loadHistory();
 
 }
 
 
-/* =========================================================
-   GLOBAL DEBUG
-========================================================= */
+/* ==========================================================
+   START
+========================================================== */
 
-window.ResearchAI = {
-
-    reload:
-        async function() {
-
-            await loadHypotheses();
-
-            await loadResults();
-
-            renderEverything();
-
-        },
-
-    send:
-        sendAIMessage,
-
-    state:
-        function() {
-
-            return {
-
-                hypotheses,
-
-                results,
-
-                aiBusy
-
-            };
-
-        }
-
-};
+initialize();
 
 </script>
 
