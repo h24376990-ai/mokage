@@ -1,16 +1,10 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>Research AI Lab</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     * {
@@ -28,8 +22,7 @@
       --good: #16a34a;
       --maybe: #d97706;
       --bad: #dc2626;
-      --shadow:
-        0 8px 30px rgba(0, 0, 0, 0.07);
+      --shadow: 0 8px 30px rgba(0,0,0,.07);
     }
 
     body {
@@ -40,7 +33,6 @@
         "Segoe UI",
         "Noto Sans JP",
         sans-serif;
-
       background: var(--bg);
       color: var(--text);
     }
@@ -215,7 +207,7 @@
 
     .primary:disabled,
     .secondary:disabled {
-      opacity: 0.5;
+      opacity: .5;
       cursor: not-allowed;
     }
 
@@ -365,7 +357,7 @@
       border-radius: 12px;
       padding: 11px;
       background: white;
-      transition: 0.15s;
+      transition: .15s;
     }
 
     .history-item:hover {
@@ -462,12 +454,12 @@
       height: 100%;
       width: 0%;
       background: var(--accent);
-      transition: width 0.25s;
+      transition: width .25s;
     }
 
     .evaluation-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2,1fr);
       gap: 8px;
       margin-top: 15px;
     }
@@ -500,75 +492,33 @@
 
 <div class="app">
 
-  <!-- =====================================================
-       HEADER
-  ====================================================== -->
-
   <header>
-
     <div class="brand">
-
-      <div class="brand-icon">
-        ∑
-      </div>
+      <div class="brand-icon">∑</div>
 
       <div>
-        <h1>
-          Research AI Lab
-        </h1>
-
-        <p>
-          数学研究・仮説探索・検証システム
-        </p>
+        <h1>Research AI Lab</h1>
+        <p>数学研究・仮説探索・検証システム</p>
       </div>
-
     </div>
-
 
     <div class="connection">
-
-      <span
-        id="connectionDot"
-        class="connection-dot"
-      ></span>
-
-      <span id="connectionText">
-        Supabase 接続確認中...
-      </span>
-
+      <span id="connectionDot" class="connection-dot"></span>
+      <span id="connectionText">Supabase 接続確認中...</span>
     </div>
-
   </header>
 
 
-  <!-- =====================================================
-       MAIN
-  ====================================================== -->
-
   <div class="layout">
 
-
-    <!-- ===================================================
-         LEFT
-    ==================================================== -->
-
     <main>
-
 
       <section class="card research-card">
 
         <div class="section-title">
-
-          <h2>
-            新しい研究
-          </h2>
-
-          <span>
-            AI研究ルートを自動記録
-          </span>
-
+          <h2>新しい研究</h2>
+          <span>AI研究ルートを自動記録</span>
         </div>
-
 
         <textarea
           id="questionInput"
@@ -577,7 +527,6 @@
 例：
 素数の分布について、既存の定理を単に使うのではなく、別の不変量から新しい見方ができないか検討したい。"
         ></textarea>
-
 
         <div class="actions">
 
@@ -597,47 +546,26 @@
 
         </div>
 
+        <div id="statusBox" class="status-box"></div>
 
-        <div
-          id="statusBox"
-          class="status-box"
-        ></div>
-
-
-        <div
-          id="progress"
-          class="progress hidden"
-        >
+        <div id="progress" class="progress hidden">
 
           <div class="progress-label">
-
-            <span id="progressText">
-              準備中...
-            </span>
-
-            <span id="progressPercent">
-              0%
-            </span>
-
+            <span id="progressText">準備中...</span>
+            <span id="progressPercent">0%</span>
           </div>
 
           <div class="progress-bar">
-
             <div
               id="progressValue"
               class="progress-value"
             ></div>
-
           </div>
 
         </div>
 
       </section>
 
-
-      <!-- =================================================
-           LATEST RESULT
-      ================================================== -->
 
       <section
         id="latestSection"
@@ -647,17 +575,9 @@
         <div class="latest-content">
 
           <div class="section-title">
-
-            <h2>
-              最新の研究結果
-            </h2>
-
-            <span>
-              タップして詳細を表示
-            </span>
-
+            <h2>最新の研究結果</h2>
+            <span>タップして詳細を表示</span>
           </div>
-
 
           <div class="result-head">
 
@@ -675,7 +595,6 @@
 
             </div>
 
-
             <div
               id="latestSymbol"
               class="symbol unknown"
@@ -685,18 +604,15 @@
 
           </div>
 
-
           <div
             id="latestSummary"
             class="result-summary"
           ></div>
 
-
           <div
             id="latestMeta"
             class="result-meta"
           ></div>
-
 
           <div class="actions">
 
@@ -716,77 +632,40 @@
 
           </div>
 
-
           <div
             id="details"
             class="details hidden"
           >
 
             <div class="detail-block">
-
-              <h3>
-                仮説
-              </h3>
-
+              <h3>仮説</h3>
               <p id="detailHypothesis"></p>
-
             </div>
 
-
             <div class="detail-block">
-
-              <h3>
-                計算
-              </h3>
-
+              <h3>計算</h3>
               <p id="detailCalculation"></p>
-
             </div>
 
-
             <div class="detail-block">
-
-              <h3>
-                検証
-              </h3>
-
+              <h3>検証</h3>
               <p id="detailVerification"></p>
-
             </div>
 
-
             <div class="detail-block">
-
-              <h3>
-                次の行動
-              </h3>
-
+              <h3>次の行動</h3>
               <p id="detailNextAction"></p>
-
             </div>
 
-
             <div class="detail-block">
-
-              <h3>
-                研究ルート
-              </h3>
-
+              <h3>研究ルート</h3>
               <p id="detailRoute"></p>
-
             </div>
-
 
             <div class="detail-block">
-
-              <h3>
-                評価理由
-              </h3>
-
+              <h3>評価理由</h3>
               <p id="detailReason"></p>
-
             </div>
-
 
             <div
               id="evaluationGrid"
@@ -802,36 +681,21 @@
     </main>
 
 
-    <!-- ===================================================
-         RIGHT
-    ==================================================== -->
-
     <aside class="card right-card">
 
       <div class="section-title">
-
-        <h2>
-          研究履歴
-        </h2>
-
-        <span id="historyCount">
-          0件
-        </span>
-
+        <h2>研究履歴</h2>
+        <span id="historyCount">0件</span>
       </div>
-
 
       <div
         id="historyList"
         class="history-list"
       >
-
         <div class="history-empty">
           まだ研究結果がありません。
         </div>
-
       </div>
-
 
       <p class="small-note">
         最新100件を表示します。
@@ -847,20 +711,15 @@
 
 <script>
 
-/* ==========================================================
-   SUPABASE CONFIG
-========================================================== */
+/* =========================================================
+   CONFIG
+========================================================= */
 
 const SUPABASE_URL =
   "https://hiefdcodifkfhnqvruzn.supabase.co";
 
-const SUPABASE_PUBLISHABLE_KEY =
+const SUPABASE_KEY =
   "sb_publishable_HmcPY6BGvUQTPESGHVe7Hw_W4NlTPqj";
-
-
-/* ==========================================================
-   FUNCTION NAMES
-========================================================== */
 
 const RESEARCH_FUNCTION =
   "research";
@@ -868,237 +727,186 @@ const RESEARCH_FUNCTION =
 const EVALUATE_FUNCTION =
   "evaluate";
 
-
-/* ==========================================================
-   PROJECT ID
-========================================================== */
-
 const DEFAULT_PROJECT_ID =
   "4253800d-a89e-45e2-a36a-cc52eb6c510b";
 
 
-/* ==========================================================
-   SUPABASE
-========================================================== */
-
-const supabase =
-  window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_PUBLISHABLE_KEY,
-  );
-
-
-/* ==========================================================
+/* =========================================================
    STATE
-========================================================== */
+========================================================= */
 
-let currentProjectId =
-  localStorage.getItem(
-    "research_project_id",
-  );
+let projectId =
+  localStorage.getItem("research_project_id");
 
-if (!currentProjectId) {
-
-  currentProjectId =
-    DEFAULT_PROJECT_ID;
-
+if (!projectId) {
+  projectId = DEFAULT_PROJECT_ID;
   localStorage.setItem(
     "research_project_id",
-    currentProjectId,
+    projectId
   );
 }
-
 
 let latestResult = null;
 
 
-/* ==========================================================
+/* =========================================================
    DOM
-========================================================== */
+========================================================= */
 
 const questionInput =
-  document.getElementById(
-    "questionInput",
-  );
+  document.getElementById("questionInput");
 
 const researchButton =
-  document.getElementById(
-    "researchButton",
-  );
+  document.getElementById("researchButton");
 
 const clearButton =
-  document.getElementById(
-    "clearButton",
-  );
-
-const statusBox =
-  document.getElementById(
-    "statusBox",
-  );
-
-const connectionDot =
-  document.getElementById(
-    "connectionDot",
-  );
-
-const connectionText =
-  document.getElementById(
-    "connectionText",
-  );
-
-const progress =
-  document.getElementById(
-    "progress",
-  );
-
-const progressText =
-  document.getElementById(
-    "progressText",
-  );
-
-const progressPercent =
-  document.getElementById(
-    "progressPercent",
-  );
-
-const progressValue =
-  document.getElementById(
-    "progressValue",
-  );
-
-const latestSection =
-  document.getElementById(
-    "latestSection",
-  );
-
-const latestTitle =
-  document.getElementById(
-    "latestTitle",
-  );
-
-const latestDate =
-  document.getElementById(
-    "latestDate",
-  );
-
-const latestSymbol =
-  document.getElementById(
-    "latestSymbol",
-  );
-
-const latestSummary =
-  document.getElementById(
-    "latestSummary",
-  );
-
-const latestMeta =
-  document.getElementById(
-    "latestMeta",
-  );
+  document.getElementById("clearButton");
 
 const evaluateButton =
-  document.getElementById(
-    "evaluateButton",
-  );
+  document.getElementById("evaluateButton");
 
 const toggleDetailsButton =
-  document.getElementById(
-    "toggleDetailsButton",
-  );
+  document.getElementById("toggleDetailsButton");
+
+const statusBox =
+  document.getElementById("statusBox");
+
+const connectionDot =
+  document.getElementById("connectionDot");
+
+const connectionText =
+  document.getElementById("connectionText");
+
+const progress =
+  document.getElementById("progress");
+
+const progressText =
+  document.getElementById("progressText");
+
+const progressPercent =
+  document.getElementById("progressPercent");
+
+const progressValue =
+  document.getElementById("progressValue");
+
+const latestSection =
+  document.getElementById("latestSection");
+
+const latestTitle =
+  document.getElementById("latestTitle");
+
+const latestDate =
+  document.getElementById("latestDate");
+
+const latestSymbol =
+  document.getElementById("latestSymbol");
+
+const latestSummary =
+  document.getElementById("latestSummary");
+
+const latestMeta =
+  document.getElementById("latestMeta");
 
 const details =
-  document.getElementById(
-    "details",
-  );
+  document.getElementById("details");
 
 const historyList =
-  document.getElementById(
-    "historyList",
-  );
+  document.getElementById("historyList");
 
 const historyCount =
-  document.getElementById(
-    "historyCount",
-  );
+  document.getElementById("historyCount");
 
 
-/* ==========================================================
-   CONNECTION CHECK
-========================================================== */
+/* =========================================================
+   SUPABASE REST HELPER
+   JS SDKを使わず直接通信する
+========================================================= */
 
-async function checkConnection() {
+async function supabaseFetch(
+  path,
+  options = {}
+) {
 
-  try {
+  const headers = {
+    "apikey": SUPABASE_KEY,
+    "Authorization":
+      `Bearer ${SUPABASE_KEY}`,
+    "Content-Type":
+      "application/json",
+    ...(options.headers || {})
+  };
 
-    const {
-      error,
-    } =
-      await supabase
-        .from("research_results")
-        .select(
-          "id",
-          {
-            count: "exact",
-            head: true,
-          },
-        )
-        .eq(
-          "project_id",
-          currentProjectId,
-        );
-
-
-    if (error) {
-      throw error;
-    }
-
-
-    connectionDot
-      .classList
-      .remove("error");
-
-    connectionDot
-      .classList
-      .add("ok");
-
-    connectionText.textContent =
-      "Supabase 接続済み";
-
-
-    return true;
-
-  } catch (error) {
-
-    console.error(
-      "Supabase connection error:",
-      error,
+  const response =
+    await fetch(
+      `${SUPABASE_URL}${path}`,
+      {
+        ...options,
+        headers
+      }
     );
 
+  const text =
+    await response.text();
 
-    connectionDot
-      .classList
-      .remove("ok");
+  let data = null;
 
-    connectionDot
-      .classList
-      .add("error");
-
-    connectionText.textContent =
-      "Supabase 接続エラー";
-
-
-    return false;
+  try {
+    data = text
+      ? JSON.parse(text)
+      : null;
+  } catch {
+    data = text;
   }
+
+  if (!response.ok) {
+
+    let message =
+      `Supabase error ${response.status}`;
+
+    if (data?.message) {
+      message += `: ${data.message}`;
+    } else if (data?.error) {
+      message += `: ${data.error}`;
+    } else if (typeof data === "string" && data) {
+      message += `: ${data}`;
+    }
+
+    throw new Error(message);
+  }
+
+  return data;
 }
 
 
-/* ==========================================================
+/* =========================================================
+   EDGE FUNCTION
+========================================================= */
+
+async function callFunction(
+  functionName,
+  body
+) {
+
+  const data =
+    await supabaseFetch(
+      `/functions/v1/${functionName}`,
+      {
+        method: "POST",
+        body: JSON.stringify(body)
+      }
+    );
+
+  return data;
+}
+
+
+/* =========================================================
    STATUS
-========================================================== */
+========================================================= */
 
 function showStatus(
   message,
-  type = "",
+  type = ""
 ) {
 
   statusBox.textContent =
@@ -1112,25 +920,23 @@ function showStatus(
   }
 }
 
-
 function hideStatus() {
-
   statusBox.className =
     "status-box";
 }
 
 
-/* ==========================================================
+/* =========================================================
    PROGRESS
-========================================================== */
+========================================================= */
 
 function setProgress(
   percent,
-  text,
+  text
 ) {
 
   progress.classList.remove(
-    "hidden",
+    "hidden"
   );
 
   const safe =
@@ -1138,8 +944,8 @@ function setProgress(
       0,
       Math.min(
         100,
-        percent,
-      ),
+        percent
+      )
     );
 
   progressValue.style.width =
@@ -1153,28 +959,74 @@ function setProgress(
 }
 
 
-/* ==========================================================
+/* =========================================================
+   CONNECTION TEST
+========================================================= */
+
+async function checkConnection() {
+
+  try {
+
+    await supabaseFetch(
+      `/rest/v1/research_results?select=id&project_id=eq.${encodeURIComponent(projectId)}&limit=1`
+    );
+
+    connectionDot.classList.remove(
+      "error"
+    );
+
+    connectionDot.classList.add(
+      "ok"
+    );
+
+    connectionText.textContent =
+      "Supabase 接続済み";
+
+    return true;
+
+  } catch (error) {
+
+    console.error(
+      "Supabase connection error:",
+      error
+    );
+
+    connectionDot.classList.remove(
+      "ok"
+    );
+
+    connectionDot.classList.add(
+      "error"
+    );
+
+    connectionText.textContent =
+      "Supabase 接続エラー";
+
+    return false;
+  }
+}
+
+
+/* =========================================================
    RESEARCH
-========================================================== */
+========================================================= */
 
 async function runResearch() {
 
   const message =
     questionInput.value.trim();
 
-
   if (!message) {
 
     showStatus(
       "研究したい数学的な問題を入力してください。",
-      "error",
+      "error"
     );
 
     questionInput.focus();
 
     return;
   }
-
 
   researchButton.disabled =
     true;
@@ -1185,88 +1037,62 @@ async function runResearch() {
   evaluateButton.disabled =
     true;
 
-
   setProgress(
     5,
-    "研究を準備しています...",
+    "研究を準備しています..."
   );
-
 
   showStatus(
-    "研究AIに接続しています...",
+    "研究AIに接続しています..."
   );
-
 
   try {
 
     setProgress(
       15,
-      "過去の研究履歴を確認しています...",
+      "過去の研究履歴を確認しています..."
     );
 
-
-    const response =
-      await supabase.functions.invoke(
+    const data =
+      await callFunction(
         RESEARCH_FUNCTION,
         {
-          body: {
-            message,
-
-            project_id:
-              currentProjectId,
-          },
-        },
+          message: message,
+          project_id: projectId
+        }
       );
 
-
-    if (response.error) {
-
-      throw new Error(
-        response.error.message ||
-        "Edge Functionの呼び出しに失敗しました。",
-      );
-    }
-
-
-    const data =
-      response.data;
-
+    console.log(
+      "research response:",
+      data
+    );
 
     if (!data) {
-
       throw new Error(
-        "AIからデータが返ってきませんでした。",
+        "研究AIからデータが返ってきませんでした。"
       );
     }
 
-
-    if (!data.ok) {
+    if (data.ok === false) {
 
       throw new Error(
         data.error ||
         data.detail ||
-        "研究AIでエラーが発生しました。",
+        "研究AIでエラーが発生しました。"
       );
     }
 
-
     setProgress(
       70,
-      "研究結果を受け取りました...",
+      "研究結果を受け取りました..."
     );
-
-
-    /*
-     * 3回ルート禁止に該当した場合
-     */
 
     if (data.blocked) {
 
       setProgress(
         100,
-        "既使用ルートを検出しました。",
+        "既使用ルートを検出しました。"
       );
-
 
       showStatus(
         [
@@ -1274,141 +1100,130 @@ async function runResearch() {
           "",
           data.answer || "",
           "",
-          "別のアプローチを探します。",
+          "別のアプローチを探します。"
         ].join("\n"),
-        "success",
+        "success"
       );
-
-
-      /*
-       * ここではDBに新規結果を保存していないため、
-       * 最新結果は更新しない。
-       */
 
       await loadHistory();
 
       return;
     }
 
-
-    /*
-     * 正常な研究結果
-     */
-
-    if (!data.result_id) {
-
-      console.warn(
-        "result_id がありません。",
-        data,
-      );
-
-    }
-
+    const research =
+      data.research ||
+      data.result ||
+      data.answer ||
+      {};
 
     latestResult = {
 
       id:
-        data.result_id,
+        data.result_id ||
+        data.id ||
+        research.id ||
+        null,
 
       title:
-        data.research?.title ||
+        research.title ||
+        data.title ||
         "AI研究回答",
 
       description:
-        data.research?.summary ||
+        research.description ||
+        research.summary ||
+        data.description ||
+        data.answer ||
         "",
 
       status:
-        data.research?.status ||
+        research.status ||
+        data.status ||
         "maybe",
 
       hypothesis:
-        data.research?.hypothesis ||
+        research.hypothesis ||
         "",
 
       calculation:
-        data.research?.calculation ||
+        research.calculation ||
         "",
 
       verification:
-        data.research?.verification ||
+        research.verification ||
         "",
 
       next_action:
-        data.research?.next_action ||
+        research.next_action ||
         "",
 
-      evidence: {
+      evidence:
+        research.evidence ||
+        {
+          route:
+            research.route ||
+            data.route ||
+            "",
 
-        route:
-          data.research?.route ||
-          "",
+          route_key:
+            research.route_key ||
+            data.route_key ||
+            "",
 
-        route_key:
-          data.research?.route_key ||
-          "",
+          route_count:
+            research.route_count ||
+            data.route_count ||
+            1,
 
-        route_count:
-          data.research?.route_count ||
-          1,
-
-        confidence:
-          data.research?.confidence ||
-          0,
-
-      },
+          confidence:
+            research.confidence ||
+            data.confidence ||
+            0
+        },
 
       created_at:
-        new Date().toISOString(),
-
+        new Date().toISOString()
     };
 
-
     renderLatestResult(
-      latestResult,
+      latestResult
     );
-
 
     setProgress(
-      85,
-      "研究結果を保存しました。評価準備中...",
+      90,
+      "研究結果を確認しています..."
     );
-
 
     showStatus(
-      "研究結果を保存しました。必要なら「この結果を評価」で○△×判定できます。",
-      "success",
+      latestResult.id
+        ? "研究結果を保存しました。必要なら「この結果を評価」を押してください。"
+        : "研究結果を受け取りました。ただしresult_idが返っていません。",
+      "success"
     );
-
 
     await loadHistory();
 
-
     setProgress(
       100,
-      "研究完了",
+      "研究完了"
     );
-
 
   } catch (error) {
 
     console.error(
       "Research error:",
-      error,
+      error
     );
-
 
     showStatus(
       formatError(error),
-      "error",
+      "error"
     );
-
 
     setProgress(
       100,
-      "エラーで終了",
+      "エラーで終了"
     );
-
 
   } finally {
 
@@ -1419,15 +1234,14 @@ async function runResearch() {
       false;
 
     evaluateButton.disabled =
-      !latestResult;
-
+      !latestResult?.id;
   }
 }
 
 
-/* ==========================================================
+/* =========================================================
    EVALUATE
-========================================================== */
+========================================================= */
 
 async function evaluateLatest() {
 
@@ -1435,12 +1249,11 @@ async function evaluateLatest() {
 
     showStatus(
       "評価する研究結果がありません。",
-      "error",
+      "error"
     );
 
     return;
   }
-
 
   evaluateButton.disabled =
     true;
@@ -1448,75 +1261,54 @@ async function evaluateLatest() {
   researchButton.disabled =
     true;
 
-
   setProgress(
     50,
-    "研究結果を検証しています...",
+    "研究結果を検証しています..."
   );
-
 
   showStatus(
-    "評価AIが研究結果を確認しています...",
+    "評価AIが研究結果を確認しています..."
   );
-
 
   try {
 
-    const response =
-      await supabase.functions.invoke(
+    const data =
+      await callFunction(
         EVALUATE_FUNCTION,
         {
-          body: {
+          project_id:
+            projectId,
 
-            project_id:
-              currentProjectId,
-
-            result_id:
-              latestResult.id,
-
-          },
-        },
+          result_id:
+            latestResult.id
+        }
       );
 
-
-    if (response.error) {
-
-      throw new Error(
-        response.error.message ||
-        "評価Functionの呼び出しに失敗しました。",
-      );
-    }
-
-
-    const data =
-      response.data;
-
+    console.log(
+      "evaluate response:",
+      data
+    );
 
     if (!data) {
 
       throw new Error(
-        "評価AIからデータが返ってきませんでした。",
+        "評価AIからデータが返ってきませんでした。"
       );
     }
 
-
-    if (!data.ok) {
+    if (data.ok === false) {
 
       throw new Error(
         data.error ||
         data.detail ||
-        "評価AIでエラーが発生しました。",
+        "評価AIでエラーが発生しました。"
       );
     }
 
-
     const evaluation =
-      data.evaluation;
-
-
-    /*
-     * 最新結果に評価を追加
-     */
+      data.evaluation ||
+      data.result ||
+      data;
 
     latestResult.evidence =
       latestResult.evidence ||
@@ -1525,62 +1317,49 @@ async function evaluateLatest() {
     latestResult.evidence.evaluation =
       evaluation;
 
-
     renderLatestResult(
-      latestResult,
+      latestResult
     );
-
 
     setProgress(
       100,
-      "評価完了",
+      "評価完了"
     );
-
 
     showStatus(
-      `評価完了：${evaluation.overall_symbol || "△"}\n\n${evaluation.reason || ""}`,
-      "success",
+      [
+        `評価完了：${evaluation.overall_symbol || "△"}`,
+        "",
+        evaluation.reason || ""
+      ].join("\n"),
+      "success"
     );
 
-
-    /*
-     * 履歴も再取得
-     */
-
-    await loadHistory();
-
-
-    /*
-     * 詳細を自動表示
-     */
-
     details.classList.remove(
-      "hidden",
+      "hidden"
     );
 
     toggleDetailsButton.textContent =
       "詳細を閉じる";
 
+    await loadHistory();
 
   } catch (error) {
 
     console.error(
       "Evaluation error:",
-      error,
+      error
     );
-
 
     showStatus(
       formatError(error),
-      "error",
+      "error"
     );
-
 
     setProgress(
       100,
-      "評価エラー",
+      "評価エラー"
     );
-
 
   } finally {
 
@@ -1589,69 +1368,35 @@ async function evaluateLatest() {
 
     researchButton.disabled =
       false;
-
   }
 }
 
 
-/* ==========================================================
+/* =========================================================
    LOAD HISTORY
-========================================================== */
+========================================================= */
 
 async function loadHistory() {
 
   try {
 
-    const {
-      data,
-      error,
-    } =
-      await supabase
-        .from("research_results")
-        .select(`
-          id,
-          project_id,
-          hypothesis_id,
-          title,
-          description,
-          status,
-          hypothesis,
-          calculation,
-          verification,
-          next_action,
-          evidence,
-          created_at
-        `)
-        .eq(
-          "project_id",
-          currentProjectId,
-        )
-        .order(
-          "created_at",
-          {
-            ascending: false,
-          },
-        )
-        .limit(100);
-
-
-    if (error) {
-      throw error;
-    }
-
+    const data =
+      await supabaseFetch(
+        `/rest/v1/research_results?select=id,project_id,hypothesis_id,title,description,status,hypothesis,calculation,verification,next_action,evidence,created_at&project_id=eq.${encodeURIComponent(projectId)}&order=created_at.desc&limit=100`
+      );
 
     renderHistory(
-      data || [],
+      Array.isArray(data)
+        ? data
+        : []
     );
-
 
   } catch (error) {
 
     console.error(
       "History error:",
-      error,
+      error
     );
-
 
     historyList.innerHTML = `
       <div class="history-empty">
@@ -1662,17 +1407,16 @@ async function loadHistory() {
 }
 
 
-/* ==========================================================
-   RENDER HISTORY
-========================================================== */
+/* =========================================================
+   HISTORY
+========================================================= */
 
 function renderHistory(
-  results,
+  results
 ) {
 
   historyCount.textContent =
     `${results.length}件`;
-
 
   if (!results.length) {
 
@@ -1685,25 +1429,17 @@ function renderHistory(
     return;
   }
 
-
   historyList.innerHTML =
     results
       .map(
         result =>
-          createHistoryItem(
-            result,
-          ),
+          createHistoryItem(result)
       )
       .join("");
 
-
-  /*
-   * 履歴クリック
-   */
-
   historyList
     .querySelectorAll(
-      "[data-result-id]",
+      "[data-result-id]"
     )
     .forEach(
       element => {
@@ -1718,66 +1454,46 @@ function renderHistory(
             const result =
               results.find(
                 item =>
-                  item.id === id,
+                  item.id === id
               );
 
-            if (result) {
-
-              latestResult =
-                result;
-
-              renderLatestResult(
-                result,
-              );
-
-              window.scrollTo({
-                top: 0,
-                behavior: "smooth",
-              });
+            if (!result) {
+              return;
             }
 
-          },
+            latestResult =
+              result;
+
+            renderLatestResult(
+              result
+            );
+
+            window.scrollTo({
+              top: 0,
+              behavior: "smooth"
+            });
+          }
         );
-      },
+      }
     );
 }
 
 
-/* ==========================================================
-   HISTORY ITEM
-========================================================== */
-
 function createHistoryItem(
-  result,
+  result
 ) {
 
   const evaluation =
     result?.evidence?.evaluation;
-
 
   const status =
     evaluation?.overall ||
     result.status ||
     "maybe";
 
-
   const symbol =
     evaluation?.overall_symbol ||
     statusToSymbol(status);
-
-
-  const title =
-    escapeHtml(
-      result.title ||
-      "無題の研究",
-    );
-
-
-  const date =
-    formatDate(
-      result.created_at,
-    );
-
 
   return `
     <div
@@ -1796,11 +1512,16 @@ function createHistoryItem(
         <div style="min-width:0">
 
           <div class="history-title">
-            ${title}
+            ${escapeHtml(
+              result.title ||
+              "無題の研究"
+            )}
           </div>
 
           <div class="history-date">
-            ${date}
+            ${formatDate(
+              result.created_at
+            )}
           </div>
 
         </div>
@@ -1812,234 +1533,194 @@ function createHistoryItem(
 }
 
 
-/* ==========================================================
-   RENDER LATEST
-========================================================== */
+/* =========================================================
+   RENDER RESULT
+========================================================= */
 
 function renderLatestResult(
-  result,
+  result
 ) {
 
   latestSection.classList.remove(
-    "hidden",
+    "hidden"
   );
-
 
   latestTitle.textContent =
     result.title ||
     "AI研究回答";
 
-
   latestDate.textContent =
     formatDate(
-      result.created_at,
+      result.created_at
     );
-
 
   const evaluation =
     result?.evidence?.evaluation;
-
 
   const status =
     evaluation?.overall ||
     result.status ||
     "maybe";
 
-
   const symbol =
     evaluation?.overall_symbol ||
     statusToSymbol(status);
 
-
   latestSymbol.textContent =
     symbol;
-
 
   latestSymbol.className =
     `symbol ${statusClass(status)}`;
 
-
   latestSummary.textContent =
     result.description ||
-    result.evidence?.summary ||
     "研究結果が保存されています。";
-
 
   latestMeta.innerHTML = "";
 
-
   addTag(
     latestMeta,
-    `状態: ${statusLabel(status)}`,
+    `状態: ${statusLabel(status)}`
   );
 
+  const route =
+    result?.evidence?.route;
 
-  if (
-    result?.evidence?.route
-  ) {
-
+  if (route) {
     addTag(
       latestMeta,
-      `ルート: ${result.evidence.route}`,
+      `ルート: ${route}`
     );
-
   }
 
+  const routeCount =
+    result?.evidence?.route_count;
 
-  if (
-    result?.evidence?.route_count
-  ) {
-
+  if (routeCount) {
     addTag(
       latestMeta,
-      `使用回数: ${result.evidence.route_count}`,
+      `使用回数: ${routeCount}`
     );
-
   }
 
+  const confidence =
+    result?.evidence?.confidence;
 
   if (
-    typeof result?.evidence?.confidence ===
-    "number"
+    typeof confidence === "number"
   ) {
 
     addTag(
       latestMeta,
       `信頼度: ${Math.round(
-        result.evidence.confidence * 100,
-      )}%`,
+        confidence * 100
+      )}%`
     );
-
   }
 
-
-  /*
-   * 詳細
-   */
-
   document.getElementById(
-    "detailHypothesis",
+    "detailHypothesis"
   ).textContent =
     result.hypothesis ||
     "記録なし";
 
-
   document.getElementById(
-    "detailCalculation",
+    "detailCalculation"
   ).textContent =
     result.calculation ||
     "記録なし";
 
-
   document.getElementById(
-    "detailVerification",
+    "detailVerification"
   ).textContent =
     result.verification ||
     "記録なし";
 
-
   document.getElementById(
-    "detailNextAction",
+    "detailNextAction"
   ).textContent =
     result.next_action ||
     "記録なし";
 
-
   document.getElementById(
-    "detailRoute",
+    "detailRoute"
   ).textContent =
-    result?.evidence?.route ||
+    route ||
     "記録なし";
 
-
   document.getElementById(
-    "detailReason",
+    "detailReason"
   ).textContent =
     evaluation?.reason ||
     "まだ評価されていません。";
 
-
   renderEvaluationGrid(
-    evaluation,
+    evaluation
   );
-
 
   evaluateButton.disabled =
     !result.id;
-
 }
 
 
-/* ==========================================================
+/* =========================================================
    EVALUATION GRID
-========================================================== */
+========================================================= */
 
 function renderEvaluationGrid(
-  evaluation,
+  evaluation
 ) {
 
   const grid =
     document.getElementById(
-      "evaluationGrid",
+      "evaluationGrid"
     );
-
 
   if (!evaluation) {
 
     grid.innerHTML = `
       <div class="evaluation-item">
-        <div class="label">
-          評価
-        </div>
-        <div class="value">
-          未評価
-        </div>
+        <div class="label">評価</div>
+        <div class="value">未評価</div>
       </div>
     `;
 
     return;
   }
 
-
   const items = [
 
     [
       "総合",
-      evaluation.overall_symbol ||
-      "△",
+      evaluation.overall_symbol || "△"
     ],
 
     [
       "仮説",
-      evaluation.hypothesis_symbol ||
-      "△",
+      evaluation.hypothesis_symbol || "△"
     ],
 
     [
       "計算",
-      evaluation.calculation_symbol ||
-      "△",
+      evaluation.calculation_symbol || "△"
     ],
 
     [
       "検証",
-      evaluation.verification_symbol ||
-      "△",
+      evaluation.verification_symbol || "△"
     ],
 
     [
       "論理",
-      evaluation.logic_symbol ||
-      "△",
-    ],
+      evaluation.logic_symbol || "△"
+    ]
 
   ];
-
 
   grid.innerHTML =
     items
       .map(
-        ([label, value]) => `
+        ([label,value]) => `
           <div class="evaluation-item">
 
             <div class="label">
@@ -2051,41 +1732,15 @@ function renderEvaluationGrid(
             </div>
 
           </div>
-        `,
+        `
       )
       .join("");
 }
 
 
-/* ==========================================================
-   TAG
-========================================================== */
-
-function addTag(
-  container,
-  text,
-) {
-
-  const element =
-    document.createElement(
-      "span",
-    );
-
-  element.className =
-    "tag";
-
-  element.textContent =
-    text;
-
-  container.appendChild(
-    element,
-  );
-}
-
-
-/* ==========================================================
+/* =========================================================
    DETAILS
-========================================================== */
+========================================================= */
 
 toggleDetailsButton.addEventListener(
   "click",
@@ -2093,73 +1748,61 @@ toggleDetailsButton.addEventListener(
 
     const hidden =
       details.classList.contains(
-        "hidden",
+        "hidden"
       );
 
-
     details.classList.toggle(
-      "hidden",
+      "hidden"
     );
-
 
     toggleDetailsButton.textContent =
       hidden
         ? "詳細を閉じる"
         : "詳細を表示";
-
-  },
+  }
 );
 
 
-/* ==========================================================
+/* =========================================================
    BUTTONS
-========================================================== */
+========================================================= */
 
 researchButton.addEventListener(
   "click",
-  runResearch,
+  runResearch
 );
-
 
 evaluateButton.addEventListener(
   "click",
-  evaluateLatest,
+  evaluateLatest
 );
-
 
 clearButton.addEventListener(
   "click",
   () => {
 
-    questionInput.value =
-      "";
+    questionInput.value = "";
 
     hideStatus();
 
     progress.classList.add(
-      "hidden",
+      "hidden"
     );
-
-  },
+  }
 );
 
 
-/* ==========================================================
-   ENTER KEY
-========================================================== */
+/* =========================================================
+   KEYBOARD
+========================================================= */
 
 questionInput.addEventListener(
   "keydown",
   event => {
 
-    /*
-     * Mac / iPadの
-     * Command + Enter
-     */
-
     if (
       (event.metaKey ||
-        event.ctrlKey) &&
+       event.ctrlKey) &&
       event.key === "Enter"
     ) {
 
@@ -2167,17 +1810,16 @@ questionInput.addEventListener(
 
       runResearch();
     }
-
-  },
+  }
 );
 
 
-/* ==========================================================
+/* =========================================================
    HELPERS
-========================================================== */
+========================================================= */
 
 function statusToSymbol(
-  status,
+  status
 ) {
 
   if (status === "good") {
@@ -2193,7 +1835,7 @@ function statusToSymbol(
 
 
 function statusClass(
-  status,
+  status
 ) {
 
   if (status === "good") {
@@ -2213,7 +1855,7 @@ function statusClass(
 
 
 function statusLabel(
-  status,
+  status
 ) {
 
   if (status === "good") {
@@ -2228,27 +1870,46 @@ function statusLabel(
 }
 
 
+function addTag(
+  container,
+  text
+) {
+
+  const element =
+    document.createElement(
+      "span"
+    );
+
+  element.className =
+    "tag";
+
+  element.textContent =
+    text;
+
+  container.appendChild(
+    element
+  );
+}
+
+
 function formatDate(
-  date,
+  date
 ) {
 
   if (!date) {
     return "";
   }
 
-
   const value =
     new Date(date);
 
-
   if (
     Number.isNaN(
-      value.getTime(),
+      value.getTime()
     )
   ) {
     return "";
   }
-
 
   return value.toLocaleString(
     "ja-JP",
@@ -2257,94 +1918,101 @@ function formatDate(
       month: "2-digit",
       day: "2-digit",
       hour: "2-digit",
-      minute: "2-digit",
-    },
+      minute: "2-digit"
+    }
   );
 }
 
 
 function escapeHtml(
-  value,
+  value
 ) {
 
   return String(value ?? "")
-    .replace(
-      /&/g,
-      "&amp;",
-    )
-    .replace(
-      /</g,
-      "&lt;",
-    )
-    .replace(
-      />/g,
-      "&gt;",
-    )
-    .replace(
-      /"/g,
-      "&quot;",
-    )
-    .replace(
-      /'/g,
-      "&#039;",
-    );
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
 }
 
 
 function formatError(
-  error,
+  error
 ) {
 
   if (!error) {
     return "不明なエラーです。";
   }
 
-
-  let message =
+  const message =
     error.message ||
     String(error);
 
-
-  /*
-   * よくあるSupabaseエラーを
-   * 少し分かりやすくする。
-   */
-
   if (
     message.includes(
-      "Failed to send a request to the Edge Function",
+      "Failed to fetch"
     )
   ) {
 
     return [
-      "Edge Functionへの接続に失敗しました。",
+      "Supabaseとの通信に失敗しました。",
       "",
-      "SupabaseのEdge Functionsで",
-      "research / evaluate がDeploy済みか確認してください。",
+      "・Supabase URLを確認",
+      "・publishable keyを確認",
+      "・research FunctionがDeploy済みか確認",
+      "",
+      `詳細: ${message}`
     ].join("\n");
   }
-
 
   return message;
 }
 
 
-/* ==========================================================
+/* =========================================================
    INITIALIZE
-========================================================== */
+========================================================= */
 
 async function initialize() {
 
-  await checkConnection();
+  /*
+   * ここでページ全体が止まらないように
+   * 接続チェックと履歴読み込みを分離。
+   */
 
-  await loadHistory();
+  try {
 
+    await checkConnection();
+
+  } catch (error) {
+
+    console.error(
+      "Initialization connection error:",
+      error
+    );
+
+    connectionText.textContent =
+      "Supabase 接続エラー";
+  }
+
+  try {
+
+    await loadHistory();
+
+  } catch (error) {
+
+    console.error(
+      "Initialization history error:",
+      error
+    );
+  }
 }
 
 
-/* ==========================================================
+/* =========================================================
    START
-========================================================== */
+========================================================= */
 
 initialize();
 
