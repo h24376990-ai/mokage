@@ -129,6 +129,10 @@
       header {
         align-items: flex-start;
       }
+
+      .connection {
+        font-size: 11px;
+      }
     }
 
     .card {
@@ -220,6 +224,7 @@
       font-size: 13px;
       white-space: pre-wrap;
       display: none;
+      line-height: 1.65;
     }
 
     .status-box.show {
@@ -459,7 +464,7 @@
 
     .evaluation-grid {
       display: grid;
-      grid-template-columns: repeat(2,1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 8px;
       margin-top: 15px;
     }
@@ -493,19 +498,33 @@
 <div class="app">
 
   <header>
+
     <div class="brand">
-      <div class="brand-icon">∑</div>
+
+      <div class="brand-icon">
+        ∑
+      </div>
 
       <div>
         <h1>Research AI Lab</h1>
         <p>数学研究・仮説探索・検証システム</p>
       </div>
+
     </div>
 
     <div class="connection">
-      <span id="connectionDot" class="connection-dot"></span>
-      <span id="connectionText">Supabase 接続確認中...</span>
+
+      <span
+        id="connectionDot"
+        class="connection-dot"
+      ></span>
+
+      <span id="connectionText">
+        Supabase 接続確認中...
+      </span>
+
     </div>
+
   </header>
 
 
@@ -516,9 +535,17 @@
       <section class="card research-card">
 
         <div class="section-title">
-          <h2>新しい研究</h2>
-          <span>AI研究ルートを自動記録</span>
+
+          <h2>
+            新しい研究
+          </h2>
+
+          <span>
+            AI研究ルートを自動記録
+          </span>
+
         </div>
+
 
         <textarea
           id="questionInput"
@@ -527,6 +554,7 @@
 例：
 素数の分布について、既存の定理を単に使うのではなく、別の不変量から新しい見方ができないか検討したい。"
         ></textarea>
+
 
         <div class="actions">
 
@@ -546,20 +574,38 @@
 
         </div>
 
-        <div id="statusBox" class="status-box"></div>
 
-        <div id="progress" class="progress hidden">
+        <div
+          id="statusBox"
+          class="status-box"
+        ></div>
+
+
+        <div
+          id="progress"
+          class="progress hidden"
+        >
 
           <div class="progress-label">
-            <span id="progressText">準備中...</span>
-            <span id="progressPercent">0%</span>
+
+            <span id="progressText">
+              準備中...
+            </span>
+
+            <span id="progressPercent">
+              0%
+            </span>
+
           </div>
 
+
           <div class="progress-bar">
+
             <div
               id="progressValue"
               class="progress-value"
             ></div>
+
           </div>
 
         </div>
@@ -575,9 +621,17 @@
         <div class="latest-content">
 
           <div class="section-title">
-            <h2>最新の研究結果</h2>
-            <span>タップして詳細を表示</span>
+
+            <h2>
+              最新の研究結果
+            </h2>
+
+            <span>
+              研究結果
+            </span>
+
           </div>
+
 
           <div class="result-head">
 
@@ -595,6 +649,7 @@
 
             </div>
 
+
             <div
               id="latestSymbol"
               class="symbol unknown"
@@ -604,21 +659,25 @@
 
           </div>
 
+
           <div
             id="latestSummary"
             class="result-summary"
           ></div>
+
 
           <div
             id="latestMeta"
             class="result-meta"
           ></div>
 
+
           <div class="actions">
 
             <button
               id="evaluateButton"
               class="primary"
+              disabled
             >
               この結果を評価
             </button>
@@ -632,40 +691,77 @@
 
           </div>
 
+
           <div
             id="details"
             class="details hidden"
           >
 
             <div class="detail-block">
-              <h3>仮説</h3>
+
+              <h3>
+                仮説
+              </h3>
+
               <p id="detailHypothesis"></p>
+
             </div>
 
+
             <div class="detail-block">
-              <h3>計算</h3>
+
+              <h3>
+                計算
+              </h3>
+
               <p id="detailCalculation"></p>
+
             </div>
 
+
             <div class="detail-block">
-              <h3>検証</h3>
+
+              <h3>
+                検証
+              </h3>
+
               <p id="detailVerification"></p>
+
             </div>
 
+
             <div class="detail-block">
-              <h3>次の行動</h3>
+
+              <h3>
+                次の行動
+              </h3>
+
               <p id="detailNextAction"></p>
+
             </div>
 
+
             <div class="detail-block">
-              <h3>研究ルート</h3>
+
+              <h3>
+                研究ルート
+              </h3>
+
               <p id="detailRoute"></p>
+
             </div>
 
+
             <div class="detail-block">
-              <h3>評価理由</h3>
+
+              <h3>
+                評価理由
+              </h3>
+
               <p id="detailReason"></p>
+
             </div>
+
 
             <div
               id="evaluationGrid"
@@ -684,18 +780,29 @@
     <aside class="card right-card">
 
       <div class="section-title">
-        <h2>研究履歴</h2>
-        <span id="historyCount">0件</span>
+
+        <h2>
+          研究履歴
+        </h2>
+
+        <span id="historyCount">
+          0件
+        </span>
+
       </div>
+
 
       <div
         id="historyList"
         class="history-list"
       >
+
         <div class="history-empty">
           まだ研究結果がありません。
         </div>
+
       </div>
+
 
       <p class="small-note">
         最新100件を表示します。
@@ -718,14 +825,35 @@
 const SUPABASE_URL =
   "https://hiefdcodifkfhnqvruzn.supabase.co";
 
+
 const SUPABASE_KEY =
   "sb_publishable_HmcPY6BGvUQTPESGHVe7Hw_W4NlTPqj";
 
+
+/*
+ * 重要：
+ *
+ * Supabaseに存在するFunctionは
+ *
+ * research-ai
+ * smart-handler
+ *
+ * であり、
+ *
+ * "research"
+ *
+ * ではない。
+ *
+ * 今回はsmart-handlerを使用する。
+ */
+
 const RESEARCH_FUNCTION =
-  "research";
+  "smart-handler";
+
 
 const EVALUATE_FUNCTION =
   "evaluate";
+
 
 const DEFAULT_PROJECT_ID =
   "4253800d-a89e-45e2-a36a-cc52eb6c510b";
@@ -736,15 +864,22 @@ const DEFAULT_PROJECT_ID =
 ========================================================= */
 
 let projectId =
-  localStorage.getItem("research_project_id");
+  localStorage.getItem(
+    "research_project_id"
+  );
+
 
 if (!projectId) {
-  projectId = DEFAULT_PROJECT_ID;
+
+  projectId =
+    DEFAULT_PROJECT_ID;
+
   localStorage.setItem(
     "research_project_id",
     projectId
   );
 }
+
 
 let latestResult = null;
 
@@ -754,150 +889,129 @@ let latestResult = null;
 ========================================================= */
 
 const questionInput =
-  document.getElementById("questionInput");
+  document.getElementById(
+    "questionInput"
+  );
+
 
 const researchButton =
-  document.getElementById("researchButton");
+  document.getElementById(
+    "researchButton"
+  );
+
 
 const clearButton =
-  document.getElementById("clearButton");
+  document.getElementById(
+    "clearButton"
+  );
+
 
 const evaluateButton =
-  document.getElementById("evaluateButton");
+  document.getElementById(
+    "evaluateButton"
+  );
+
 
 const toggleDetailsButton =
-  document.getElementById("toggleDetailsButton");
+  document.getElementById(
+    "toggleDetailsButton"
+  );
+
 
 const statusBox =
-  document.getElementById("statusBox");
+  document.getElementById(
+    "statusBox"
+  );
+
 
 const connectionDot =
-  document.getElementById("connectionDot");
+  document.getElementById(
+    "connectionDot"
+  );
+
 
 const connectionText =
-  document.getElementById("connectionText");
+  document.getElementById(
+    "connectionText"
+  );
+
 
 const progress =
-  document.getElementById("progress");
+  document.getElementById(
+    "progress"
+  );
+
 
 const progressText =
-  document.getElementById("progressText");
+  document.getElementById(
+    "progressText"
+  );
+
 
 const progressPercent =
-  document.getElementById("progressPercent");
+  document.getElementById(
+    "progressPercent"
+  );
+
 
 const progressValue =
-  document.getElementById("progressValue");
+  document.getElementById(
+    "progressValue"
+  );
+
 
 const latestSection =
-  document.getElementById("latestSection");
+  document.getElementById(
+    "latestSection"
+  );
+
 
 const latestTitle =
-  document.getElementById("latestTitle");
+  document.getElementById(
+    "latestTitle"
+  );
+
 
 const latestDate =
-  document.getElementById("latestDate");
+  document.getElementById(
+    "latestDate"
+  );
+
 
 const latestSymbol =
-  document.getElementById("latestSymbol");
+  document.getElementById(
+    "latestSymbol"
+  );
+
 
 const latestSummary =
-  document.getElementById("latestSummary");
+  document.getElementById(
+    "latestSummary"
+  );
+
 
 const latestMeta =
-  document.getElementById("latestMeta");
+  document.getElementById(
+    "latestMeta"
+  );
+
 
 const details =
-  document.getElementById("details");
+  document.getElementById(
+    "details"
+  );
+
 
 const historyList =
-  document.getElementById("historyList");
+  document.getElementById(
+    "historyList"
+  );
+
 
 const historyCount =
-  document.getElementById("historyCount");
-
-
-/* =========================================================
-   SUPABASE REST HELPER
-   JS SDKを使わず直接通信する
-========================================================= */
-
-async function supabaseFetch(
-  path,
-  options = {}
-) {
-
-  const headers = {
-    "apikey": SUPABASE_KEY,
-    "Authorization":
-      `Bearer ${SUPABASE_KEY}`,
-    "Content-Type":
-      "application/json",
-    ...(options.headers || {})
-  };
-
-  const response =
-    await fetch(
-      `${SUPABASE_URL}${path}`,
-      {
-        ...options,
-        headers
-      }
-    );
-
-  const text =
-    await response.text();
-
-  let data = null;
-
-  try {
-    data = text
-      ? JSON.parse(text)
-      : null;
-  } catch {
-    data = text;
-  }
-
-  if (!response.ok) {
-
-    let message =
-      `Supabase error ${response.status}`;
-
-    if (data?.message) {
-      message += `: ${data.message}`;
-    } else if (data?.error) {
-      message += `: ${data.error}`;
-    } else if (typeof data === "string" && data) {
-      message += `: ${data}`;
-    }
-
-    throw new Error(message);
-  }
-
-  return data;
-}
-
-
-/* =========================================================
-   EDGE FUNCTION
-========================================================= */
-
-async function callFunction(
-  functionName,
-  body
-) {
-
-  const data =
-    await supabaseFetch(
-      `/functions/v1/${functionName}`,
-      {
-        method: "POST",
-        body: JSON.stringify(body)
-      }
-    );
-
-  return data;
-}
+  document.getElementById(
+    "historyCount"
+  );
 
 
 /* =========================================================
@@ -910,17 +1024,22 @@ function showStatus(
 ) {
 
   statusBox.textContent =
-    message;
+    String(message || "");
 
   statusBox.className =
     "status-box show";
 
   if (type) {
-    statusBox.classList.add(type);
+
+    statusBox.classList.add(
+      type
+    );
   }
 }
 
+
 function hideStatus() {
+
   statusBox.className =
     "status-box";
 }
@@ -944,7 +1063,7 @@ function setProgress(
       0,
       Math.min(
         100,
-        percent
+        Number(percent) || 0
       )
     );
 
@@ -955,52 +1074,214 @@ function setProgress(
     `${Math.round(safe)}%`;
 
   progressText.textContent =
-    text;
+    text || "";
 }
 
 
 /* =========================================================
-   CONNECTION TEST
+   FETCH JSON
+========================================================= */
+
+async function fetchJson(
+  url,
+  options = {}
+) {
+
+  let response;
+
+  try {
+
+    response =
+      await fetch(
+        url,
+        {
+          ...options,
+
+          headers: {
+            "apikey":
+              SUPABASE_KEY,
+
+            "Authorization":
+              `Bearer ${SUPABASE_KEY}`,
+
+            "Content-Type":
+              "application/json",
+
+            ...(options.headers || {})
+          }
+        }
+      );
+
+  } catch (error) {
+
+    /*
+     * Safariで最も重要な部分。
+     *
+     * Consoleを開かなくても
+     * Load failedの正体を画面に出す。
+     */
+
+    throw new Error(
+      [
+        "Supabaseへの通信に失敗しました。",
+        "",
+        "Function:",
+        url,
+        "",
+        "Safariが通信そのものを完了できませんでした。",
+        "",
+        "考えられる原因：",
+        "・Edge FunctionのDeploy状態",
+        "・Edge FunctionのCORS設定",
+        "・Function名の間違い",
+        "・Supabase側の一時的な通信エラー",
+        "",
+        `元のエラー: ${error?.message || error}`
+      ].join("\n")
+    );
+  }
+
+
+  const text =
+    await response.text();
+
+
+  let data = null;
+
+
+  if (text) {
+
+    try {
+
+      data =
+        JSON.parse(text);
+
+    } catch {
+
+      data =
+        text;
+    }
+  }
+
+
+  if (!response.ok) {
+
+    let message =
+      `Supabase HTTP ${response.status}`;
+
+
+    if (
+      data &&
+      typeof data === "object"
+    ) {
+
+      if (data.error) {
+
+        message +=
+          `\n${data.error}`;
+      }
+
+      if (data.message) {
+
+        message +=
+          `\n${data.message}`;
+      }
+
+      if (data.detail) {
+
+        message +=
+          `\n${data.detail}`;
+      }
+
+    } else if (
+      typeof data === "string" &&
+      data
+    ) {
+
+      message +=
+        `\n${data}`;
+    }
+
+
+    throw new Error(
+      message
+    );
+  }
+
+
+  return data;
+}
+
+
+/* =========================================================
+   EDGE FUNCTION
+========================================================= */
+
+async function callFunction(
+  functionName,
+  body
+) {
+
+  const url =
+    `${SUPABASE_URL}/functions/v1/${functionName}`;
+
+
+  return await fetchJson(
+    url,
+    {
+      method: "POST",
+
+      body:
+        JSON.stringify(body)
+    }
+  );
+}
+
+
+/* =========================================================
+   CONNECTION
 ========================================================= */
 
 async function checkConnection() {
 
+  connectionText.textContent =
+    "Supabase 接続確認中...";
+
+
+  connectionDot.classList.remove(
+    "ok",
+    "error"
+  );
+
+
   try {
 
-    await supabaseFetch(
-      `/rest/v1/research_results?select=id&project_id=eq.${encodeURIComponent(projectId)}&limit=1`
+    await fetchJson(
+      `${SUPABASE_URL}/rest/v1/research_results?select=id&project_id=eq.${encodeURIComponent(projectId)}&limit=1`
     );
 
-    connectionDot.classList.remove(
-      "error"
-    );
 
     connectionDot.classList.add(
       "ok"
     );
 
+
     connectionText.textContent =
       "Supabase 接続済み";
+
 
     return true;
 
   } catch (error) {
 
-    console.error(
-      "Supabase connection error:",
-      error
-    );
-
-    connectionDot.classList.remove(
-      "ok"
-    );
-
     connectionDot.classList.add(
       "error"
     );
 
+
     connectionText.textContent =
       "Supabase 接続エラー";
+
 
     return false;
   }
@@ -1016,6 +1297,7 @@ async function runResearch() {
   const message =
     questionInput.value.trim();
 
+
   if (!message) {
 
     showStatus(
@@ -1023,76 +1305,111 @@ async function runResearch() {
       "error"
     );
 
+
     questionInput.focus();
 
     return;
   }
 
+
   researchButton.disabled =
     true;
+
 
   clearButton.disabled =
     true;
 
+
   evaluateButton.disabled =
     true;
+
 
   setProgress(
     5,
     "研究を準備しています..."
   );
 
+
   showStatus(
     "研究AIに接続しています..."
   );
+
 
   try {
 
     setProgress(
       15,
-      "過去の研究履歴を確認しています..."
+      "smart-handlerに接続しています..."
     );
+
+
+    /*
+     * ここが最重要。
+     *
+     * 以前：
+     * research
+     *
+     * 現在：
+     * smart-handler
+     */
 
     const data =
       await callFunction(
         RESEARCH_FUNCTION,
         {
-          message: message,
-          project_id: projectId
+          message:
+            message,
+
+          project_id:
+            projectId
         }
       );
 
-    console.log(
-      "research response:",
-      data
-    );
 
     if (!data) {
+
       throw new Error(
         "研究AIからデータが返ってきませんでした。"
       );
     }
 
-    if (data.ok === false) {
+
+    /*
+     * smart-handlerの
+     * 正常レスポンス
+     */
+
+    if (
+      data.ok === false
+    ) {
 
       throw new Error(
         data.error ||
         data.detail ||
-        "研究AIでエラーが発生しました。"
+        "smart-handlerでエラーが発生しました。"
       );
     }
 
+
     setProgress(
-      70,
-      "研究結果を受け取りました..."
+      65,
+      "研究結果を解析しています..."
     );
 
-    if (data.blocked) {
+
+    /*
+     * 既使用ルート
+     */
+
+    if (
+      data.blocked
+    ) {
 
       setProgress(
         100,
         "既使用ルートを検出しました。"
       );
+
 
       showStatus(
         [
@@ -1105,29 +1422,98 @@ async function runResearch() {
         "success"
       );
 
+
       await loadHistory();
+
 
       return;
     }
 
-    const research =
+
+    /*
+     * researchオブジェクトを取得
+     */
+
+    let research =
       data.research ||
       data.result ||
-      data.answer ||
-      {};
+      null;
+
+
+    /*
+     * もしresearchが文字列JSONなら
+     * JSONとして解析する。
+     */
+
+    if (
+      typeof research === "string"
+    ) {
+
+      try {
+
+        research =
+          JSON.parse(
+            research
+          );
+
+      } catch {
+
+        /*
+         * JSONではない場合は
+         * descriptionとして扱う。
+         */
+
+        research = {
+
+          title:
+            data.title ||
+            "AI研究回答",
+
+          description:
+            research,
+
+          status:
+            data.status ||
+            "maybe"
+        };
+      }
+    }
+
+
+    research =
+      research || {};
+
+
+    /*
+     * result_idは
+     * Edge Functionから返されたものを優先。
+     */
+
+    const resultId =
+      data.result_id ||
+      data.id ||
+      research.id ||
+      null;
+
+
+    const evidence =
+      research.evidence &&
+      typeof research.evidence === "object"
+        ? research.evidence
+        : {};
+
 
     latestResult = {
 
       id:
-        data.result_id ||
-        data.id ||
-        research.id ||
-        null,
+        resultId,
+
 
       title:
         research.title ||
         data.title ||
         "AI研究回答",
+
 
       description:
         research.description ||
@@ -1136,89 +1522,181 @@ async function runResearch() {
         data.answer ||
         "",
 
+
       status:
         research.status ||
         data.status ||
         "maybe",
 
+
+      confidence:
+        Number(
+          research.confidence ??
+          data.confidence ??
+          0
+        ),
+
+
+      confidence_basis:
+        research.confidence_basis ||
+        data.confidence_basis ||
+        "",
+
+
       hypothesis:
         research.hypothesis ||
         "",
+
 
       calculation:
         research.calculation ||
         "",
 
+
       verification:
         research.verification ||
         "",
+
 
       next_action:
         research.next_action ||
         "",
 
-      evidence:
-        research.evidence ||
-        {
-          route:
-            research.route ||
-            data.route ||
-            "",
 
-          route_key:
-            research.route_key ||
-            data.route_key ||
-            "",
+      evidence: {
 
-          route_count:
-            research.route_count ||
-            data.route_count ||
-            1,
+        ...evidence,
 
-          confidence:
-            research.confidence ||
-            data.confidence ||
+        route:
+          evidence.route ||
+          research.route ||
+          data.route ||
+          "",
+
+
+        route_key:
+          evidence.route_key ||
+          research.route_key ||
+          data.route_key ||
+          "",
+
+
+        route_count:
+          Number(
+            evidence.route_count ??
+            research.route_count ??
+            data.route_count ??
+            1
+          ),
+
+
+        confidence:
+          Number(
+            evidence.confidence ??
+            research.confidence ??
+            data.confidence ??
             0
-        },
+          ),
+
+
+        confidence_basis:
+          evidence.confidence_basis ||
+          research.confidence_basis ||
+          data.confidence_basis ||
+          "",
+
+
+        items:
+          Array.isArray(
+            evidence.items
+          )
+            ? evidence.items
+            : [],
+
+      },
+
 
       created_at:
+        research.created_at ||
+        data.created_at ||
         new Date().toISOString()
     };
+
+
+    /*
+     * 評価情報が
+     * Functionから返ってきた場合も保持。
+     */
+
+    if (
+      data.evaluation
+    ) {
+
+      latestResult.evidence.evaluation =
+        data.evaluation;
+    }
+
+
+    setProgress(
+      80,
+      "研究結果を表示しています..."
+    );
+
 
     renderLatestResult(
       latestResult
     );
 
+
+    /*
+     * result_idがある場合
+     */
+
+    if (
+      latestResult.id
+    ) {
+
+      showStatus(
+        "研究結果を受け取りました。保存された研究結果を表示しています。",
+        "success"
+      );
+
+    } else {
+
+      showStatus(
+        [
+          "研究AIから回答は返ってきました。",
+          "",
+          "ただしresult_idが返っていません。",
+          "そのため、この結果について「評価」を実行できません。"
+        ].join("\n"),
+        "success"
+      );
+    }
+
+
     setProgress(
       90,
-      "研究結果を確認しています..."
+      "研究履歴を更新しています..."
     );
 
-    showStatus(
-      latestResult.id
-        ? "研究結果を保存しました。必要なら「この結果を評価」を押してください。"
-        : "研究結果を受け取りました。ただしresult_idが返っていません。",
-      "success"
-    );
 
     await loadHistory();
+
 
     setProgress(
       100,
       "研究完了"
     );
 
-  } catch (error) {
 
-    console.error(
-      "Research error:",
-      error
-    );
+  } catch (error) {
 
     showStatus(
       formatError(error),
       "error"
     );
+
 
     setProgress(
       100,
@@ -1230,8 +1708,10 @@ async function runResearch() {
     researchButton.disabled =
       false;
 
+
     clearButton.disabled =
       false;
+
 
     evaluateButton.disabled =
       !latestResult?.id;
@@ -1245,7 +1725,9 @@ async function runResearch() {
 
 async function evaluateLatest() {
 
-  if (!latestResult?.id) {
+  if (
+    !latestResult?.id
+  ) {
 
     showStatus(
       "評価する研究結果がありません。",
@@ -1255,20 +1737,25 @@ async function evaluateLatest() {
     return;
   }
 
+
   evaluateButton.disabled =
     true;
+
 
   researchButton.disabled =
     true;
 
+
   setProgress(
-    50,
-    "研究結果を検証しています..."
+    40,
+    "評価AIに接続しています..."
   );
+
 
   showStatus(
     "評価AIが研究結果を確認しています..."
   );
+
 
   try {
 
@@ -1284,10 +1771,6 @@ async function evaluateLatest() {
         }
       );
 
-    console.log(
-      "evaluate response:",
-      data
-    );
 
     if (!data) {
 
@@ -1296,75 +1779,90 @@ async function evaluateLatest() {
       );
     }
 
-    if (data.ok === false) {
+
+    if (
+      data.ok === false
+    ) {
 
       throw new Error(
         data.error ||
         data.detail ||
-        "評価AIでエラーが発生しました。"
+        "evaluateでエラーが発生しました。"
       );
     }
+
 
     const evaluation =
       data.evaluation ||
       data.result ||
       data;
 
+
     latestResult.evidence =
       latestResult.evidence ||
       {};
 
+
     latestResult.evidence.evaluation =
       evaluation;
+
 
     renderLatestResult(
       latestResult
     );
+
+
+    details.classList.remove(
+      "hidden"
+    );
+
+
+    toggleDetailsButton.textContent =
+      "詳細を閉じる";
+
 
     setProgress(
       100,
       "評価完了"
     );
 
+
     showStatus(
       [
-        `評価完了：${evaluation.overall_symbol || "△"}`,
+        `評価完了：${
+          evaluation?.overall_symbol ||
+          "△"
+        }`,
         "",
-        evaluation.reason || ""
+        evaluation?.reason ||
+        ""
       ].join("\n"),
       "success"
     );
 
-    details.classList.remove(
-      "hidden"
-    );
-
-    toggleDetailsButton.textContent =
-      "詳細を閉じる";
 
     await loadHistory();
 
-  } catch (error) {
 
-    console.error(
-      "Evaluation error:",
-      error
-    );
+  } catch (error) {
 
     showStatus(
       formatError(error),
       "error"
     );
 
+
     setProgress(
       100,
       "評価エラー"
     );
 
+
   } finally {
 
     evaluateButton.disabled =
       false;
+
 
     researchButton.disabled =
       false;
@@ -1373,7 +1871,7 @@ async function evaluateLatest() {
 
 
 /* =========================================================
-   LOAD HISTORY
+   HISTORY
 ========================================================= */
 
 async function loadHistory() {
@@ -1381,9 +1879,10 @@ async function loadHistory() {
   try {
 
     const data =
-      await supabaseFetch(
-        `/rest/v1/research_results?select=id,project_id,hypothesis_id,title,description,status,hypothesis,calculation,verification,next_action,evidence,created_at&project_id=eq.${encodeURIComponent(projectId)}&order=created_at.desc&limit=100`
+      await fetchJson(
+        `${SUPABASE_URL}/rest/v1/research_results?select=id,project_id,hypothesis_id,title,description,status,hypothesis,calculation,verification,next_action,evidence,created_at&project_id=eq.${encodeURIComponent(projectId)}&order=created_at.desc&limit=100`
       );
+
 
     renderHistory(
       Array.isArray(data)
@@ -1391,12 +1890,8 @@ async function loadHistory() {
         : []
     );
 
-  } catch (error) {
 
-    console.error(
-      "History error:",
-      error
-    );
+  } catch (error) {
 
     historyList.innerHTML = `
       <div class="history-empty">
@@ -1408,7 +1903,7 @@ async function loadHistory() {
 
 
 /* =========================================================
-   HISTORY
+   HISTORY RENDER
 ========================================================= */
 
 function renderHistory(
@@ -1418,7 +1913,10 @@ function renderHistory(
   historyCount.textContent =
     `${results.length}件`;
 
-  if (!results.length) {
+
+  if (
+    !results.length
+  ) {
 
     historyList.innerHTML = `
       <div class="history-empty">
@@ -1429,13 +1927,17 @@ function renderHistory(
     return;
   }
 
+
   historyList.innerHTML =
     results
       .map(
         result =>
-          createHistoryItem(result)
+          createHistoryItem(
+            result
+          )
       )
       .join("");
+
 
   historyList
     .querySelectorAll(
@@ -1451,22 +1953,30 @@ function renderHistory(
             const id =
               element.dataset.resultId;
 
+
             const result =
               results.find(
                 item =>
-                  item.id === id
+                  String(item.id) ===
+                  String(id)
               );
+
 
             if (!result) {
               return;
             }
 
+
             latestResult =
-              result;
+              normalizeHistoryResult(
+                result
+              );
+
 
             renderLatestResult(
-              result
+              latestResult
             );
+
 
             window.scrollTo({
               top: 0,
@@ -1479,6 +1989,73 @@ function renderHistory(
 }
 
 
+/* =========================================================
+   NORMALIZE HISTORY
+========================================================= */
+
+function normalizeHistoryResult(
+  result
+) {
+
+  const evidence =
+    result?.evidence &&
+    typeof result.evidence === "object"
+      ? result.evidence
+      : {};
+
+
+  return {
+
+    ...result,
+
+    evidence: {
+
+      ...evidence,
+
+      route:
+        evidence.route ||
+        "",
+
+
+      route_key:
+        evidence.route_key ||
+        "",
+
+
+      route_count:
+        Number(
+          evidence.route_count ??
+          1
+        ),
+
+
+      confidence:
+        Number(
+          evidence.confidence ??
+          0
+        ),
+
+
+      confidence_basis:
+        evidence.confidence_basis ||
+        "",
+
+
+      items:
+        Array.isArray(
+          evidence.items
+        )
+          ? evidence.items
+          : []
+    }
+  };
+}
+
+
+/* =========================================================
+   HISTORY ITEM
+========================================================= */
+
 function createHistoryItem(
   result
 ) {
@@ -1486,14 +2063,19 @@ function createHistoryItem(
   const evaluation =
     result?.evidence?.evaluation;
 
+
   const status =
     evaluation?.overall ||
     result.status ||
     "maybe";
 
+
   const symbol =
     evaluation?.overall_symbol ||
-    statusToSymbol(status);
+    statusToSymbol(
+      status
+    );
+
 
   return `
     <div
@@ -1534,7 +2116,7 @@ function createHistoryItem(
 
 
 /* =========================================================
-   RENDER RESULT
+   RESULT RENDER
 ========================================================= */
 
 function renderLatestResult(
@@ -1545,69 +2127,96 @@ function renderLatestResult(
     "hidden"
   );
 
+
   latestTitle.textContent =
     result.title ||
     "AI研究回答";
+
 
   latestDate.textContent =
     formatDate(
       result.created_at
     );
 
+
   const evaluation =
     result?.evidence?.evaluation;
+
 
   const status =
     evaluation?.overall ||
     result.status ||
     "maybe";
 
+
   const symbol =
     evaluation?.overall_symbol ||
-    statusToSymbol(status);
+    statusToSymbol(
+      status
+    );
+
 
   latestSymbol.textContent =
     symbol;
 
+
   latestSymbol.className =
     `symbol ${statusClass(status)}`;
+
 
   latestSummary.textContent =
     result.description ||
     "研究結果が保存されています。";
 
-  latestMeta.innerHTML = "";
+
+  latestMeta.innerHTML =
+    "";
+
 
   addTag(
     latestMeta,
     `状態: ${statusLabel(status)}`
   );
 
+
   const route =
     result?.evidence?.route;
 
+
   if (route) {
+
     addTag(
       latestMeta,
       `ルート: ${route}`
     );
   }
 
+
   const routeCount =
     result?.evidence?.route_count;
 
-  if (routeCount) {
+
+  if (
+    routeCount
+  ) {
+
     addTag(
       latestMeta,
       `使用回数: ${routeCount}`
     );
   }
 
+
   const confidence =
-    result?.evidence?.confidence;
+    Number(
+      result?.evidence?.confidence ??
+      result?.confidence ??
+      0
+    );
+
 
   if (
-    typeof confidence === "number"
+    Number.isFinite(confidence)
   ) {
 
     addTag(
@@ -1618,45 +2227,95 @@ function renderLatestResult(
     );
   }
 
-  document.getElementById(
-    "detailHypothesis"
-  ).textContent =
-    result.hypothesis ||
-    "記録なし";
 
-  document.getElementById(
-    "detailCalculation"
-  ).textContent =
-    result.calculation ||
-    "記録なし";
+  const hypothesis =
+    document.getElementById(
+      "detailHypothesis"
+    );
 
-  document.getElementById(
-    "detailVerification"
-  ).textContent =
-    result.verification ||
-    "記録なし";
 
-  document.getElementById(
-    "detailNextAction"
-  ).textContent =
-    result.next_action ||
-    "記録なし";
+  const calculation =
+    document.getElementById(
+      "detailCalculation"
+    );
 
-  document.getElementById(
-    "detailRoute"
-  ).textContent =
-    route ||
-    "記録なし";
 
-  document.getElementById(
-    "detailReason"
-  ).textContent =
-    evaluation?.reason ||
-    "まだ評価されていません。";
+  const verification =
+    document.getElementById(
+      "detailVerification"
+    );
+
+
+  const nextAction =
+    document.getElementById(
+      "detailNextAction"
+    );
+
+
+  const routeElement =
+    document.getElementById(
+      "detailRoute"
+    );
+
+
+  const reason =
+    document.getElementById(
+      "detailReason"
+    );
+
+
+  if (hypothesis) {
+
+    hypothesis.textContent =
+      result.hypothesis ||
+      "記録なし";
+  }
+
+
+  if (calculation) {
+
+    calculation.textContent =
+      result.calculation ||
+      "記録なし";
+  }
+
+
+  if (verification) {
+
+    verification.textContent =
+      result.verification ||
+      "記録なし";
+  }
+
+
+  if (nextAction) {
+
+    nextAction.textContent =
+      result.next_action ||
+      "記録なし";
+  }
+
+
+  if (routeElement) {
+
+    routeElement.textContent =
+      route ||
+      "記録なし";
+  }
+
+
+  if (reason) {
+
+    reason.textContent =
+      evaluation?.reason ||
+      "まだ評価されていません。";
+  }
+
 
   renderEvaluationGrid(
     evaluation
   );
+
 
   evaluateButton.disabled =
     !result.id;
@@ -1676,51 +2335,71 @@ function renderEvaluationGrid(
       "evaluationGrid"
     );
 
+
+  if (!grid) {
+    return;
+  }
+
+
   if (!evaluation) {
 
     grid.innerHTML = `
       <div class="evaluation-item">
-        <div class="label">評価</div>
-        <div class="value">未評価</div>
+
+        <div class="label">
+          評価
+        </div>
+
+        <div class="value">
+          未評価
+        </div>
+
       </div>
     `;
 
     return;
   }
 
+
   const items = [
 
     [
       "総合",
-      evaluation.overall_symbol || "△"
+      evaluation.overall_symbol ||
+      "△"
     ],
 
     [
       "仮説",
-      evaluation.hypothesis_symbol || "△"
+      evaluation.hypothesis_symbol ||
+      "△"
     ],
 
     [
       "計算",
-      evaluation.calculation_symbol || "△"
+      evaluation.calculation_symbol ||
+      "△"
     ],
 
     [
       "検証",
-      evaluation.verification_symbol || "△"
+      evaluation.verification_symbol ||
+      "△"
     ],
 
     [
       "論理",
-      evaluation.logic_symbol || "△"
+      evaluation.logic_symbol ||
+      "△"
     ]
 
   ];
 
+
   grid.innerHTML =
     items
       .map(
-        ([label,value]) => `
+        ([label, value]) => `
           <div class="evaluation-item">
 
             <div class="label">
@@ -1751,9 +2430,11 @@ toggleDetailsButton.addEventListener(
         "hidden"
       );
 
+
     details.classList.toggle(
       "hidden"
     );
+
 
     toggleDetailsButton.textContent =
       hidden
@@ -1772,16 +2453,19 @@ researchButton.addEventListener(
   runResearch
 );
 
+
 evaluateButton.addEventListener(
   "click",
   evaluateLatest
 );
 
+
 clearButton.addEventListener(
   "click",
   () => {
 
-    questionInput.value = "";
+    questionInput.value =
+      "";
 
     hideStatus();
 
@@ -1822,13 +2506,21 @@ function statusToSymbol(
   status
 ) {
 
-  if (status === "good") {
+  if (
+    status === "good"
+  ) {
+
     return "○";
   }
 
-  if (status === "bad") {
+
+  if (
+    status === "bad"
+  ) {
+
     return "×";
   }
+
 
   return "△";
 }
@@ -1838,17 +2530,29 @@ function statusClass(
   status
 ) {
 
-  if (status === "good") {
+  if (
+    status === "good"
+  ) {
+
     return "good";
   }
 
-  if (status === "bad") {
+
+  if (
+    status === "bad"
+  ) {
+
     return "bad";
   }
 
-  if (status === "maybe") {
+
+  if (
+    status === "maybe"
+  ) {
+
     return "maybe";
   }
+
 
   return "unknown";
 }
@@ -1858,13 +2562,21 @@ function statusLabel(
   status
 ) {
 
-  if (status === "good") {
+  if (
+    status === "good"
+  ) {
+
     return "良";
   }
 
-  if (status === "bad") {
+
+  if (
+    status === "bad"
+  ) {
+
     return "不成立・問題あり";
   }
+
 
   return "要検証";
 }
@@ -1875,16 +2587,24 @@ function addTag(
   text
 ) {
 
+  if (!container) {
+    return;
+  }
+
+
   const element =
     document.createElement(
       "span"
     );
 
+
   element.className =
     "tag";
 
+
   element.textContent =
     text;
+
 
   container.appendChild(
     element
@@ -1900,16 +2620,20 @@ function formatDate(
     return "";
   }
 
+
   const value =
     new Date(date);
+
 
   if (
     Number.isNaN(
       value.getTime()
     )
   ) {
+
     return "";
   }
+
 
   return value.toLocaleString(
     "ja-JP",
@@ -1928,43 +2652,106 @@ function escapeHtml(
   value
 ) {
 
-  return String(value ?? "")
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;")
-    .replace(/'/g,"&#039;");
+  return String(
+    value ?? ""
+  )
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
 }
 
+
+/* =========================================================
+   ERROR
+========================================================= */
 
 function formatError(
   error
 ) {
 
   if (!error) {
-    return "不明なエラーです。";
+
+    return [
+      "不明なエラーが発生しました。"
+    ].join("\n");
   }
+
 
   const message =
     error.message ||
     String(error);
 
+
+  /*
+   * SafariのLoad failed
+   */
+
   if (
-    message.includes(
-      "Failed to fetch"
-    )
+    message
+      .toLowerCase()
+      .includes(
+        "load failed"
+      )
   ) {
 
     return [
-      "Supabaseとの通信に失敗しました。",
+      "研究AIへの通信に失敗しました。",
       "",
-      "・Supabase URLを確認",
-      "・publishable keyを確認",
-      "・research FunctionがDeploy済みか確認",
+      "接続先:",
+      `${SUPABASE_URL}/functions/v1/${RESEARCH_FUNCTION}`,
       "",
-      `詳細: ${message}`
+      "使用Function:",
+      RESEARCH_FUNCTION,
+      "",
+      "Supabase側のFunctionに接続できていません。",
+      "",
+      "このページ側ではこれ以上の設定変更は必要ありません。",
+      "次に確認するのはSupabase側のsmart-handlerです。"
     ].join("\n");
   }
+
+
+  /*
+   * Failed to fetch
+   */
+
+  if (
+    message
+      .toLowerCase()
+      .includes(
+        "failed to fetch"
+      )
+  ) {
+
+    return [
+      "Supabaseへの通信に失敗しました。",
+      "",
+      "使用Function:",
+      RESEARCH_FUNCTION,
+      "",
+      "Function名は smart-handler に設定されています。",
+      "",
+      "Supabase側のFunctionまたはCORS設定を確認する必要があります。"
+    ].join("\n");
+  }
+
 
   return message;
 }
@@ -1977,36 +2764,18 @@ function formatError(
 async function initialize() {
 
   /*
-   * ここでページ全体が止まらないように
-   * 接続チェックと履歴読み込みを分離。
+   * 接続チェックで失敗しても
+   * ページ全体を止めない。
    */
 
-  try {
+  await checkConnection();
 
-    await checkConnection();
 
-  } catch (error) {
+  /*
+   * 履歴読み込みも独立。
+   */
 
-    console.error(
-      "Initialization connection error:",
-      error
-    );
-
-    connectionText.textContent =
-      "Supabase 接続エラー";
-  }
-
-  try {
-
-    await loadHistory();
-
-  } catch (error) {
-
-    console.error(
-      "Initialization history error:",
-      error
-    );
-  }
+  await loadHistory();
 }
 
 
