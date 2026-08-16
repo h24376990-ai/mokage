@@ -4,7 +4,6 @@ const SUPABASE_URL =
 const SUPABASE_PUBLISHABLE_KEY =
   "sb_publishable_HmcPY6BGvUQTPESGHVe7Hw_W4NlTPqj";
 
-
 /* ==========================================================
    EDGE FUNCTIONS
 ========================================================== */
@@ -175,22 +174,82 @@ const historyCount =
 
 
 /* ==========================================================
-   BASIC DOM CHECK
+   SAFE DOM CHECK
 ========================================================== */
 
-console.log(
-  "[Research AI] app.js loaded",
-);
+function checkRequiredElements() {
 
-console.log(
-  "[Research AI] project_id:",
-  currentProjectId,
-);
+  const required = [
 
-console.log(
-  "[Research AI] research function:",
-  RESEARCH_FUNCTION,
-);
+    ["questionInput", questionInput],
+
+    ["researchButton", researchButton],
+
+    ["clearButton", clearButton],
+
+    ["statusBox", statusBox],
+
+    ["connectionDot", connectionDot],
+
+    ["connectionText", connectionText],
+
+    ["progress", progress],
+
+    ["progressText", progressText],
+
+    ["progressPercent", progressPercent],
+
+    ["progressValue", progressValue],
+
+    ["latestSection", latestSection],
+
+    ["latestTitle", latestTitle],
+
+    ["latestDate", latestDate],
+
+    ["latestSymbol", latestSymbol],
+
+    ["latestSummary", latestSummary],
+
+    ["latestMeta", latestMeta],
+
+    ["evaluateButton", evaluateButton],
+
+    ["toggleDetailsButton", toggleDetailsButton],
+
+    ["details", details],
+
+    ["historyList", historyList],
+
+    ["historyCount", historyCount],
+
+  ];
+
+
+  const missing =
+    required
+      .filter(
+        item =>
+          !item[1],
+      )
+      .map(
+        item =>
+          item[0],
+      );
+
+
+  if (missing.length) {
+
+    console.error(
+      "Missing DOM elements:",
+      missing,
+    );
+
+    throw new Error(
+      `HTMLに必要な要素がありません: ${missing.join(", ")}`,
+    );
+  }
+}
 
 
 /* ==========================================================
@@ -198,10 +257,6 @@ console.log(
 ========================================================== */
 
 async function checkConnection() {
-
-  console.log(
-    "[Research AI] checking Supabase connection...",
-  );
 
   try {
 
@@ -227,36 +282,27 @@ async function checkConnection() {
 
 
     if (error) {
+
       throw error;
     }
 
 
-    if (connectionDot) {
-
-      connectionDot
-        .classList
-        .remove(
-          "error",
-        );
-
-      connectionDot
-        .classList
-        .add(
-          "ok",
-        );
-    }
+    connectionDot
+      .classList
+      .remove(
+        "error",
+      );
 
 
-    if (connectionText) {
+    connectionDot
+      .classList
+      .add(
+        "ok",
+      );
 
-      connectionText.textContent =
-        "Supabase 接続済み";
-    }
 
-
-    console.log(
-      "[Research AI] Supabase connection OK",
-    );
+    connectionText.textContent =
+      "Supabase 接続済み";
 
 
     return true;
@@ -265,32 +311,27 @@ async function checkConnection() {
   } catch (error) {
 
     console.error(
-      "[Research AI] Supabase connection error:",
+      "Supabase connection error:",
       error,
     );
 
 
-    if (connectionDot) {
-
-      connectionDot
-        .classList
-        .remove(
-          "ok",
-        );
-
-      connectionDot
-        .classList
-        .add(
-          "error",
-        );
-    }
+    connectionDot
+      .classList
+      .remove(
+        "ok",
+      );
 
 
-    if (connectionText) {
+    connectionDot
+      .classList
+      .add(
+        "error",
+      );
 
-      connectionText.textContent =
-        "Supabase 接続エラー";
-    }
+
+    connectionText.textContent =
+      "Supabase 接続エラー";
 
 
     return false;
@@ -307,14 +348,8 @@ function showStatus(
   type = "",
 ) {
 
-  if (!statusBox) {
-    return;
-  }
-
-
   statusBox.textContent =
     message;
-
 
   statusBox.className =
     "status-box show";
@@ -331,11 +366,6 @@ function showStatus(
 
 function hideStatus() {
 
-  if (!statusBox) {
-    return;
-  }
-
-
   statusBox.className =
     "status-box";
 }
@@ -350,11 +380,6 @@ function setProgress(
   text,
 ) {
 
-  if (!progress) {
-    return;
-  }
-
-
   progress.classList.remove(
     "hidden",
   );
@@ -365,30 +390,208 @@ function setProgress(
       0,
       Math.min(
         100,
-        Number(percent) || 0,
+        percent,
       ),
     );
 
 
-  if (progressValue) {
+  progressValue.style.width =
+    `${safe}%`;
 
-    progressValue.style.width =
-      `${safe}%`;
+
+  progressPercent.textContent =
+    `${Math.round(safe)}%`;
+
+
+  progressText.textContent =
+    text;
+}
+
+
+/* ==========================================================
+   EDGE FUNCTION ERROR
+========================================================== */
+
+async function getFunctionErrorDetails(
+  error,
+) {
+
+  if (!error) {
+
+    return "不明なEdge Functionエラーです。";
   }
 
 
-  if (progressPercent) {
+  console.error(
+    "Raw Supabase Function error:",
+    error,
+  );
 
-    progressPercent.textContent =
-      `${Math.round(safe)}%`;
+
+  /*
+   * FunctionsHttpError
+   *
+   * Supabase Function自体は実行されたが
+   * 4xx / 5xx を返した場合
+   */
+
+  try {
+
+    if (
+      error.context &&
+      typeof error.context.json ===
+        "function"
+    ) {
+
+      const body =
+        await error.context.json();
+
+
+      console.error(
+        "Function error body:",
+        body,
+      );
+
+
+      if (
+        body?.error
+      ) {
+
+        return String(
+          body.error,
+        );
+      }
+
+
+      if (
+        body?.message
+      ) {
+
+        return String(
+          body.message,
+        );
+      }
+
+
+      return JSON.stringify(
+        body,
+        null,
+        2,
+      );
+    }
+
+  } catch (
+    contextError
+  ) {
+
+    console.warn(
+      "Could not read Function error context:",
+      contextError,
+    );
   }
 
 
-  if (progressText) {
+  /*
+   * 一般的なエラー
+   */
 
-    progressText.textContent =
-      text || "";
+  if (
+    error.message
+  ) {
+
+    return String(
+      error.message,
+    );
   }
+
+
+  return String(
+    error,
+  );
+}
+
+
+/* ==========================================================
+   ERROR FORMAT
+========================================================== */
+
+function formatError(
+  error,
+) {
+
+  if (!error) {
+
+    return [
+      "不明なエラーです。",
+      "",
+      "ブラウザのコンソールを確認してください。",
+    ].join("\n");
+  }
+
+
+  const message =
+    error.message ||
+    String(error);
+
+
+  console.error(
+    "Formatted error:",
+    error,
+  );
+
+
+  /*
+   * Load failed
+   */
+
+  if (
+    message
+      .toLowerCase()
+      .includes(
+        "load failed",
+      )
+  ) {
+
+    return [
+      "Edge Functionへの通信に失敗しました。",
+      "",
+      `使用Function: ${RESEARCH_FUNCTION}`,
+      `project_id: ${currentProjectId}`,
+      "",
+      "Supabase側のsmart-handlerが存在するか、",
+      "Deploy済みかを確認してください。",
+      "",
+      "詳細:",
+      message,
+    ].join("\n");
+  }
+
+
+  /*
+   * Failed to send request
+   */
+
+  if (
+    message.includes(
+      "Failed to send a request to the Edge Function",
+    )
+  ) {
+
+    return [
+      "Edge Functionへの接続に失敗しました。",
+      "",
+      `Function: ${RESEARCH_FUNCTION}`,
+      "",
+      "Supabase Dashboard → Edge Functions →",
+      "smart-handler のDeploy状態を確認してください。",
+      "",
+      "詳細:",
+      message,
+    ].join("\n");
+  }
+
+
+  return message;
 }
 
 
@@ -398,32 +601,8 @@ function setProgress(
 
 async function runResearch() {
 
-  console.log(
-    "[Research AI] runResearch started",
-  );
-
-
   const message =
-    questionInput?.value?.trim() ||
-    "";
-
-
-  console.log(
-    "[Research AI] message:",
-    message,
-  );
-
-
-  console.log(
-    "[Research AI] project_id:",
-    currentProjectId,
-  );
-
-
-  console.log(
-    "[Research AI] function:",
-    RESEARCH_FUNCTION,
-  );
+    questionInput.value.trim();
 
 
   if (!message) {
@@ -434,45 +613,22 @@ async function runResearch() {
     );
 
 
-    questionInput?.focus();
+    questionInput.focus();
 
     return;
   }
 
 
-  if (!currentProjectId) {
-
-    showStatus(
-      "project_id が設定されていません。",
-      "error",
-    );
-
-    return;
-  }
+  researchButton.disabled =
+    true;
 
 
-  if (researchButton) {
-
-    researchButton.disabled =
-      true;
-  }
+  clearButton.disabled =
+    true;
 
 
-  if (clearButton) {
-
-    clearButton.disabled =
-      true;
-  }
-
-
-  if (evaluateButton) {
-
-    evaluateButton.disabled =
-      true;
-  }
-
-
-  latestResult = null;
+  evaluateButton.disabled =
+    true;
 
 
   setProgress(
@@ -488,18 +644,50 @@ async function runResearch() {
 
   try {
 
-    /* ------------------------------------------------------
-       1. Function呼び出し開始
-    ------------------------------------------------------ */
+    /*
+     * ------------------------------------------------------
+     * 1
+     * ------------------------------------------------------
+     */
 
     setProgress(
-      15,
-      "研究AIを呼び出しています...",
+      10,
+      "Supabaseへ接続しています...",
     );
 
 
     console.log(
-      "[Research AI] invoking Edge Function...",
+      "=== RESEARCH START ===",
+    );
+
+
+    console.log(
+      "Function:",
+      RESEARCH_FUNCTION,
+    );
+
+
+    console.log(
+      "Project ID:",
+      currentProjectId,
+    );
+
+
+    console.log(
+      "Message:",
+      message,
+    );
+
+
+    /*
+     * ------------------------------------------------------
+     * 2
+     * ------------------------------------------------------
+     */
+
+    setProgress(
+      20,
+      "研究AIを実行しています...",
     );
 
 
@@ -521,74 +709,97 @@ async function runResearch() {
 
 
     console.log(
-      "[Research AI] raw function response:",
+      "=== RESEARCH RESPONSE ===",
+    );
+
+
+    console.log(
+      "response:",
       response,
     );
 
 
-    /* ------------------------------------------------------
-       2. invoke error
-    ------------------------------------------------------ */
-
-    if (response?.error) {
-
-      console.error(
-        "[Research AI] function invoke error:",
-        response.error,
-      );
+    console.log(
+      "response.data:",
+      response?.data,
+    );
 
 
-      const errorMessage =
-        getSupabaseFunctionError(
+    console.log(
+      "response.error:",
+      response?.error,
+    );
+
+
+    /*
+     * ------------------------------------------------------
+     * 3
+     * ------------------------------------------------------
+     */
+
+    if (
+      response.error
+    ) {
+
+      const detail =
+        await getFunctionErrorDetails(
           response.error,
         );
 
 
       throw new Error(
-        errorMessage,
+        detail,
       );
     }
 
 
-    /* ------------------------------------------------------
-       3. data
-    ------------------------------------------------------ */
+    /*
+     * ------------------------------------------------------
+     * 4
+     * ------------------------------------------------------
+     */
 
     const data =
-      response?.data;
-
-
-    console.log(
-      "[Research AI] function data:",
-      data,
-    );
+      response.data;
 
 
     if (!data) {
 
       throw new Error(
-        "Supabase Edge Functionからデータが返ってきませんでした。",
+        "AIからデータが返ってきませんでした。",
       );
     }
 
 
-    /* ------------------------------------------------------
-       4. backend error
-    ------------------------------------------------------ */
+    console.log(
+      "Function data:",
+      data,
+    );
 
-    if (data.ok === false) {
+
+    /*
+     * ------------------------------------------------------
+     * 5
+     * ------------------------------------------------------
+     */
+
+    if (
+      !data.ok
+    ) {
 
       throw new Error(
         data.error ||
         data.detail ||
-        "研究AI側でエラーが発生しました。",
+        "研究AIでエラーが発生しました。",
       );
     }
 
 
-    /* ------------------------------------------------------
-       5. success
-    ------------------------------------------------------ */
+    /*
+     * ------------------------------------------------------
+     * 6
+     * ------------------------------------------------------
+     */
 
     setProgress(
       70,
@@ -596,16 +807,16 @@ async function runResearch() {
     );
 
 
-    /* ------------------------------------------------------
-       6. blocked
-    ------------------------------------------------------ */
+    /*
+     * ------------------------------------------------------
+     * 7
+     * BLOCK
+     * ------------------------------------------------------
+     */
 
-    if (data.blocked === true) {
-
-      console.log(
-        "[Research AI] research route blocked",
-      );
-
+    if (
+      data.blocked
+    ) {
 
       setProgress(
         100,
@@ -619,7 +830,7 @@ async function runResearch() {
           "",
           data.answer || "",
           "",
-          "別の研究アプローチを探してください。",
+          "別のアプローチを探します。",
         ].join("\n"),
         "success",
       );
@@ -627,144 +838,151 @@ async function runResearch() {
 
       await loadHistory();
 
+
       return;
     }
 
 
-    /* ------------------------------------------------------
-       7. research result existence
-    ------------------------------------------------------ */
+    /*
+     * ------------------------------------------------------
+     * 8
+     * RESULT
+     * ------------------------------------------------------
+     */
 
-    if (
-      !data.research ||
-      typeof data.research !== "object"
-    ) {
+    const research =
+      data.research ||
+      {};
 
-      console.error(
-        "[Research AI] invalid research object:",
-        data,
-      );
-
-
-      throw new Error(
-        "研究結果データが見つかりませんでした。",
-      );
-    }
-
-
-    /* ------------------------------------------------------
-       8. latest result
-    ------------------------------------------------------ */
 
     latestResult = {
 
       id:
         data.result_id ||
-        data.research?.id ||
+        research.id ||
         null,
 
 
       title:
-        data.research?.title ||
+        research.title ||
         "AI研究回答",
 
 
       description:
-        data.research?.summary ||
-        data.research?.description ||
+        research.summary ||
+        research.description ||
         "",
 
 
       status:
-        data.research?.status ||
+        research.status ||
         "maybe",
 
 
+      confidence:
+        Number(
+          research.confidence ??
+          0,
+        ),
+
+
+      confidence_basis:
+        research.confidence_basis ||
+        "",
+
+
       hypothesis:
-        data.research?.hypothesis ||
+        research.hypothesis ||
         "",
 
 
       calculation:
-        data.research?.calculation ||
+        research.calculation ||
         "",
 
 
       verification:
-        data.research?.verification ||
+        research.verification ||
         "",
 
 
       next_action:
-        data.research?.next_action ||
+        research.next_action ||
         "",
 
 
       evidence: {
 
         route:
-          data.research?.route ||
+          research.route ||
           "",
 
 
         route_key:
-          data.research?.route_key ||
+          research.route_key ||
           "",
 
 
         route_count:
           Number(
-            data.research?.route_count ||
+            research.route_count ??
             1,
           ),
 
 
         confidence:
           Number(
-            data.research?.confidence ||
+            research.confidence ??
             0,
           ),
 
 
         confidence_basis:
-          data.research?.confidence_basis ||
+          research.confidence_basis ||
           "",
 
 
         items:
           Array.isArray(
-            data.research?.evidence,
+            research.evidence,
           )
-            ? data.research.evidence
+            ? research.evidence
             : [],
 
       },
 
 
       created_at:
-        data.research?.created_at ||
         new Date().toISOString(),
     };
 
 
     console.log(
-      "[Research AI] normalized result:",
+      "latestResult:",
       latestResult,
     );
 
 
-    /* ------------------------------------------------------
-       9. render
-    ------------------------------------------------------ */
+    /*
+     * ------------------------------------------------------
+     * 9
+     * ------------------------------------------------------
+     */
 
     renderLatestResult(
       latestResult,
     );
 
 
+    /*
+     * ------------------------------------------------------
+     * 10
+     * ------------------------------------------------------
+     */
+
     setProgress(
       85,
-      "研究結果を表示しています...",
+      "研究結果を保存しました...",
     );
 
 
@@ -774,12 +992,20 @@ async function runResearch() {
     );
 
 
-    /* ------------------------------------------------------
-       10. history
-    ------------------------------------------------------ */
+    /*
+     * ------------------------------------------------------
+     * 11
+     * ------------------------------------------------------
+     */
 
     await loadHistory();
 
+
+    /*
+     * ------------------------------------------------------
+     * 12
+     * ------------------------------------------------------
+     */
 
     setProgress(
       100,
@@ -788,32 +1014,26 @@ async function runResearch() {
 
 
     console.log(
-      "[Research AI] research completed successfully",
+      "=== RESEARCH COMPLETE ===",
     );
 
 
-  } catch (error) {
+  } catch (
+    error
+  ) {
 
     console.error(
-      "[Research AI] Research error:",
+      "=== RESEARCH ERROR ===",
+    );
+
+
+    console.error(
       error,
     );
 
 
-    const formatted =
-      formatError(
-        error,
-      );
-
-
-    console.error(
-      "[Research AI] formatted error:",
-      formatted,
-    );
-
-
     showStatus(
-      formatted,
+      formatError(error),
       "error",
     );
 
@@ -826,25 +1046,16 @@ async function runResearch() {
 
   } finally {
 
-    if (researchButton) {
-
-      researchButton.disabled =
-        false;
-    }
+    researchButton.disabled =
+      false;
 
 
-    if (clearButton) {
-
-      clearButton.disabled =
-        false;
-    }
+    clearButton.disabled =
+      false;
 
 
-    if (evaluateButton) {
-
-      evaluateButton.disabled =
-        !latestResult?.id;
-    }
+    evaluateButton.disabled =
+      !latestResult;
   }
 }
 
@@ -855,34 +1066,26 @@ async function runResearch() {
 
 async function evaluateLatest() {
 
-  console.log(
-    "[Research AI] evaluate started",
-  );
-
-
-  if (!latestResult?.id) {
+  if (
+    !latestResult?.id
+  ) {
 
     showStatus(
       "評価する研究結果がありません。",
       "error",
     );
 
+
     return;
   }
 
 
-  if (evaluateButton) {
-
-    evaluateButton.disabled =
-      true;
-  }
+  evaluateButton.disabled =
+    true;
 
 
-  if (researchButton) {
-
-    researchButton.disabled =
-      true;
-  }
+  researchButton.disabled =
+    true;
 
 
   setProgress(
@@ -899,14 +1102,25 @@ async function evaluateLatest() {
   try {
 
     console.log(
-      "[Research AI] invoking evaluate:",
-      {
-        project_id:
-          currentProjectId,
+      "=== EVALUATE START ===",
+    );
 
-        result_id:
-          latestResult.id,
-      },
+
+    console.log(
+      "Function:",
+      EVALUATE_FUNCTION,
+    );
+
+
+    console.log(
+      "Project ID:",
+      currentProjectId,
+    );
+
+
+    console.log(
+      "Result ID:",
+      latestResult.id,
     );
 
 
@@ -928,23 +1142,29 @@ async function evaluateLatest() {
 
 
     console.log(
-      "[Research AI] evaluate response:",
+      "evaluate response:",
       response,
     );
 
 
-    if (response?.error) {
+    if (
+      response.error
+    ) {
+
+      const detail =
+        await getFunctionErrorDetails(
+          response.error,
+        );
+
 
       throw new Error(
-        getSupabaseFunctionError(
-          response.error,
-        ),
+        detail,
       );
     }
 
 
     const data =
-      response?.data;
+      response.data;
 
 
     if (!data) {
@@ -955,7 +1175,9 @@ async function evaluateLatest() {
     }
 
 
-    if (data.ok === false) {
+    if (
+      !data.ok
+    ) {
 
       throw new Error(
         data.error ||
@@ -1006,25 +1228,21 @@ async function evaluateLatest() {
     await loadHistory();
 
 
-    if (details) {
-
-      details.classList.remove(
-        "hidden",
-      );
-    }
+    details.classList.remove(
+      "hidden",
+    );
 
 
-    if (toggleDetailsButton) {
-
-      toggleDetailsButton.textContent =
-        "詳細を閉じる";
-    }
+    toggleDetailsButton.textContent =
+      "詳細を閉じる";
 
 
-  } catch (error) {
+  } catch (
+    error
+  ) {
 
     console.error(
-      "[Research AI] Evaluation error:",
+      "Evaluation error:",
       error,
     );
 
@@ -1043,18 +1261,12 @@ async function evaluateLatest() {
 
   } finally {
 
-    if (evaluateButton) {
-
-      evaluateButton.disabled =
-        false;
-    }
+    evaluateButton.disabled =
+      false;
 
 
-    if (researchButton) {
-
-      researchButton.disabled =
-        false;
-    }
+    researchButton.disabled =
+      false;
   }
 }
 
@@ -1065,12 +1277,12 @@ async function evaluateLatest() {
 
 async function loadHistory() {
 
-  console.log(
-    "[Research AI] loading history...",
-  );
-
-
   try {
+
+    console.log(
+      "Loading history...",
+    );
+
 
     const {
       data,
@@ -1106,16 +1318,12 @@ async function loadHistory() {
         .limit(100);
 
 
-    if (error) {
+    if (
+      error
+    ) {
 
       throw error;
     }
-
-
-    console.log(
-      "[Research AI] history loaded:",
-      data,
-    );
 
 
     renderHistory(
@@ -1123,22 +1331,21 @@ async function loadHistory() {
     );
 
 
-  } catch (error) {
+  } catch (
+    error
+  ) {
 
     console.error(
-      "[Research AI] History error:",
+      "History error:",
       error,
     );
 
 
-    if (historyList) {
-
-      historyList.innerHTML = `
-        <div class="history-empty">
-          履歴を読み込めませんでした。
-        </div>
-      `;
-    }
+    historyList.innerHTML = `
+      <div class="history-empty">
+        履歴を読み込めませんでした。
+      </div>
+    `;
   }
 }
 
@@ -1151,24 +1358,20 @@ function renderHistory(
   results,
 ) {
 
-  if (!historyCount ||
-      !historyList) {
-
-    return;
-  }
-
-
   historyCount.textContent =
     `${results.length}件`;
 
 
-  if (!results.length) {
+  if (
+    !results.length
+  ) {
 
     historyList.innerHTML = `
       <div class="history-empty">
         まだ研究結果がありません。
       </div>
     `;
+
 
     return;
   }
@@ -1207,27 +1410,29 @@ function renderHistory(
               );
 
 
-            if (!result) {
-              return;
-            }
+            if (
+              result
+            ) {
+
+              latestResult =
+                normalizeHistoryResult(
+                  result,
+                );
 
 
-            latestResult =
-              normalizeHistoryResult(
-                result,
+              renderLatestResult(
+                latestResult,
               );
 
 
-            renderLatestResult(
-              latestResult,
-            );
+              window.scrollTo({
+                top:
+                  0,
 
-
-            window.scrollTo({
-              top: 0,
-              behavior:
-                "smooth",
-            });
+                behavior:
+                  "smooth",
+              });
+            }
           },
         );
       },
@@ -1236,7 +1441,7 @@ function renderHistory(
 
 
 /* ==========================================================
-   HISTORY NORMALIZATION
+   HISTORY RESULT NORMALIZER
 ========================================================== */
 
 function normalizeHistoryResult(
@@ -1245,7 +1450,8 @@ function normalizeHistoryResult(
 
   const evidence =
     result?.evidence &&
-    typeof result.evidence === "object"
+    typeof result.evidence ===
+      "object"
       ? result.evidence
       : {};
 
@@ -1262,30 +1468,25 @@ function normalizeHistoryResult(
         evidence.route ||
         "",
 
-
       route_key:
         evidence.route_key ||
         "",
 
-
       route_count:
         Number(
-          evidence.route_count ||
+          evidence.route_count ??
           1,
         ),
 
-
       confidence:
         Number(
-          evidence.confidence ||
+          evidence.confidence ??
           0,
         ),
-
 
       confidence_basis:
         evidence.confidence_basis ||
         "",
-
 
       items:
         Array.isArray(
@@ -1307,15 +1508,8 @@ function createHistoryItem(
   result,
 ) {
 
-  const evidence =
-    result?.evidence &&
-    typeof result.evidence === "object"
-      ? result.evidence
-      : {};
-
-
   const evaluation =
-    evidence?.evaluation;
+    result?.evidence?.evaluation;
 
 
   const status =
@@ -1385,34 +1579,20 @@ function renderLatestResult(
   result,
 ) {
 
-  if (!result) {
-    return;
-  }
+  latestSection.classList.remove(
+    "hidden",
+  );
 
 
-  if (latestSection) {
+  latestTitle.textContent =
+    result.title ||
+    "AI研究回答";
 
-    latestSection.classList.remove(
-      "hidden",
+
+  latestDate.textContent =
+    formatDate(
+      result.created_at,
     );
-  }
-
-
-  if (latestTitle) {
-
-    latestTitle.textContent =
-      result.title ||
-      "AI研究回答";
-  }
-
-
-  if (latestDate) {
-
-    latestDate.textContent =
-      formatDate(
-        result.created_at,
-      );
-  }
 
 
   const evaluation =
@@ -1432,75 +1612,62 @@ function renderLatestResult(
     );
 
 
-  if (latestSymbol) {
-
-    latestSymbol.textContent =
-      symbol;
+  latestSymbol.textContent =
+    symbol;
 
 
-    latestSymbol.className =
-      `symbol ${statusClass(status)}`;
-  }
+  latestSymbol.className =
+    `symbol ${statusClass(status)}`;
 
 
-  if (latestSummary) {
-
-    latestSummary.textContent =
-      result.description ||
-      result.summary ||
-      "研究結果が保存されています。";
-  }
+  latestSummary.textContent =
+    result.description ||
+    "研究結果が保存されています。";
 
 
-  if (latestMeta) {
-
-    latestMeta.innerHTML =
-      "";
-  }
+  latestMeta.innerHTML =
+    "";
 
 
-  if (latestMeta) {
+  addTag(
+    latestMeta,
+    `状態: ${statusLabel(status)}`,
+  );
+
+
+  if (
+    result?.evidence?.route
+  ) {
 
     addTag(
       latestMeta,
-      `状態: ${statusLabel(status)}`,
+      `ルート: ${result.evidence.route}`,
     );
+  }
 
 
-    if (
-      result?.evidence?.route
-    ) {
+  if (
+    result?.evidence?.route_count
+  ) {
 
-      addTag(
-        latestMeta,
-        `ルート: ${result.evidence.route}`,
-      );
-    }
-
-
-    if (
-      result?.evidence?.route_count
-    ) {
-
-      addTag(
-        latestMeta,
-        `使用回数: ${result.evidence.route_count}`,
-      );
-    }
+    addTag(
+      latestMeta,
+      `使用回数: ${result.evidence.route_count}`,
+    );
+  }
 
 
-    if (
-      typeof result?.evidence?.confidence ===
-      "number"
-    ) {
+  if (
+    typeof result?.evidence?.confidence ===
+    "number"
+  ) {
 
-      addTag(
-        latestMeta,
-        `信頼度: ${Math.round(
-          result.evidence.confidence * 100,
-        )}%`,
-      );
-    }
+    addTag(
+      latestMeta,
+      `信頼度: ${Math.round(
+        result.evidence.confidence * 100,
+      )}%`,
+    );
   }
 
 
@@ -1510,26 +1677,10 @@ function renderLatestResult(
     );
 
 
-  if (detailHypothesis) {
-
-    detailHypothesis.textContent =
-      result.hypothesis ||
-      "記録なし";
-  }
-
-
   const detailCalculation =
     document.getElementById(
       "detailCalculation",
     );
-
-
-  if (detailCalculation) {
-
-    detailCalculation.textContent =
-      result.calculation ||
-      "記録なし";
-  }
 
 
   const detailVerification =
@@ -1538,26 +1689,10 @@ function renderLatestResult(
     );
 
 
-  if (detailVerification) {
-
-    detailVerification.textContent =
-      result.verification ||
-      "記録なし";
-  }
-
-
   const detailNextAction =
     document.getElementById(
       "detailNextAction",
     );
-
-
-  if (detailNextAction) {
-
-    detailNextAction.textContent =
-      result.next_action ||
-      "記録なし";
-  }
 
 
   const detailRoute =
@@ -1566,7 +1701,55 @@ function renderLatestResult(
     );
 
 
-  if (detailRoute) {
+  const detailReason =
+    document.getElementById(
+      "detailReason",
+    );
+
+
+  if (
+    detailHypothesis
+  ) {
+
+    detailHypothesis.textContent =
+      result.hypothesis ||
+      "記録なし";
+  }
+
+
+  if (
+    detailCalculation
+  ) {
+
+    detailCalculation.textContent =
+      result.calculation ||
+      "記録なし";
+  }
+
+
+  if (
+    detailVerification
+  ) {
+
+    detailVerification.textContent =
+      result.verification ||
+      "記録なし";
+  }
+
+
+  if (
+    detailNextAction
+  ) {
+
+    detailNextAction.textContent =
+      result.next_action ||
+      "記録なし";
+  }
+
+
+  if (
+    detailRoute
+  ) {
 
     detailRoute.textContent =
       result?.evidence?.route ||
@@ -1574,13 +1757,9 @@ function renderLatestResult(
   }
 
 
-  const detailReason =
-    document.getElementById(
-      "detailReason",
-    );
-
-
-  if (detailReason) {
+  if (
+    detailReason
+  ) {
 
     detailReason.textContent =
       evaluation?.reason ||
@@ -1593,11 +1772,8 @@ function renderLatestResult(
   );
 
 
-  if (evaluateButton) {
-
-    evaluateButton.disabled =
-      !result.id;
-  }
+  evaluateButton.disabled =
+    !result.id;
 }
 
 
@@ -1620,7 +1796,9 @@ function renderEvaluationGrid(
   }
 
 
-  if (!evaluation) {
+  if (
+    !evaluation
+  ) {
 
     grid.innerHTML = `
       <div class="evaluation-item">
@@ -1635,6 +1813,7 @@ function renderEvaluationGrid(
 
       </div>
     `;
+
 
     return;
   }
@@ -1700,125 +1879,105 @@ function renderEvaluationGrid(
    DETAILS
 ========================================================== */
 
-if (toggleDetailsButton) {
+toggleDetailsButton.addEventListener(
+  "click",
+  () => {
 
-  toggleDetailsButton.addEventListener(
-    "click",
-    () => {
-
-      if (!details) {
-        return;
-      }
-
-
-      const hidden =
-        details.classList.contains(
-          "hidden",
-        );
-
-
-      details.classList.toggle(
+    const hidden =
+      details.classList.contains(
         "hidden",
       );
 
 
-      toggleDetailsButton.textContent =
-        hidden
-          ? "詳細を閉じる"
-          : "詳細を表示";
-    },
-  );
-}
+    details.classList.toggle(
+      "hidden",
+    );
+
+
+    toggleDetailsButton.textContent =
+      hidden
+        ? "詳細を閉じる"
+        : "詳細を表示";
+  },
+);
 
 
 /* ==========================================================
    BUTTONS
 ========================================================== */
 
-if (researchButton) {
-
-  researchButton.addEventListener(
-    "click",
-    runResearch,
-  );
-}
+researchButton.addEventListener(
+  "click",
+  runResearch,
+);
 
 
-if (evaluateButton) {
-
-  evaluateButton.addEventListener(
-    "click",
-    evaluateLatest,
-  );
-}
+evaluateButton.addEventListener(
+  "click",
+  evaluateLatest,
+);
 
 
-if (clearButton) {
+clearButton.addEventListener(
+  "click",
+  () => {
 
-  clearButton.addEventListener(
-    "click",
-    () => {
-
-      if (questionInput) {
-
-        questionInput.value =
-          "";
-      }
+    questionInput.value =
+      "";
 
 
-      hideStatus();
+    hideStatus();
 
 
-      if (progress) {
-
-        progress.classList.add(
-          "hidden",
-        );
-      }
-    },
-  );
-}
+    progress.classList.add(
+      "hidden",
+    );
+  },
+);
 
 
 /* ==========================================================
    COMMAND + ENTER
 ========================================================== */
 
-if (questionInput) {
+questionInput.addEventListener(
+  "keydown",
+  event => {
 
-  questionInput.addEventListener(
-    "keydown",
-    event => {
+    if (
+      (event.metaKey ||
+        event.ctrlKey) &&
+      event.key === "Enter"
+    ) {
 
-      if (
-        (event.metaKey ||
-          event.ctrlKey) &&
-        event.key === "Enter"
-      ) {
+      event.preventDefault();
 
-        event.preventDefault();
-
-        runResearch();
-      }
-    },
-  );
-}
+      runResearch();
+    }
+  },
+);
 
 
 /* ==========================================================
-   STATUS HELPERS
+   HELPERS
 ========================================================== */
 
 function statusToSymbol(
   status,
 ) {
 
-  if (status === "good") {
+  if (
+    status === "good"
+  ) {
+
     return "○";
   }
 
 
-  if (status === "bad") {
+  if (
+    status === "bad"
+  ) {
+
     return "×";
   }
 
@@ -1831,17 +1990,26 @@ function statusClass(
   status,
 ) {
 
-  if (status === "good") {
+  if (
+    status === "good"
+  ) {
+
     return "good";
   }
 
 
-  if (status === "bad") {
+  if (
+    status === "bad"
+  ) {
+
     return "bad";
   }
 
 
-  if (status === "maybe") {
+  if (
+    status === "maybe"
+  ) {
+
     return "maybe";
   }
 
@@ -1854,12 +2022,18 @@ function statusLabel(
   status,
 ) {
 
-  if (status === "good") {
+  if (
+    status === "good"
+  ) {
+
     return "良";
   }
 
 
-  if (status === "bad") {
+  if (
+    status === "bad"
+  ) {
+
     return "不成立・問題あり";
   }
 
@@ -1867,10 +2041,6 @@ function statusLabel(
   return "要検証";
 }
 
-
-/* ==========================================================
-   DATE
-========================================================== */
 
 function formatDate(
   date,
@@ -1898,6 +2068,7 @@ function formatDate(
   return value.toLocaleString(
     "ja-JP",
     {
+
       year:
         "numeric",
 
@@ -1912,14 +2083,11 @@ function formatDate(
 
       minute:
         "2-digit",
+
     },
   );
 }
 
-
-/* ==========================================================
-   HTML ESCAPE
-========================================================== */
 
 function escapeHtml(
   value,
@@ -1951,19 +2119,10 @@ function escapeHtml(
 }
 
 
-/* ==========================================================
-   TAG
-========================================================== */
-
 function addTag(
   container,
   text,
 ) {
-
-  if (!container) {
-    return;
-  }
-
 
   const element =
     document.createElement(
@@ -1986,187 +2145,76 @@ function addTag(
 
 
 /* ==========================================================
-   SUPABASE FUNCTION ERROR
-========================================================== */
-
-function getSupabaseFunctionError(
-  error,
-) {
-
-  console.error(
-    "[Research AI] raw Supabase error:",
-    error,
-  );
-
-
-  if (!error) {
-
-    return "Supabase Edge Functionで不明なエラーが発生しました。";
-  }
-
-
-  let message =
-    error.message ||
-    String(error);
-
-
-  /*
-   * FunctionsHttpErrorの場合、
-   * contextにResponseが入る場合がある
-   */
-
-  if (
-    error.context &&
-    typeof error.context === "object"
-  ) {
-
-    try {
-
-      if (
-        error.context.status
-      ) {
-
-        message +=
-          `\nHTTP Status: ${error.context.status}`;
-      }
-
-
-      if (
-        error.context.statusText
-      ) {
-
-        message +=
-          `\n${error.context.statusText}`;
-      }
-
-    } catch {
-      // ignore
-    }
-  }
-
-
-  return [
-    "Supabase Edge Functionの呼び出しに失敗しました。",
-    "",
-    message,
-    "",
-    `Function: ${RESEARCH_FUNCTION}`,
-    `Project ID: ${currentProjectId}`,
-  ].join("\n");
-}
-
-
-/* ==========================================================
-   ERROR
-========================================================== */
-
-function formatError(
-  error,
-) {
-
-  console.error(
-    "[Research AI] formatError input:",
-    error,
-  );
-
-
-  if (!error) {
-
-    return [
-      "不明なエラーです。",
-      "",
-      "ブラウザのConsoleを確認してください。",
-    ].join("\n");
-  }
-
-
-  const message =
-    error.message ||
-    String(error);
-
-
-  /*
-   * Load failed対策
-   */
-
-  if (
-    message === "Load failed" ||
-    message.includes("Load failed")
-  ) {
-
-    return [
-      "Load failed",
-      "",
-      "Edge Functionへの通信に失敗しました。",
-      "",
-      `Function: ${RESEARCH_FUNCTION}`,
-      `Project ID: ${currentProjectId}`,
-      "",
-      "Supabase側のFunctionが正常でも、ブラウザからの通信・CORS・Function URL・GitHub側のキャッシュなどで発生する場合があります。",
-    ].join("\n");
-  }
-
-
-  if (
-    message.includes(
-      "Failed to send a request to the Edge Function",
-    )
-  ) {
-
-    return [
-      "Edge Functionへの接続に失敗しました。",
-      "",
-      `Function: ${RESEARCH_FUNCTION}`,
-      `Project ID: ${currentProjectId}`,
-      "",
-      "Supabase Edge FunctionsでFunctionがDeploy済みか確認してください。",
-      "",
-      `詳細: ${message}`,
-    ].join("\n");
-  }
-
-
-  return [
-    message,
-    "",
-    `Function: ${RESEARCH_FUNCTION}`,
-    `Project ID: ${currentProjectId}`,
-  ].join("\n");
-}
-
-
-/* ==========================================================
    INITIALIZE
 ========================================================== */
 
 async function initialize() {
 
-  console.log(
-    "[Research AI] initialize",
-  );
+  try {
+
+    checkRequiredElements();
 
 
-  console.log(
-    "[Research AI] SUPABASE_URL:",
-    SUPABASE_URL,
-  );
+    console.log(
+      "================================",
+    );
 
 
-  console.log(
-    "[Research AI] RESEARCH_FUNCTION:",
-    RESEARCH_FUNCTION,
-  );
+    console.log(
+      "Research AI initialized",
+    );
 
 
-  console.log(
-    "[Research AI] currentProjectId:",
-    currentProjectId,
-  );
+    console.log(
+      "Supabase:",
+      SUPABASE_URL,
+    );
 
 
-  await checkConnection();
+    console.log(
+      "Research Function:",
+      RESEARCH_FUNCTION,
+    );
 
-  await loadHistory();
+
+    console.log(
+      "Evaluate Function:",
+      EVALUATE_FUNCTION,
+    );
+
+
+    console.log(
+      "Project ID:",
+      currentProjectId,
+    );
+
+
+    console.log(
+      "================================",
+    );
+
+
+    await checkConnection();
+
+
+    await loadHistory();
+
+
+  } catch (
+    error
+  ) {
+
+    console.error(
+      "Initialization error:",
+      error,
+    );
+
+
+    showStatus(
+      formatError(error),
+      "error",
+    );
+  }
 }
 
 
