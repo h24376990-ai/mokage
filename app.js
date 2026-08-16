@@ -1,4 +1,16 @@
-console.log("APP.JS LOADED");
+(function () {
+  const box = document.getElementById("connectionText");
+  const dot = document.getElementById("connectionDot");
+
+  if (box) {
+    box.textContent = "app.js 読み込み成功";
+  }
+
+  if (dot) {
+    dot.classList.remove("error");
+    dot.classList.add("ok");
+  }
+})();
 
 /* ==========================================================
    RESEARCH AI - STEP 1
