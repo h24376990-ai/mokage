@@ -1,7 +1,18 @@
 /* ==========================================================
    RESEARCH AI - app.js
-   COMPLETE VERSION
-========================================================== */
+   ==========================================================
+   目的:
+   - Supabase接続確認が永久に「確認中」で止まらない
+   - GitHub Pages → Supabase → Edge Function の通信を診断
+   - "Load failed" を詳細に切り分ける
+   - smart-handler による研究
+   - evaluate による評価
+   - 研究履歴
+   - ○ / △ / × 表示
+   - 研究ルート・使用回数・信頼度
+   - 詳細表示
+   - 既存 project_id の維持
+   ========================================================== */
 
 
 /* ==========================================================
@@ -37,6 +48,18 @@ const DEFAULT_PROJECT_ID =
 /* ==========================================================
    TIMEOUT
 ========================================================== */
+
+/*
+ * 重要:
+ *
+ * 以前の問題では
+ *
+ *   「Supabase 接続確認中...」
+ *
+ * のまま画面が進まないケースがあった。
+ *
+ * そのため、通信処理には必ずタイムアウトを設ける。
+ */
 
 const CONNECTION_TIMEOUT_MS =
   10000;
@@ -85,14 +108,11 @@ if (!currentProjectId) {
    STATE
 ========================================================== */
 
-let latestResult =
-  null;
+let latestResult = null;
 
-let isResearching =
-  false;
+let isResearching = false;
 
-let isEvaluating =
-  false;
+let isEvaluating = false;
 
 
 /* ==========================================================
@@ -206,7 +226,7 @@ const historyCount =
 
 
 /* ==========================================================
-   DOM CHECK
+   SAFE DOM CHECK
 ========================================================== */
 
 function checkRequiredElements() {
@@ -270,9 +290,7 @@ function checkRequiredElements() {
       );
 
 
-  if (
-    missing.length
-  ) {
+  if (missing.length) {
 
     console.error(
       "Missing DOM elements:",
@@ -287,166 +305,18 @@ function checkRequiredElements() {
 
 
 /* ==========================================================
-   STATUS
-========================================================== */
-
-function showStatus(
-  message,
-  type = "",
-) {
-
-  if (!statusBox) {
-    return;
-  }
-
-
-  statusBox.textContent =
-    String(
-      message ?? "",
-    );
-
-
-  statusBox.className =
-    "status-box show";
-
-
-  if (type) {
-
-    statusBox.classList.add(
-      type,
-    );
-  }
-}
-
-
-function hideStatus() {
-
-  if (!statusBox) {
-    return;
-  }
-
-
-  statusBox.className =
-    "status-box";
-}
-
-
-/* ==========================================================
-   CONNECTION UI
-========================================================== */
-
-function setConnectionState(
-  state,
-  message,
-) {
-
-  if (
-    !connectionDot ||
-    !connectionText
-  ) {
-    return;
-  }
-
-
-  connectionDot.classList.remove(
-    "ok",
-    "error",
-    "checking",
-  );
-
-
-  if (
-    state === "ok"
-  ) {
-
-    connectionDot.classList.add(
-      "ok",
-    );
-
-  } else if (
-    state === "error"
-  ) {
-
-    connectionDot.classList.add(
-      "error",
-    );
-
-  } else {
-
-    connectionDot.classList.add(
-      "checking",
-    );
-  }
-
-
-  connectionText.textContent =
-    message;
-}
-
-
-/* ==========================================================
-   PROGRESS
-========================================================== */
-
-function setProgress(
-  percent,
-  text,
-) {
-
-  if (
-    !progress ||
-    !progressValue ||
-    !progressPercent ||
-    !progressText
-  ) {
-    return;
-  }
-
-
-  progress.classList.remove(
-    "hidden",
-  );
-
-
-  const safe =
-    Math.max(
-      0,
-      Math.min(
-        100,
-        Number(percent) || 0,
-      ),
-    );
-
-
-  progressValue.style.width =
-    `${safe}%`;
-
-
-  progressPercent.textContent =
-    `${Math.round(safe)}%`;
-
-
-  progressText.textContent =
-    text;
-}
-
-
-function hideProgress() {
-
-  if (!progress) {
-    return;
-  }
-
-
-  progress.classList.add(
-    "hidden",
-  );
-}
-
-
-/* ==========================================================
    TIMEOUT HELPER
 ========================================================== */
+
+/*
+ * Promiseにタイムアウトを設定する。
+ *
+ * これによって、
+ *
+ *   await supabase...
+ *
+ * が永遠に待ち続けることを防ぐ。
+ */
 
 function withTimeout(
   promise,
@@ -454,10 +324,10 @@ function withTimeout(
   timeoutMessage,
 ) {
 
-  let timer;
+  let timer = null;
 
 
-  const timeout =
+  const timeoutPromise =
     new Promise(
       (_, reject) => {
 
@@ -481,13 +351,16 @@ function withTimeout(
 
   return Promise.race([
     promise,
-    timeout,
+    timeoutPromise,
   ]).finally(
     () => {
 
-      clearTimeout(
-        timer,
-      );
+      if (timer) {
+
+        clearTimeout(
+          timer,
+        );
+      }
 
     },
   );
@@ -495,7 +368,7 @@ function withTimeout(
 
 
 /* ==========================================================
-   SAFE ERROR PROPERTY
+   ERROR PROPERTY
 ========================================================== */
 
 function getErrorProperty(
@@ -518,6 +391,78 @@ function getErrorProperty(
 
   } catch (_) {
     // ignore
+  }
+
+
+  return "";
+}
+
+
+/* ==========================================================
+   ERROR CONTEXT BODY
+========================================================== */
+
+async function readErrorContext(
+  error,
+) {
+
+  if (!error) {
+    return "";
+  }
+
+
+  /*
+   * Supabase FunctionsHttpError:
+   *
+   * error.context = Response
+   */
+
+  try {
+
+    const context =
+      error.context;
+
+
+    if (!context) {
+      return "";
+    }
+
+
+    if (
+      typeof context.clone ===
+      "function"
+    ) {
+
+      const cloned =
+        context.clone();
+
+
+      if (
+        typeof cloned.text ===
+        "function"
+      ) {
+
+        return await cloned.text();
+      }
+    }
+
+
+    if (
+      typeof context.text ===
+      "function"
+    ) {
+
+      return await context.text();
+    }
+
+  } catch (
+    contextError
+  ) {
+
+    console.warn(
+      "Could not read error context:",
+      contextError,
+    );
   }
 
 
@@ -586,8 +531,7 @@ async function getFunctionErrorDetails(
     );
 
 
-  let status =
-    "";
+  let status = "";
 
 
   try {
@@ -608,56 +552,13 @@ async function getFunctionErrorDetails(
   }
 
 
-  let body =
-    "";
-
-
-  try {
-
-    if (
-      error.context &&
-      typeof error.context.clone ===
-        "function"
-    ) {
-
-      const cloned =
-        error.context.clone();
-
-
-      if (
-        typeof cloned.text ===
-          "function"
-      ) {
-
-        body =
-          await cloned.text();
-
-      }
-
-    } else if (
-      error.context &&
-      typeof error.context.text ===
-        "function"
-    ) {
-
-      body =
-        await error.context.text();
-
-    }
-
-  } catch (
-    contextError
-  ) {
-
-    console.warn(
-      "Could not read Function error context:",
-      contextError,
+  const body =
+    await readErrorContext(
+      error,
     );
-  }
 
 
-  let parsedBody =
-    null;
+  let parsedBody = null;
 
 
   if (body) {
@@ -683,7 +584,7 @@ async function getFunctionErrorDetails(
   if (
     parsedBody &&
     typeof parsedBody ===
-      "object"
+    "object"
   ) {
 
     if (
@@ -702,6 +603,15 @@ async function getFunctionErrorDetails(
       detailMessage =
         String(
           parsedBody.message,
+        );
+
+    } else if (
+      parsedBody.detail
+    ) {
+
+      detailMessage =
+        String(
+          parsedBody.detail,
         );
     }
 
@@ -735,7 +645,59 @@ async function getFunctionErrorDetails(
 
 
 /* ==========================================================
-   ERROR FORMAT
+   NETWORK ERROR DETECTOR
+========================================================== */
+
+function isNetworkError(
+  error,
+) {
+
+  const message =
+    getErrorProperty(
+      error,
+      "message",
+    ).toLowerCase();
+
+
+  const name =
+    getErrorProperty(
+      error,
+      "name",
+    ).toLowerCase();
+
+
+  return (
+
+    message.includes(
+      "load failed",
+    ) ||
+
+    message.includes(
+      "failed to fetch",
+    ) ||
+
+    message.includes(
+      "networkerror",
+    ) ||
+
+    message.includes(
+      "network error",
+    ) ||
+
+    message.includes(
+      "failed to send a request",
+    ) ||
+
+    name.includes(
+      "typeerror",
+    )
+
+  );
+}
+
+
+/* ==========================================================
+   FORMAT ERROR
 ========================================================== */
 
 function formatError(
@@ -748,7 +710,7 @@ function formatError(
       "【不明なエラー】",
       "",
       `Function: ${RESEARCH_FUNCTION}`,
-      `project_id: ${currentProjectId}`,
+      `Project ID: ${currentProjectId}`,
     ].join("\n");
   }
 
@@ -775,10 +737,6 @@ function formatError(
     );
 
 
-  const lower =
-    message.toLowerCase();
-
-
   console.error(
     "Formatted error:",
     error,
@@ -786,37 +744,30 @@ function formatError(
 
 
   /*
-   * --------------------------------------------------------
    * TIMEOUT
-   * --------------------------------------------------------
    */
 
   if (
-    lower.includes(
+    message.includes(
       "タイムアウト",
-    ) ||
-    lower.includes(
-      "timeout",
     )
   ) {
 
     return [
       "【通信タイムアウト】",
       "",
-      "Supabaseから一定時間以内に応答がありませんでした。",
+      message,
+      "",
+      "一定時間Supabaseから応答がありませんでした。",
+      "",
+      "考えられる原因:",
+      "・ネットワーク接続",
+      "・Supabaseの応答遅延",
+      "・Edge Functionの処理時間",
+      "・ブラウザ側の通信問題",
       "",
       `Supabase: ${SUPABASE_URL}`,
-      `Function: ${RESEARCH_FUNCTION}`,
-      `project_id: ${currentProjectId}`,
-      "",
-      "確認する項目:",
-      "・Supabaseプロジェクトが停止していないか",
-      "・Edge FunctionがDeploy済みか",
-      "・Functionのログにエラーがないか",
-      "・ネットワーク接続",
-      "・RLS / 権限設定",
-      "",
-      `エラー内容: ${message}`,
+      `Project ID: ${currentProjectId}`,
       "",
       stack
         ? `Stack:\n${stack}`
@@ -826,75 +777,82 @@ function formatError(
 
 
   /*
-   * --------------------------------------------------------
    * LOAD FAILED
-   * --------------------------------------------------------
+   *
+   * 以前の問題をここで明確に診断する。
    */
 
   if (
-    lower.includes(
-      "load failed",
-    )
+    message
+      .toLowerCase()
+      .includes(
+        "load failed",
+      )
   ) {
 
     return [
-      "【通信エラー】",
+      "【通信エラー: Load failed】",
       "",
-      "ブラウザからSupabaseへ接続できませんでした。",
+      "ブラウザからSupabaseへの通信が失敗しました。",
       "",
-      `Supabase: ${SUPABASE_URL}`,
+      "これはAIの数学的な研究処理そのものではなく、",
+      "ブラウザ → Supabase / Edge Function の通信経路で",
+      "失敗している可能性があります。",
+      "",
+      "確認ポイント:",
+      "1. Supabaseプロジェクトが稼働しているか",
+      "2. Edge Functionがデプロイされているか",
+      "3. Function名が正しいか",
+      "4. GitHub PagesからのCORS通信が許可されているか",
+      "5. ブラウザがFetch通信を拒否していないか",
+      "6. ネットワーク接続に問題がないか",
+      "",
+      `Supabase URL: ${SUPABASE_URL}`,
       `Function: ${RESEARCH_FUNCTION}`,
-      `project_id: ${currentProjectId}`,
+      `Function URL: ${SUPABASE_URL}/functions/v1/${RESEARCH_FUNCTION}`,
+      `Project ID: ${currentProjectId}`,
       "",
-      "考えられる原因:",
-      "・CORS",
-      "・Edge Functionへの通信失敗",
-      "・GitHub Pagesからのリクエスト失敗",
-      "・ネットワーク接続",
-      "・Supabase側の障害",
-      "・FunctionのDeploy状態",
+      `Error name: ${name || "取得できませんでした"}`,
+      `Error message: ${message}`,
       "",
-      `エラー名: ${name || "取得できませんでした"}`,
-      `エラー内容: ${message}`,
-      "",
-      "Function URL:",
-      `${SUPABASE_URL}/functions/v1/${RESEARCH_FUNCTION}`,
+      "重要:",
+      "Supabase DashboardからFunctionが正常でも、",
+      "GitHub Pagesからのブラウザ通信だけ失敗する場合があります。",
       "",
       stack
         ? `Stack:\n${stack}`
-        : "",
+        : "Stack: 取得できませんでした",
     ].join("\n");
   }
 
 
   /*
-   * --------------------------------------------------------
-   * FAILED TO SEND
-   * --------------------------------------------------------
+   * FAILED TO SEND REQUEST
    */
 
   if (
-    lower.includes(
-      "failed to send a request to the edge function",
+    message.includes(
+      "Failed to send a request to the Edge Function",
     )
   ) {
 
     return [
       "【Edge Function通信エラー】",
       "",
-      `Function: ${RESEARCH_FUNCTION}`,
-      `project_id: ${currentProjectId}`,
-      "",
       "Supabase Edge Functionへのリクエスト送信に失敗しました。",
       "",
       "考えられる原因:",
       "・CORS",
-      "・FunctionがDeployされていない",
-      "・Function URLへの接続失敗",
-      "・ブラウザFetchエラー",
+      "・Functionの公開状態",
+      "・Function URL",
+      "・Edge Functionのデプロイ状態",
+      "・ブラウザFetch",
       "・ネットワーク",
       "",
-      `エラー内容: ${message}`,
+      `Function: ${RESEARCH_FUNCTION}`,
+      `Project ID: ${currentProjectId}`,
+      "",
+      `Error: ${message}`,
       "",
       stack
         ? `Stack:\n${stack}`
@@ -904,28 +862,33 @@ function formatError(
 
 
   /*
-   * --------------------------------------------------------
-   * FETCH
-   * --------------------------------------------------------
+   * FETCH / NETWORK
    */
 
   if (
-    lower.includes(
-      "fetch",
+    isNetworkError(
+      error,
     )
   ) {
 
     return [
-      "【Fetch通信エラー】",
+      "【ネットワーク通信エラー】",
       "",
-      "ブラウザからSupabaseへの通信に失敗しました。",
+      "ブラウザからSupabaseへ正常に接続できませんでした。",
       "",
       `Supabase: ${SUPABASE_URL}`,
       `Function: ${RESEARCH_FUNCTION}`,
+      `Project ID: ${currentProjectId}`,
       "",
-      `エラー: ${message}`,
+      "考えられる原因:",
+      "・CORS",
+      "・ネットワーク",
+      "・Edge Functionの公開設定",
+      "・Functionのデプロイ",
+      "・ブラウザのFetchエラー",
       "",
-      "ネットワーク / CORS / Function公開状態を確認してください。",
+      `Error name: ${name || "不明"}`,
+      `Error message: ${message}`,
       "",
       stack
         ? `Stack:\n${stack}`
@@ -935,16 +898,14 @@ function formatError(
 
 
   /*
-   * --------------------------------------------------------
    * DEFAULT
-   * --------------------------------------------------------
    */
 
   return [
     "【エラー】",
     "",
     `Function: ${RESEARCH_FUNCTION}`,
-    `project_id: ${currentProjectId}`,
+    `Project ID: ${currentProjectId}`,
     "",
     `エラー名: ${name || "不明"}`,
     `エラー内容: ${message}`,
@@ -957,41 +918,195 @@ function formatError(
 
 
 /* ==========================================================
-   SUPABASE CONNECTION CHECK
+   STATUS
 ========================================================== */
+
+function showStatus(
+  message,
+  type = "",
+) {
+
+  statusBox.textContent =
+    message;
+
+  statusBox.className =
+    "status-box show";
+
+
+  if (type) {
+
+    statusBox.classList.add(
+      type,
+    );
+  }
+}
+
+
+function hideStatus() {
+
+  statusBox.className =
+    "status-box";
+}
+
+
+/* ==========================================================
+   CONNECTION UI
+========================================================== */
+
+function setConnectionState(
+  state,
+) {
+
+  connectionDot.classList.remove(
+    "ok",
+    "error",
+  );
+
+
+  if (
+    state === "ok"
+  ) {
+
+    connectionDot.classList.add(
+      "ok",
+    );
+
+    connectionText.textContent =
+      "Supabase 接続済み";
+
+    return;
+  }
+
+
+  if (
+    state === "error"
+  ) {
+
+    connectionDot.classList.add(
+      "error",
+    );
+
+    connectionText.textContent =
+      "Supabase 接続エラー";
+
+    return;
+  }
+
+
+  connectionText.textContent =
+    "Supabase 接続確認中...";
+}
+
+
+/* ==========================================================
+   PROGRESS
+========================================================== */
+
+function setProgress(
+  percent,
+  text,
+) {
+
+  progress.classList.remove(
+    "hidden",
+  );
+
+
+  const numeric =
+    Number(
+      percent,
+    );
+
+
+  const safe =
+    Math.max(
+      0,
+      Math.min(
+        100,
+        Number.isFinite(
+          numeric,
+        )
+          ? numeric
+          : 0,
+      ),
+    );
+
+
+  progressValue.style.width =
+    `${safe}%`;
+
+
+  progressPercent.textContent =
+    `${Math.round(safe)}%`;
+
+
+  progressText.textContent =
+    text ||
+    "";
+}
+
+
+/* ==========================================================
+   CHECK CONNECTION
+========================================================== */
+
+/*
+ * ここが今回の重要部分。
+ *
+ * 以前:
+ *
+ *   await supabase...
+ *
+ *   ↓
+ *
+ *   応答が返らない
+ *
+ *   ↓
+ *
+ *   「Supabase 接続確認中...」のまま
+ *
+ * となる可能性があった。
+ *
+ * 今回:
+ *
+ *   最大10秒
+ *
+ *   ↓
+ *
+ *   成功 / エラー / タイムアウト
+ *
+ * のどれかに必ず進む。
+ */
 
 async function checkConnection() {
 
   setConnectionState(
     "checking",
-    "Supabase 接続確認中...",
+  );
+
+
+  console.log(
+    "=== SUPABASE CONNECTION CHECK ===",
+  );
+
+
+  console.log(
+    "Supabase URL:",
+    SUPABASE_URL,
+  );
+
+
+  console.log(
+    "Project ID:",
+    currentProjectId,
   );
 
 
   try {
 
-    console.log(
-      "Checking Supabase connection...",
-    );
-
-
-    console.log(
-      "Supabase URL:",
-      SUPABASE_URL,
-    );
-
-
-    console.log(
-      "Project ID:",
-      currentProjectId,
-    );
-
-
     const request =
       supabase
-        .from(
-          "research_results",
-        )
+        .from("research_results")
         .select(
           "id",
           {
@@ -1026,12 +1141,11 @@ async function checkConnection() {
 
     setConnectionState(
       "ok",
-      "Supabase 接続済み",
     );
 
 
     console.log(
-      "Supabase connection OK",
+      "Supabase connection: OK",
     );
 
 
@@ -1050,19 +1164,6 @@ async function checkConnection() {
 
     setConnectionState(
       "error",
-      "Supabase 接続エラー",
-    );
-
-
-    showStatus(
-      [
-        "Supabaseへの接続確認に失敗しました。",
-        "",
-        formatError(error),
-        "",
-        "※ 接続確認に失敗しても研究画面自体は停止しません。",
-      ].join("\n"),
-      "error",
     );
 
 
@@ -1072,12 +1173,121 @@ async function checkConnection() {
 
 
 /* ==========================================================
+   RESEARCH FUNCTION INVOKE
+========================================================== */
+
+async function invokeResearchFunction(
+  message,
+) {
+
+  console.log(
+    "=== EDGE FUNCTION REQUEST ===",
+  );
+
+
+  console.log(
+    "Function:",
+    RESEARCH_FUNCTION,
+  );
+
+
+  console.log(
+    "URL:",
+    `${SUPABASE_URL}/functions/v1/${RESEARCH_FUNCTION}`,
+  );
+
+
+  console.log(
+    "Project ID:",
+    currentProjectId,
+  );
+
+
+  const request =
+    supabase.functions.invoke(
+      RESEARCH_FUNCTION,
+      {
+        body: {
+
+          message:
+            message,
+
+          project_id:
+            currentProjectId,
+
+        },
+      },
+    );
+
+
+  return await withTimeout(
+    request,
+    FUNCTION_TIMEOUT_MS,
+    "研究AIへの通信がタイムアウトしました。",
+  );
+}
+
+
+/* ==========================================================
+   EVALUATE FUNCTION INVOKE
+========================================================== */
+
+async function invokeEvaluateFunction(
+  resultId,
+) {
+
+  console.log(
+    "=== EVALUATE EDGE FUNCTION REQUEST ===",
+  );
+
+
+  console.log(
+    "Function:",
+    EVALUATE_FUNCTION,
+  );
+
+
+  console.log(
+    "URL:",
+    `${SUPABASE_URL}/functions/v1/${EVALUATE_FUNCTION}`,
+  );
+
+
+  const request =
+    supabase.functions.invoke(
+      EVALUATE_FUNCTION,
+      {
+        body: {
+
+          project_id:
+            currentProjectId,
+
+          result_id:
+            resultId,
+
+        },
+      },
+    );
+
+
+  return await withTimeout(
+    request,
+    FUNCTION_TIMEOUT_MS,
+    "評価AIへの通信がタイムアウトしました。",
+  );
+}
+
+
+/* ==========================================================
    RESEARCH
 ========================================================== */
 
 async function runResearch() {
 
-  if (isResearching) {
+  if (
+    isResearching
+  ) {
+
     return;
   }
 
@@ -1107,8 +1317,10 @@ async function runResearch() {
   researchButton.disabled =
     true;
 
+
   clearButton.disabled =
     true;
+
 
   evaluateButton.disabled =
     true;
@@ -1127,24 +1339,12 @@ async function runResearch() {
 
   try {
 
-    /*
-     * ------------------------------------------------------
-     * 1
-     * ------------------------------------------------------
-     */
-
-    setProgress(
-      10,
-      "Supabaseへ接続しています...",
-    );
-
-
     console.log(
       "================================",
     );
 
     console.log(
-      "RESEARCH START",
+      "=== RESEARCH START ===",
     );
 
     console.log(
@@ -1162,11 +1362,48 @@ async function runResearch() {
       message,
     );
 
+    console.log(
+      "================================",
+    );
+
 
     /*
-     * ------------------------------------------------------
-     * 2
-     * ------------------------------------------------------
+     * STEP 1
+     */
+
+    setProgress(
+      10,
+      "Supabaseへの接続を確認しています...",
+    );
+
+
+    const connected =
+      await checkConnection();
+
+
+    /*
+     * 接続確認失敗でもここで永久停止しない。
+     *
+     * 研究Functionそのものが到達可能な場合もあるため、
+     * そのままFunction実行を試す。
+     */
+
+    if (!connected) {
+
+      showStatus(
+        [
+          "Supabaseの事前接続確認に失敗しました。",
+          "",
+          "ただし、ここで研究処理を停止せず、",
+          "Edge Functionへの通信を試します。",
+        ].join("\n"),
+        "error",
+      );
+    }
+
+
+    /*
+     * STEP 2
      */
 
     setProgress(
@@ -1180,71 +1417,98 @@ async function runResearch() {
 
     try {
 
-      const invokePromise =
-        supabase.functions.invoke(
-          RESEARCH_FUNCTION,
-          {
-            body: {
-
-              message:
-                message,
-
-              project_id:
-                currentProjectId,
-
-            },
-          },
-        );
-
-
       response =
-        await withTimeout(
-          invokePromise,
-          FUNCTION_TIMEOUT_MS,
-          "研究AIへの通信がタイムアウトしました。",
+        await invokeResearchFunction(
+          message,
         );
-
 
     } catch (
       invokeError
     ) {
 
       console.error(
-        "invoke() exception:",
+        "invokeResearchFunction error:",
         invokeError,
       );
 
 
-      throw new Error(
-        formatError(
+      const detail =
+        await getFunctionErrorDetails(
           invokeError,
-        ),
-      );
+        );
+
+
+      const error =
+        new Error(
+          [
+            detail.message ||
+            "研究AIへの通信に失敗しました。",
+
+            "",
+
+            `Function: ${RESEARCH_FUNCTION}`,
+
+            `Project ID: ${currentProjectId}`,
+
+            `HTTP status: ${
+              detail.status ||
+              "取得できませんでした"
+            }`,
+
+            `Error name: ${
+              detail.name ||
+              "取得できませんでした"
+            }`,
+
+            "",
+
+            detail.body
+              ? `Response body:\n${detail.body}`
+              : "Response body: 取得できませんでした",
+
+            "",
+
+            detail.stack
+              ? `Stack:\n${detail.stack}`
+              : "",
+
+          ].join("\n"),
+        );
+
+
+      error.original =
+        invokeError;
+
+
+      throw error;
     }
 
 
     console.log(
-      "Research response:",
+      "=== RESEARCH RESPONSE ===",
+    );
+
+
+    console.log(
+      "response:",
       response,
     );
 
 
     console.log(
-      "Research data:",
+      "response.data:",
       response?.data,
     );
 
 
     console.log(
-      "Research error:",
+      "response.error:",
       response?.error,
     );
 
 
     /*
-     * ------------------------------------------------------
-     * 3
-     * ------------------------------------------------------
+     * STEP 3
      */
 
     if (
@@ -1260,36 +1524,46 @@ async function runResearch() {
       throw new Error(
         [
           "【Supabase Edge Functionエラー】",
+
           "",
+
           `Function: ${RESEARCH_FUNCTION}`,
-          `project_id: ${currentProjectId}`,
+
+          `Project ID: ${currentProjectId}`,
+
           `HTTP status: ${
             detail.status ||
             "取得できませんでした"
           }`,
+
           `Error name: ${
             detail.name ||
             "取得できませんでした"
           }`,
+
           "",
+
           detail.message,
+
           "",
+
           detail.body
             ? `Response body:\n${detail.body}`
             : "Response body: 取得できませんでした",
+
           "",
+
           detail.stack
             ? `Stack:\n${detail.stack}`
             : "",
+
         ].join("\n"),
       );
     }
 
 
     /*
-     * ------------------------------------------------------
-     * 4
-     * ------------------------------------------------------
+     * STEP 4
      */
 
     const data =
@@ -1303,21 +1577,23 @@ async function runResearch() {
           "AIからデータが返ってきませんでした。",
           "",
           `Function: ${RESEARCH_FUNCTION}`,
-          `project_id: ${currentProjectId}`,
+          `Project ID: ${currentProjectId}`,
           "",
           "response:",
-          safeJson(
-            response,
-          ),
+          safeJson(response),
         ].join("\n"),
       );
     }
 
 
+    console.log(
+      "Function data:",
+      data,
+    );
+
+
     /*
-     * ------------------------------------------------------
-     * 5
-     * ------------------------------------------------------
+     * STEP 5
      */
 
     if (
@@ -1329,20 +1605,20 @@ async function runResearch() {
           data.error ||
           data.detail ||
           "研究AIでエラーが発生しました。",
+
           "",
+
           "Function response:",
-          safeJson(
-            data,
-          ),
+
+          safeJson(data),
+
         ].join("\n"),
       );
     }
 
 
     /*
-     * ------------------------------------------------------
-     * 6
-     * ------------------------------------------------------
+     * STEP 6
      */
 
     setProgress(
@@ -1352,10 +1628,8 @@ async function runResearch() {
 
 
     /*
-     * ------------------------------------------------------
-     * 7
+     * STEP 7
      * BLOCK
-     * ------------------------------------------------------
      */
 
     if (
@@ -1388,10 +1662,8 @@ async function runResearch() {
 
 
     /*
-     * ------------------------------------------------------
-     * 8
+     * STEP 8
      * RESULT
-     * ------------------------------------------------------
      */
 
     const research =
@@ -1406,18 +1678,22 @@ async function runResearch() {
         research.id ||
         null,
 
+
       title:
         research.title ||
         "AI研究回答",
+
 
       description:
         research.summary ||
         research.description ||
         "",
 
+
       status:
         research.status ||
         "maybe",
+
 
       confidence:
         Number(
@@ -1425,25 +1701,31 @@ async function runResearch() {
           0,
         ),
 
+
       confidence_basis:
         research.confidence_basis ||
         "",
+
 
       hypothesis:
         research.hypothesis ||
         "",
 
+
       calculation:
         research.calculation ||
         "",
+
 
       verification:
         research.verification ||
         "",
 
+
       next_action:
         research.next_action ||
         "",
+
 
       evidence: {
 
@@ -1451,9 +1733,11 @@ async function runResearch() {
           research.route ||
           "",
 
+
         route_key:
           research.route_key ||
           "",
+
 
         route_count:
           Number(
@@ -1461,15 +1745,18 @@ async function runResearch() {
             1,
           ),
 
+
         confidence:
           Number(
             research.confidence ??
             0,
           ),
 
+
         confidence_basis:
           research.confidence_basis ||
           "",
+
 
         items:
           Array.isArray(
@@ -1480,10 +1767,9 @@ async function runResearch() {
 
       },
 
-      created_at:
-        research.created_at ||
-        new Date().toISOString(),
 
+      created_at:
+        new Date().toISOString(),
     };
 
 
@@ -1494,9 +1780,7 @@ async function runResearch() {
 
 
     /*
-     * ------------------------------------------------------
-     * 9
-     * ------------------------------------------------------
+     * STEP 9
      */
 
     renderLatestResult(
@@ -1505,9 +1789,7 @@ async function runResearch() {
 
 
     /*
-     * ------------------------------------------------------
-     * 10
-     * ------------------------------------------------------
+     * STEP 10
      */
 
     setProgress(
@@ -1523,18 +1805,14 @@ async function runResearch() {
 
 
     /*
-     * ------------------------------------------------------
-     * 11
-     * ------------------------------------------------------
+     * STEP 11
      */
 
     await loadHistory();
 
 
     /*
-     * ------------------------------------------------------
-     * 12
-     * ------------------------------------------------------
+     * STEP 12
      */
 
     setProgress(
@@ -1544,7 +1822,7 @@ async function runResearch() {
 
 
     console.log(
-      "RESEARCH COMPLETE",
+      "=== RESEARCH COMPLETE ===",
     );
 
 
@@ -1557,17 +1835,25 @@ async function runResearch() {
     );
 
     console.error(
-      "RESEARCH ERROR",
+      "=== RESEARCH ERROR ===",
     );
 
     console.error(
       error,
     );
 
+    console.error(
+      "================================",
+    );
+
+
+    const errorText =
+      error?.message ||
+      String(error);
+
 
     showStatus(
-      error?.message ||
-      String(error),
+      errorText,
       "error",
     );
 
@@ -1587,11 +1873,13 @@ async function runResearch() {
     researchButton.disabled =
       false;
 
+
     clearButton.disabled =
       false;
 
+
     evaluateButton.disabled =
-      !latestResult?.id;
+      !latestResult;
   }
 }
 
@@ -1605,6 +1893,7 @@ async function evaluateLatest() {
   if (
     isEvaluating
   ) {
+
     return;
   }
 
@@ -1618,6 +1907,7 @@ async function evaluateLatest() {
       "error",
     );
 
+
     return;
   }
 
@@ -1628,6 +1918,7 @@ async function evaluateLatest() {
 
   evaluateButton.disabled =
     true;
+
 
   researchButton.disabled =
     true;
@@ -1647,22 +1938,21 @@ async function evaluateLatest() {
   try {
 
     console.log(
-      "================================",
+      "=== EVALUATE START ===",
     );
 
-    console.log(
-      "EVALUATE START",
-    );
 
     console.log(
       "Function:",
       EVALUATE_FUNCTION,
     );
 
+
     console.log(
       "Project ID:",
       currentProjectId,
     );
+
 
     console.log(
       "Result ID:",
@@ -1670,39 +1960,20 @@ async function evaluateLatest() {
     );
 
 
-    const invokePromise =
-      supabase.functions.invoke(
-        EVALUATE_FUNCTION,
-        {
-          body: {
-
-            project_id:
-              currentProjectId,
-
-            result_id:
-              latestResult.id,
-
-          },
-        },
-      );
-
-
     const response =
-      await withTimeout(
-        invokePromise,
-        FUNCTION_TIMEOUT_MS,
-        "評価AIへの通信がタイムアウトしました。",
+      await invokeEvaluateFunction(
+        latestResult.id,
       );
 
 
     console.log(
-      "Evaluate response:",
+      "evaluate response:",
       response,
     );
 
 
     if (
-      response.error
+      response?.error
     ) {
 
       const detail =
@@ -1714,22 +1985,30 @@ async function evaluateLatest() {
       throw new Error(
         [
           "【評価Edge Functionエラー】",
+
           "",
+
           `Function: ${EVALUATE_FUNCTION}`,
-          `project_id: ${currentProjectId}`,
+
+          `Project ID: ${currentProjectId}`,
+
           "",
+
           detail.message,
+
           "",
+
           detail.body
             ? `Response body:\n${detail.body}`
             : "",
+
         ].join("\n"),
       );
     }
 
 
     const data =
-      response.data;
+      response?.data;
 
 
     if (!data) {
@@ -1803,7 +2082,7 @@ async function evaluateLatest() {
 
 
     console.log(
-      "EVALUATE COMPLETE",
+      "=== EVALUATE COMPLETE ===",
     );
 
 
@@ -1818,9 +2097,7 @@ async function evaluateLatest() {
 
 
     showStatus(
-      formatError(
-        error,
-      ),
+      formatError(error),
       "error",
     );
 
@@ -1840,6 +2117,7 @@ async function evaluateLatest() {
     evaluateButton.disabled =
       !latestResult?.id;
 
+
     researchButton.disabled =
       false;
   }
@@ -1852,25 +2130,16 @@ async function evaluateLatest() {
 
 async function loadHistory() {
 
-  if (
-    !historyList
-  ) {
-    return;
-  }
+  console.log(
+    "=== LOAD HISTORY ===",
+  );
 
 
   try {
 
-    console.log(
-      "Loading history...",
-    );
-
-
     const request =
       supabase
-        .from(
-          "research_results",
-        )
+        .from("research_results")
         .select(`
           id,
           project_id,
@@ -1915,18 +2184,14 @@ async function loadHistory() {
     }
 
 
-    const data =
-      result.data || [];
+    renderHistory(
+      result.data || [],
+    );
 
 
     console.log(
       "History loaded:",
-      data.length,
-    );
-
-
-    renderHistory(
-      data,
+      result.data?.length || 0,
     );
 
 
@@ -1943,21 +2208,16 @@ async function loadHistory() {
     );
 
 
-    historyCount.textContent =
-      "取得失敗";
-
-
     historyList.innerHTML = `
       <div class="history-empty">
         履歴を読み込めませんでした。
-        <br>
-        <small>${escapeHtml(
-          error?.message ||
-          String(error),
-        )}</small>
       </div>
     `;
 
+
+    /*
+     * 履歴取得失敗だけで研究サイト全体を壊さない。
+     */
 
     return false;
   }
@@ -1971,14 +2231,6 @@ async function loadHistory() {
 function renderHistory(
   results,
 ) {
-
-  if (
-    !historyCount ||
-    !historyList
-  ) {
-    return;
-  }
-
 
   historyCount.textContent =
     `${results.length}件`;
@@ -2034,30 +2286,28 @@ function renderHistory(
 
 
             if (
-              !result
+              result
             ) {
-              return;
-            }
+
+              latestResult =
+                normalizeHistoryResult(
+                  result,
+                );
 
 
-            latestResult =
-              normalizeHistoryResult(
-                result,
+              renderLatestResult(
+                latestResult,
               );
 
 
-            renderLatestResult(
-              latestResult,
-            );
+              window.scrollTo({
+                top:
+                  0,
 
-
-            window.scrollTo({
-              top:
-                0,
-
-              behavior:
-                "smooth",
-            });
+                behavior:
+                  "smooth",
+              });
+            }
           },
         );
       },
@@ -2066,7 +2316,7 @@ function renderHistory(
 
 
 /* ==========================================================
-   NORMALIZE HISTORY RESULT
+   HISTORY NORMALIZER
 ========================================================== */
 
 function normalizeHistoryResult(
@@ -2076,7 +2326,7 @@ function normalizeHistoryResult(
   const evidence =
     result?.evidence &&
     typeof result.evidence ===
-      "object"
+    "object"
       ? result.evidence
       : {};
 
@@ -2093,9 +2343,11 @@ function normalizeHistoryResult(
         evidence.route ||
         "",
 
+
       route_key:
         evidence.route_key ||
         "",
+
 
       route_count:
         Number(
@@ -2103,15 +2355,18 @@ function normalizeHistoryResult(
           1,
         ),
 
+
       confidence:
         Number(
           evidence.confidence ??
           0,
         ),
 
+
       confidence_basis:
         evidence.confidence_basis ||
         "",
+
 
       items:
         Array.isArray(
@@ -2184,7 +2439,7 @@ function createHistoryItem(
           </div>
 
           <div class="history-date">
-            ${escapeHtml(date)}
+            ${date}
           </div>
 
         </div>
@@ -2203,13 +2458,6 @@ function createHistoryItem(
 function renderLatestResult(
   result,
 ) {
-
-  if (
-    !result
-  ) {
-    return;
-  }
-
 
   latestSection.classList.remove(
     "hidden",
@@ -2291,7 +2539,7 @@ function renderLatestResult(
 
   if (
     typeof result?.evidence?.confidence ===
-      "number"
+    "number"
   ) {
 
     addTag(
@@ -2303,34 +2551,35 @@ function renderLatestResult(
   }
 
 
-  /*
-   * DETAIL ELEMENTS
-   */
-
   const detailHypothesis =
     document.getElementById(
       "detailHypothesis",
     );
+
 
   const detailCalculation =
     document.getElementById(
       "detailCalculation",
     );
 
+
   const detailVerification =
     document.getElementById(
       "detailVerification",
     );
+
 
   const detailNextAction =
     document.getElementById(
       "detailNextAction",
     );
 
+
   const detailRoute =
     document.getElementById(
       "detailRoute",
     );
+
 
   const detailReason =
     document.getElementById(
@@ -2510,120 +2759,87 @@ function renderEvaluationGrid(
    DETAILS
 ========================================================== */
 
-if (
-  toggleDetailsButton &&
-  details
-) {
+toggleDetailsButton.addEventListener(
+  "click",
+  () => {
 
-  toggleDetailsButton.addEventListener(
-    "click",
-    () => {
-
-      const hidden =
-        details.classList.contains(
-          "hidden",
-        );
-
-
-      details.classList.toggle(
+    const hidden =
+      details.classList.contains(
         "hidden",
       );
 
 
-      toggleDetailsButton.textContent =
-        hidden
-          ? "詳細を閉じる"
-          : "詳細を表示";
-    },
-  );
-}
+    details.classList.toggle(
+      "hidden",
+    );
+
+
+    toggleDetailsButton.textContent =
+      hidden
+        ? "詳細を閉じる"
+        : "詳細を表示";
+  },
+);
 
 
 /* ==========================================================
    BUTTONS
 ========================================================== */
 
-if (
-  researchButton
-) {
-
-  researchButton.addEventListener(
-    "click",
-    runResearch,
-  );
-}
+researchButton.addEventListener(
+  "click",
+  runResearch,
+);
 
 
-if (
-  evaluateButton
-) {
-
-  evaluateButton.addEventListener(
-    "click",
-    evaluateLatest,
-  );
-}
+evaluateButton.addEventListener(
+  "click",
+  evaluateLatest,
+);
 
 
-if (
-  clearButton
-) {
+clearButton.addEventListener(
+  "click",
+  () => {
 
-  clearButton.addEventListener(
-    "click",
-    () => {
-
-      questionInput.value =
-        "";
+    questionInput.value =
+      "";
 
 
-      hideStatus();
+    hideStatus();
 
 
-      hideProgress();
-
-
-      questionInput.focus();
-    },
-  );
-}
+    progress.classList.add(
+      "hidden",
+    );
+  },
+);
 
 
 /* ==========================================================
    COMMAND + ENTER
 ========================================================== */
 
-if (
-  questionInput
-) {
+questionInput.addEventListener(
+  "keydown",
+  event => {
 
-  questionInput.addEventListener(
-    "keydown",
-    event => {
+    if (
+      (event.metaKey ||
+        event.ctrlKey) &&
+      event.key === "Enter"
+    ) {
 
-      if (
-        (event.metaKey ||
-          event.ctrlKey) &&
-        event.key === "Enter"
-      ) {
+      event.preventDefault();
 
-        event.preventDefault();
-
-
-        if (
-          !isResearching
-        ) {
-
-          runResearch();
-        }
-      }
-    },
-  );
-}
+      runResearch();
+    }
+  },
+);
 
 
 /* ==========================================================
-   STATUS HELPERS
+   HELPERS
 ========================================================== */
 
 function statusToSymbol(
@@ -2706,10 +2922,6 @@ function statusLabel(
 }
 
 
-/* ==========================================================
-   DATE
-========================================================== */
-
 function formatDate(
   date,
 ) {
@@ -2757,10 +2969,6 @@ function formatDate(
 }
 
 
-/* ==========================================================
-   ESCAPE HTML
-========================================================== */
-
 function escapeHtml(
   value,
 ) {
@@ -2791,19 +2999,10 @@ function escapeHtml(
 }
 
 
-/* ==========================================================
-   TAG
-========================================================== */
-
 function addTag(
   container,
   text,
 ) {
-
-  if (!container) {
-    return;
-  }
-
 
   const element =
     document.createElement(
@@ -2856,89 +3055,62 @@ function safeJson(
 
 async function initialize() {
 
+  console.log(
+    "================================",
+  );
+
+  console.log(
+    "Research AI initializing...",
+  );
+
+  console.log(
+    "Supabase:",
+    SUPABASE_URL,
+  );
+
+  console.log(
+    "Research Function:",
+    RESEARCH_FUNCTION,
+  );
+
+  console.log(
+    "Evaluate Function:",
+    EVALUATE_FUNCTION,
+  );
+
+  console.log(
+    "Project ID:",
+    currentProjectId,
+  );
+
+  console.log(
+    "================================",
+  );
+
+
   try {
 
     /*
-     * ------------------------------------------------------
-     * DOM
-     * ------------------------------------------------------
+     * DOM確認
      */
 
     checkRequiredElements();
 
 
-    console.log(
-      "================================",
-    );
-
-
-    console.log(
-      "Research AI initialized",
-    );
-
-
-    console.log(
-      "Supabase:",
-      SUPABASE_URL,
-    );
-
-
-    console.log(
-      "Research Function:",
-      RESEARCH_FUNCTION,
-    );
-
-
-    console.log(
-      "Evaluate Function:",
-      EVALUATE_FUNCTION,
-    );
-
-
-    console.log(
-      "Project ID:",
-      currentProjectId,
-    );
-
-
-    console.log(
-      "================================",
-    );
-
-
     /*
-     * ------------------------------------------------------
-     * INITIAL UI
-     * ------------------------------------------------------
+     * 初期状態
      */
 
     setConnectionState(
       "checking",
-      "Supabase 接続確認中...",
-    );
-
-
-    setProgress(
-      5,
-      "Supabaseとの接続を確認しています...",
     );
 
 
     /*
-     * ------------------------------------------------------
-     * CONNECTION
-     * ------------------------------------------------------
+     * 接続確認
      *
      * 重要:
-     *
-     * 接続確認に失敗しても、
-     * ここでinitialize全体をthrowしない。
-     *
-     * 以前はここで止まると、
-     *
-     * 「Supabase 接続確認中...」
-     *
-     * のまま画面が止まって見える可能性があった。
+     * checkConnection() 自体に10秒タイムアウトがある。
      */
 
     const connected =
@@ -2946,81 +3118,42 @@ async function initialize() {
 
 
     /*
-     * ------------------------------------------------------
-     * HISTORY
-     * ------------------------------------------------------
+     * 接続失敗しても、
+     * ページ初期化そのものは止めない。
      */
 
-    if (
-      connected
-    ) {
+    if (!connected) {
 
-      setProgress(
-        15,
-        "研究履歴を読み込んでいます...",
+      console.warn(
+        "Initial Supabase connection check failed.",
       );
 
 
-      await loadHistory();
-
-
-      setProgress(
-        100,
-        "準備完了",
-      );
-
-
-      /*
-       * 少し待ってからプログレスを隠す。
-       */
-
-      setTimeout(
-        () => {
-
-          if (
-            !isResearching &&
-            !isEvaluating
-          ) {
-
-            hideProgress();
-          }
-
-        },
-        700,
-      );
-
-
-    } else {
-
-      /*
-       * ----------------------------------------------------
-       * CONNECTION FAILED
-       * ----------------------------------------------------
-       *
-       * 接続失敗でも画面を使える状態にする。
-       */
-
-      historyCount.textContent =
-        "接続エラー";
-
-
-      historyList.innerHTML = `
-        <div class="history-empty">
-          Supabaseに接続できないため、
-          履歴を読み込めませんでした。
-          <br>
-          <small>
-            接続状態を確認してから再読み込みしてください。
-          </small>
-        </div>
-      `;
-
-
-      setProgress(
-        100,
-        "Supabase接続エラー",
+      showStatus(
+        [
+          "Supabaseの接続確認に失敗しました。",
+          "",
+          "ただしページは停止していません。",
+          "研究ボタンからEdge Functionへの通信を試せます。",
+        ].join("\n"),
+        "error",
       );
     }
+
+
+    /*
+     * 履歴
+     *
+     * ここにもタイムアウトがあるため、
+     * 履歴取得で永久停止しない。
+     */
+
+    await loadHistory();
+
+
+    console.log(
+      "Research AI initialization complete.",
+    );
 
 
   } catch (
@@ -3033,55 +3166,12 @@ async function initialize() {
     );
 
 
-    setConnectionState(
-      "error",
-      "初期化エラー",
-    );
-
-
     showStatus(
-      formatError(
-        error,
-      ),
+      formatError(error),
       "error",
-    );
-
-
-    setProgress(
-      100,
-      "初期化エラー",
     );
   }
 }
-
-
-/* ==========================================================
-   GLOBAL ERROR HANDLING
-========================================================== */
-
-window.addEventListener(
-  "error",
-  event => {
-
-    console.error(
-      "Global JavaScript error:",
-      event.error ||
-      event.message,
-    );
-  },
-);
-
-
-window.addEventListener(
-  "unhandledrejection",
-  event => {
-
-    console.error(
-      "Unhandled Promise rejection:",
-      event.reason,
-    );
-  },
-);
 
 
 /* ==========================================================
