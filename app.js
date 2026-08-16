@@ -4,7 +4,7 @@ const SUPABASE_URL =
 const SUPABASE_PUBLISHABLE_KEY =
   "sb_publishable_HmcPY6BGvUQTPESGHVe7Hw_W4NlTPqj";
 
-const RESEARCH_FUNCTION = "research";
+const RESEARCH_FUNCTION = "smart-handler";
 const EVALUATE_FUNCTION = "evaluate";
 
 const DEFAULT_PROJECT_ID =
@@ -353,12 +353,17 @@ async function runResearch() {
 
 
     console.log(
-      "research response:",
+      "smart-handler response:",
       response,
     );
 
 
     if (response.error) {
+
+      console.error(
+        "Edge Function error:",
+        response.error,
+      );
 
       throw new Error(
         response.error.message ||
@@ -479,7 +484,7 @@ async function runResearch() {
 
         confidence:
           Number(
-            data.research?.confidence ||
+            data.research?.confidence ??
             0,
           ),
 
@@ -488,8 +493,11 @@ async function runResearch() {
           "",
 
         items:
-          data.research?.evidence ||
-          [],
+          Array.isArray(
+            data.research?.evidence,
+          )
+            ? data.research.evidence
+            : [],
 
       },
 
@@ -610,6 +618,12 @@ async function evaluateLatest() {
           },
         },
       );
+
+
+    console.log(
+      "evaluate response:",
+      response,
+    );
 
 
     if (response.error) {
@@ -1039,46 +1053,77 @@ function renderLatestResult(
   }
 
 
-  document.getElementById(
-    "detailHypothesis",
-  ).textContent =
-    result.hypothesis ||
-    "記録なし";
+  const detailHypothesis =
+    document.getElementById(
+      "detailHypothesis",
+    );
+
+  const detailCalculation =
+    document.getElementById(
+      "detailCalculation",
+    );
+
+  const detailVerification =
+    document.getElementById(
+      "detailVerification",
+    );
+
+  const detailNextAction =
+    document.getElementById(
+      "detailNextAction",
+    );
+
+  const detailRoute =
+    document.getElementById(
+      "detailRoute",
+    );
+
+  const detailReason =
+    document.getElementById(
+      "detailReason",
+    );
 
 
-  document.getElementById(
-    "detailCalculation",
-  ).textContent =
-    result.calculation ||
-    "記録なし";
+  if (detailHypothesis) {
+    detailHypothesis.textContent =
+      result.hypothesis ||
+      "記録なし";
+  }
 
 
-  document.getElementById(
-    "detailVerification",
-  ).textContent =
-    result.verification ||
-    "記録なし";
+  if (detailCalculation) {
+    detailCalculation.textContent =
+      result.calculation ||
+      "記録なし";
+  }
 
 
-  document.getElementById(
-    "detailNextAction",
-  ).textContent =
-    result.next_action ||
-    "記録なし";
+  if (detailVerification) {
+    detailVerification.textContent =
+      result.verification ||
+      "記録なし";
+  }
 
 
-  document.getElementById(
-    "detailRoute",
-  ).textContent =
-    result?.evidence?.route ||
-    "記録なし";
+  if (detailNextAction) {
+    detailNextAction.textContent =
+      result.next_action ||
+      "記録なし";
+  }
 
 
-  document.getElementById(
-    "detailReason",
-  ).textContent =
-    evaluation?.reason ||
-    "まだ評価されていません。";
+  if (detailRoute) {
+    detailRoute.textContent =
+      result?.evidence?.route ||
+      "記録なし";
+  }
+
+
+  if (detailReason) {
+    detailReason.textContent =
+      evaluation?.reason ||
+      "まだ評価されていません。";
+  }
 
 
   renderEvaluationGrid(
@@ -1103,6 +1148,11 @@ function renderEvaluationGrid(
     document.getElementById(
       "evaluationGrid",
     );
+
+
+  if (!grid) {
+    return;
+  }
 
 
   if (!evaluation) {
@@ -1185,28 +1235,31 @@ function renderEvaluationGrid(
    DETAILS
 ========================================================== */
 
-toggleDetailsButton.addEventListener(
-  "click",
-  () => {
+if (toggleDetailsButton) {
 
-    const hidden =
-      details.classList.contains(
+  toggleDetailsButton.addEventListener(
+    "click",
+    () => {
+
+      const hidden =
+        details.classList.contains(
+          "hidden",
+        );
+
+
+      details.classList.toggle(
         "hidden",
       );
 
 
-    details.classList.toggle(
-      "hidden",
-    );
+      toggleDetailsButton.textContent =
+        hidden
+          ? "詳細を閉じる"
+          : "詳細を表示";
 
-
-    toggleDetailsButton.textContent =
-      hidden
-        ? "詳細を閉じる"
-        : "詳細を表示";
-
-  },
-);
+    },
+  );
+}
 
 
 /* ==========================================================
@@ -1448,8 +1501,10 @@ function formatError(
     return [
       "Edge Functionへの接続に失敗しました。",
       "",
+      `呼び出し先: ${RESEARCH_FUNCTION}`,
+      "",
       "SupabaseのEdge Functionsで",
-      "research FunctionがDeploy済みか確認してください。",
+      "smart-handlerがDeploy済みか確認してください。",
     ].join("\n");
   }
 
