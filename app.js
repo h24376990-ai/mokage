@@ -1,20 +1,6 @@
-(function () {
-  const box = document.getElementById("connectionText");
-  const dot = document.getElementById("connectionDot");
-
-  if (box) {
-    box.textContent = "app.js 読み込み成功";
-  }
-
-  if (dot) {
-    dot.classList.remove("error");
-    dot.classList.add("ok");
-  }
-})();
-
 /* ==========================================================
-   RESEARCH AI - STEP 1
-   通信確認用・最小安定版
+   24/7 RIEMANN RESEARCH LAB
+   APP.JS - FUNCTION RESTORE VERSION
 ========================================================== */
 
 
@@ -30,11 +16,14 @@ const SUPABASE_PUBLISHABLE_KEY =
 
 
 /* ==========================================================
-   EDGE FUNCTION
+   EDGE FUNCTIONS
 ========================================================== */
 
 const RESEARCH_FUNCTION =
   "smart-handler";
+
+const EVALUATE_FUNCTION =
+  "evaluate";
 
 
 /* ==========================================================
@@ -47,7 +36,7 @@ const DEFAULT_PROJECT_ID =
 
 let currentProjectId =
   localStorage.getItem(
-    "research_project_id",
+    "research_project_id"
   );
 
 
@@ -58,9 +47,17 @@ if (!currentProjectId) {
 
   localStorage.setItem(
     "research_project_id",
-    currentProjectId,
+    currentProjectId
   );
 }
+
+
+/* ==========================================================
+   LOCAL HISTORY
+========================================================== */
+
+const HISTORY_KEY =
+  "riemann_research_history_v1";
 
 
 /* ==========================================================
@@ -69,57 +66,166 @@ if (!currentProjectId) {
 
 const questionInput =
   document.getElementById(
-    "questionInput",
+    "questionInput"
   );
 
 const researchButton =
   document.getElementById(
-    "researchButton",
+    "researchButton"
   );
 
 const clearButton =
   document.getElementById(
-    "clearButton",
+    "clearButton"
   );
 
 const statusBox =
   document.getElementById(
-    "statusBox",
+    "statusBox"
   );
 
 const connectionDot =
   document.getElementById(
-    "connectionDot",
+    "connectionDot"
   );
 
 const connectionText =
   document.getElementById(
-    "connectionText",
+    "connectionText"
   );
 
 const progress =
   document.getElementById(
-    "progress",
+    "progress"
   );
 
 const progressText =
   document.getElementById(
-    "progressText",
+    "progressText"
   );
 
 const progressPercent =
   document.getElementById(
-    "progressPercent",
+    "progressPercent"
   );
 
 const progressValue =
   document.getElementById(
-    "progressValue",
+    "progressValue"
   );
 
 
 /* ==========================================================
-   BASIC DOM CHECK
+   RESULT DOM
+========================================================== */
+
+const latestSection =
+  document.getElementById(
+    "latestSection"
+  );
+
+const latestTitle =
+  document.getElementById(
+    "latestTitle"
+  );
+
+const latestDate =
+  document.getElementById(
+    "latestDate"
+  );
+
+const latestSummary =
+  document.getElementById(
+    "latestSummary"
+  );
+
+const latestMeta =
+  document.getElementById(
+    "latestMeta"
+  );
+
+const evaluationGrid =
+  document.getElementById(
+    "evaluationGrid"
+  );
+
+const evaluateButton =
+  document.getElementById(
+    "evaluateButton"
+  );
+
+const toggleDetailsButton =
+  document.getElementById(
+    "toggleDetailsButton"
+  );
+
+const details =
+  document.getElementById(
+    "details"
+  );
+
+const detailHypothesis =
+  document.getElementById(
+    "detailHypothesis"
+  );
+
+const detailCalculation =
+  document.getElementById(
+    "detailCalculation"
+  );
+
+const detailVerification =
+  document.getElementById(
+    "detailVerification"
+  );
+
+const detailNextAction =
+  document.getElementById(
+    "detailNextAction"
+  );
+
+const detailRoute =
+  document.getElementById(
+    "detailRoute"
+  );
+
+const detailReason =
+  document.getElementById(
+    "detailReason"
+  );
+
+const latestSymbol =
+  document.getElementById(
+    "latestSymbol"
+  );
+
+const historyList =
+  document.getElementById(
+    "historyList"
+  );
+
+const historyCount =
+  document.getElementById(
+    "historyCount"
+  );
+
+
+/* ==========================================================
+   STATE
+========================================================== */
+
+let currentResearch =
+  null;
+
+let currentQuestion =
+  "";
+
+let currentRawResponse =
+  null;
+
+
+/* ==========================================================
+   BASIC CHECK
 ========================================================== */
 
 function checkDOM() {
@@ -127,24 +233,15 @@ function checkDOM() {
   const required = [
 
     ["questionInput", questionInput],
-
     ["researchButton", researchButton],
-
     ["clearButton", clearButton],
-
     ["statusBox", statusBox],
-
     ["connectionDot", connectionDot],
-
     ["connectionText", connectionText],
-
     ["progress", progress],
-
     ["progressText", progressText],
-
     ["progressPercent", progressPercent],
-
-    ["progressValue", progressValue],
+    ["progressValue", progressValue]
 
   ];
 
@@ -152,12 +249,12 @@ function checkDOM() {
   const missing =
     required
       .filter(
-        ([name, element]) =>
-          !element,
+        ([, element]) =>
+          !element
       )
       .map(
         ([name]) =>
-          name,
+          name
       );
 
 
@@ -165,7 +262,7 @@ function checkDOM() {
 
     throw new Error(
       "HTMLに必要な要素がありません: " +
-      missing.join(", "),
+      missing.join(", ")
     );
   }
 }
@@ -177,8 +274,13 @@ function checkDOM() {
 
 function showStatus(
   message,
-  type = "",
+  type = ""
 ) {
+
+  if (!statusBox) {
+    return;
+  }
+
 
   statusBox.textContent =
     message;
@@ -190,13 +292,18 @@ function showStatus(
   if (type) {
 
     statusBox.classList.add(
-      type,
+      type
     );
   }
 }
 
 
 function hideStatus() {
+
+  if (!statusBox) {
+    return;
+  }
+
 
   statusBox.className =
     "status-box";
@@ -209,7 +316,7 @@ function hideStatus() {
 
 function setProgress(
   percent,
-  text,
+  text
 ) {
 
   if (!progress) {
@@ -218,7 +325,7 @@ function setProgress(
 
 
   progress.classList.remove(
-    "hidden",
+    "hidden"
   );
 
 
@@ -227,43 +334,59 @@ function setProgress(
       0,
       Math.min(
         100,
-        Number(percent) || 0,
-      ),
+        Number(percent) || 0
+      )
     );
 
 
-  progressValue.style.width =
-    `${safe}%`;
+  if (progressValue) {
+
+    progressValue.style.width =
+      `${safe}%`;
+  }
 
 
-  progressPercent.textContent =
-    `${Math.round(safe)}%`;
+  if (progressPercent) {
+
+    progressPercent.textContent =
+      `${Math.round(safe)}%`;
+  }
 
 
-  progressText.textContent =
-    text;
+  if (progressText) {
+
+    progressText.textContent =
+      text;
+  }
 }
 
 
 /* ==========================================================
-   CONNECTION UI
+   CONNECTION
 ========================================================== */
 
 function setConnectionState(
   state,
-  text,
+  text
 ) {
+
+  if (!connectionDot ||
+      !connectionText) {
+
+    return;
+  }
+
 
   connectionDot.classList.remove(
     "ok",
-    "error",
+    "error"
   );
 
 
   if (state === "ok") {
 
     connectionDot.classList.add(
-      "ok",
+      "ok"
     );
 
   } else if (
@@ -271,7 +394,7 @@ function setConnectionState(
   ) {
 
     connectionDot.classList.add(
-      "error",
+      "error"
     );
   }
 
@@ -282,11 +405,11 @@ function setConnectionState(
 
 
 /* ==========================================================
-   ERROR TEXT
+   ERROR
 ========================================================== */
 
 function errorText(
-  error,
+  error
 ) {
 
   if (!error) {
@@ -309,14 +432,65 @@ function errorText(
   ) {
 
     return String(
-      error.message,
+      error.message
     );
   }
 
 
   return String(
-    error,
+    error
   );
+}
+
+
+/* ==========================================================
+   SAFE TEXT
+========================================================== */
+
+function textValue(
+  value,
+  fallback = "記録なし"
+) {
+
+  if (
+    value === null ||
+    value === undefined
+  ) {
+
+    return fallback;
+  }
+
+
+  if (
+    typeof value === "string"
+  ) {
+
+    return value.trim() ||
+      fallback;
+  }
+
+
+  if (
+    typeof value === "number" ||
+    typeof value === "boolean"
+  ) {
+
+    return String(value);
+  }
+
+
+  try {
+
+    return JSON.stringify(
+      value,
+      null,
+      2
+    );
+
+  } catch (_) {
+
+    return fallback;
+  }
 }
 
 
@@ -324,94 +498,310 @@ function errorText(
    RESPONSE PARSER
 ========================================================== */
 
-async function readResponse(
-  response,
+function parsePossibleJSON(
+  value
 ) {
 
-  const text =
-    await response.text();
+  if (
+    typeof value !==
+    "string"
+  ) {
 
-
-  let data = null;
-
-
-  if (text) {
-
-    try {
-
-      data =
-        JSON.parse(
-          text,
-        );
-
-    } catch (_) {
-
-      data =
-        null;
-    }
+    return value;
   }
 
 
+  const trimmed =
+    value.trim();
+
+
+  if (!trimmed) {
+
+    return value;
+  }
+
+
+  try {
+
+    return JSON.parse(
+      trimmed
+    );
+
+  } catch (_) {
+
+    return value;
+  }
+}
+
+
+/* ==========================================================
+   NORMALIZE AI RESPONSE
+========================================================== */
+
+function normalizeResearch(
+  data,
+  question
+) {
+
+  let answer =
+    data?.answer;
+
+
+  answer =
+    parsePossibleJSON(
+      answer
+    );
+
+
+  let source =
+    data?.research ||
+    data?.result ||
+    data?.data ||
+    answer ||
+    data;
+
+
+  source =
+    parsePossibleJSON(
+      source
+    );
+
+
+  if (
+    typeof source ===
+    "string"
+  ) {
+
+    return {
+
+      title:
+        "AI研究回答",
+
+      summary:
+        source,
+
+      hypothesis:
+        "記録なし",
+
+      calculation:
+        "記録なし",
+
+      verification:
+        "記録なし",
+
+      nextAction:
+        "AIの回答をもとに次の研究方針を設定してください。",
+
+      route:
+        "Research → Hypothesis → Experiment → Red Team",
+
+      reason:
+        "まだ詳細評価されていません。",
+
+      status:
+        "maybe",
+
+      confidence:
+        null,
+
+      scores:
+        {},
+
+      question:
+        question,
+
+      raw:
+        data
+    };
+  }
+
+
+  if (
+    !source ||
+    typeof source !== "object"
+  ) {
+
+    source = {};
+  }
+
+
+  const summary =
+    source.summary ??
+    source.description ??
+    source.answer ??
+    data?.answer ??
+    source.conclusion ??
+    source.result ??
+    "研究AIから結果を受信しました。";
+
+
+  const hypothesis =
+    source.hypothesis ??
+    source.hypotheses ??
+    source.hypothesis_text ??
+    source.idea ??
+    source.claim;
+
+
+  const calculation =
+    source.calculation ??
+    source.calculations ??
+    source.experiment ??
+    source.computation ??
+    source.numeric_result;
+
+
+  const verification =
+    source.verification ??
+    source.verify ??
+    source.validation ??
+    source.evidence ??
+    source.proof_status;
+
+
+  const nextAction =
+    source.next_action ??
+    source.nextAction ??
+    source.next_step ??
+    source.next ??
+    source.recommendation;
+
+
+  const route =
+    source.route ??
+    source.research_route ??
+    source.researchRoute ??
+    source.strategy;
+
+
+  const reason =
+    source.confidence_basis ??
+    source.reason ??
+    source.evaluation_reason ??
+    source.evaluationReason;
+
+
+  const status =
+    source.status ??
+    source.verdict ??
+    source.result_status ??
+    "maybe";
+
+
+  const confidence =
+    source.confidence ??
+    source.score ??
+    null;
+
+
+  const scores =
+    source.scores ??
+    source.evaluation ??
+    source.evaluations ??
+    {};
+
+
   return {
-    text,
-    data,
+
+    title:
+      textValue(
+        source.title,
+        "AI研究回答"
+      ),
+
+    summary:
+      textValue(
+        summary,
+        "研究AIから結果を受信しました。"
+      ),
+
+    hypothesis:
+      textValue(
+        hypothesis
+      ),
+
+    calculation:
+      textValue(
+        calculation
+      ),
+
+    verification:
+      textValue(
+        verification
+      ),
+
+    nextAction:
+      textValue(
+        nextAction
+      ),
+
+    route:
+      textValue(
+        route
+      ),
+
+    reason:
+      textValue(
+        reason,
+        "まだ詳細評価されていません。"
+      ),
+
+    status:
+      String(status),
+
+    confidence:
+      confidence,
+
+    scores:
+      scores,
+
+    question:
+      question,
+
+    raw:
+      data
   };
 }
 
 
 /* ==========================================================
-   DIRECT EDGE FUNCTION REQUEST
+   EDGE FUNCTION REQUEST
 ========================================================== */
 
-/*
- * 重要:
- *
- * ここでは
- *
- * supabase.functions.invoke()
- *
- * を使用しない。
- *
- * ブラウザの fetch() から
- * Edge Function URLへ直接送信する。
- *
- * 以前の Load failed 問題を
- * 再発させないための第1段階。
- */
-
-async function callResearchFunction(
-  message,
+async function callFunction(
+  functionName,
+  body
 ) {
 
   const functionURL =
-    `${SUPABASE_URL}/functions/v1/${RESEARCH_FUNCTION}`;
+    `${SUPABASE_URL}/functions/v1/${functionName}`;
 
 
   console.log(
-    "================================",
+    "================================"
   );
 
   console.log(
-    "DIRECT EDGE FUNCTION REQUEST",
+    "EDGE FUNCTION REQUEST"
+  );
+
+  console.log(
+    "Function:",
+    functionName
   );
 
   console.log(
     "URL:",
-    functionURL,
+    functionURL
   );
 
   console.log(
-    "Project ID:",
-    currentProjectId,
+    "Body:",
+    body
   );
 
   console.log(
-    "Message:",
-    message,
-  );
-
-  console.log(
-    "================================",
+    "================================"
   );
 
 
@@ -437,24 +827,15 @@ async function callResearchFunction(
               SUPABASE_PUBLISHABLE_KEY,
 
             "Authorization":
-              `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+              `Bearer ${SUPABASE_PUBLISHABLE_KEY}`
 
           },
 
           body:
             JSON.stringify(
-              {
-
-                message:
-                  message,
-
-                project_id:
-                  currentProjectId,
-
-              },
-            ),
-
-        },
+              body
+            )
+        }
       );
 
   } catch (
@@ -462,67 +843,60 @@ async function callResearchFunction(
   ) {
 
     console.error(
-      "DIRECT FETCH ERROR:",
-      networkError,
+      "FETCH ERROR:",
+      networkError
     );
 
 
     throw new Error(
       [
         "【通信エラー】",
-
         "",
-
         "Supabase Edge Functionへ接続できませんでした。",
-
         "",
-
-        `Function: ${RESEARCH_FUNCTION}`,
-
+        `Function: ${functionName}`,
         `URL: ${functionURL}`,
-
         "",
-
-        `エラー: ${errorText(
-          networkError,
-        )}`,
-
-        "",
-
-        "ここではまだAI処理やDB処理を疑いません。",
-
-        "まずブラウザからEdge Functionへ到達できるかを確認します。",
-
-      ].join("\n"),
+        `エラー: ${errorText(networkError)}`
+      ].join("\n")
     );
+  }
+
+
+  const responseText =
+    await response.text();
+
+
+  let responseData =
+    null;
+
+
+  if (responseText) {
+
+    try {
+
+      responseData =
+        JSON.parse(
+          responseText
+        );
+
+    } catch (_) {
+
+      responseData =
+        null;
+    }
   }
 
 
   console.log(
     "HTTP STATUS:",
-    response.status,
+    response.status
   );
 
   console.log(
-    "HTTP OK:",
-    response.ok,
-  );
-
-
-  const result =
-    await readResponse(
-      response,
-    );
-
-
-  console.log(
-    "RESPONSE TEXT:",
-    result.text,
-  );
-
-  console.log(
-    "RESPONSE JSON:",
-    result.data,
+    "RESPONSE:",
+    responseData ??
+    responseText
   );
 
 
@@ -531,74 +905,1154 @@ async function callResearchFunction(
     throw new Error(
       [
         "【Edge Function HTTPエラー】",
-
         "",
-
         `HTTP Status: ${response.status}`,
-
-        `Function: ${RESEARCH_FUNCTION}`,
-
+        `Function: ${functionName}`,
         "",
-
-        result.data?.error ||
-        result.data?.message ||
-        result.text ||
-        "レスポンス本文がありません。",
-
-      ].join("\n"),
+        responseData?.error ||
+        responseData?.message ||
+        responseText ||
+        "レスポンス本文がありません。"
+      ].join("\n")
     );
   }
 
 
-  if (!result.data) {
-
-    throw new Error(
-      [
-        "【レスポンス形式エラー】",
-
-        "",
-
-        "Edge FunctionからJSONを受信しましたが、",
-        "JSONとして解析できませんでした。",
-
-        "",
-
-        "Response:",
-
-        result.text ||
-        "(empty)",
-
-      ].join("\n"),
-    );
-  }
-
-
-  return result.data;
+  return responseData ??
+    responseText;
 }
 
 
 /* ==========================================================
-   CONNECTION TEST
+   RESEARCH FUNCTION
 ========================================================== */
 
-/*
- * 起動時にresearch_resultsへ問い合わせない。
- *
- * これが重要。
- *
- * DBの接続確認で画面全体が
- * 「接続中」のまま止まる構造を避ける。
- *
- * 実際のsmart-handlerへの通信を
- * 必要になったときに確認する。
- */
+async function callResearchFunction(
+  message
+) {
 
-function initializeConnectionUI() {
+  return callFunction(
+    RESEARCH_FUNCTION,
+    {
 
-  setConnectionState(
-    "",
-    "接続待機中",
+      message:
+        message,
+
+      project_id:
+        currentProjectId
+
+    }
   );
+}
+
+
+/* ==========================================================
+   RENDER RESULT
+========================================================== */
+
+function renderResearch(
+  research
+) {
+
+  currentResearch =
+    research;
+
+
+  if (latestSection) {
+
+    latestSection.classList.remove(
+      "hidden"
+    );
+  }
+
+
+  if (latestTitle) {
+
+    latestTitle.textContent =
+      research.title;
+  }
+
+
+  if (latestDate) {
+
+    latestDate.textContent =
+      new Date().toLocaleString(
+        "ja-JP"
+      );
+  }
+
+
+  if (latestSummary) {
+
+    latestSummary.textContent =
+      research.summary;
+  }
+
+
+  /* --------------------------------------------------------
+     DETAILS
+  -------------------------------------------------------- */
+
+  if (detailHypothesis) {
+
+    detailHypothesis.textContent =
+      research.hypothesis;
+  }
+
+
+  if (detailCalculation) {
+
+    detailCalculation.textContent =
+      research.calculation;
+  }
+
+
+  if (detailVerification) {
+
+    detailVerification.textContent =
+      research.verification;
+  }
+
+
+  if (detailNextAction) {
+
+    detailNextAction.textContent =
+      research.nextAction;
+  }
+
+
+  if (detailRoute) {
+
+    detailRoute.textContent =
+      research.route;
+  }
+
+
+  if (detailReason) {
+
+    detailReason.textContent =
+      research.reason;
+  }
+
+
+  /* --------------------------------------------------------
+     SYMBOL
+  -------------------------------------------------------- */
+
+  renderSymbol(
+    research.status
+  );
+
+
+  /* --------------------------------------------------------
+     META
+  -------------------------------------------------------- */
+
+  if (latestMeta) {
+
+    latestMeta.innerHTML =
+      "";
+
+    addTag(
+      latestMeta,
+      "Research"
+    );
+
+    addTag(
+      latestMeta,
+      `Project: ${currentProjectId.slice(0, 8)}`
+    );
+
+    if (
+      research.confidence !==
+      null &&
+      research.confidence !==
+      undefined
+    ) {
+
+      addTag(
+        latestMeta,
+        `Confidence: ${research.confidence}`
+      );
+    }
+
+    if (
+      research.status
+    ) {
+
+      addTag(
+        latestMeta,
+        `Status: ${research.status}`
+      );
+    }
+  }
+
+
+  /* --------------------------------------------------------
+     EVALUATION
+  -------------------------------------------------------- */
+
+  renderEvaluation(
+    research
+  );
+
+
+  if (evaluateButton) {
+
+    evaluateButton.disabled =
+      false;
+  }
+}
+
+
+/* ==========================================================
+   SYMBOL
+========================================================== */
+
+function renderSymbol(
+  status
+) {
+
+  if (!latestSymbol) {
+    return;
+  }
+
+
+  latestSymbol.classList.remove(
+    "good",
+    "bad",
+    "maybe"
+  );
+
+
+  const normalized =
+    String(
+      status ||
+      "maybe"
+    ).toLowerCase();
+
+
+  if (
+    normalized === "good" ||
+    normalized === "true" ||
+    normalized === "proved" ||
+    normalized === "confirmed"
+  ) {
+
+    latestSymbol.classList.add(
+      "good"
+    );
+
+    latestSymbol.textContent =
+      "✓";
+
+    return;
+  }
+
+
+  if (
+    normalized === "bad" ||
+    normalized === "false" ||
+    normalized === "refuted" ||
+    normalized === "rejected"
+  ) {
+
+    latestSymbol.classList.add(
+      "bad"
+    );
+
+    latestSymbol.textContent =
+      "×";
+
+    return;
+  }
+
+
+  latestSymbol.classList.add(
+    "maybe"
+  );
+
+  latestSymbol.textContent =
+    "△";
+}
+
+
+/* ==========================================================
+   TAG
+========================================================== */
+
+function addTag(
+  container,
+  text
+) {
+
+  const tag =
+    document.createElement(
+      "span"
+    );
+
+  tag.className =
+    "tag";
+
+  tag.textContent =
+    text;
+
+  container.appendChild(
+    tag
+  );
+}
+
+
+/* ==========================================================
+   SCORE NORMALIZATION
+========================================================== */
+
+function findScore(
+  scores,
+  keys
+) {
+
+  if (
+    !scores ||
+    typeof scores !==
+    "object"
+  ) {
+
+    return "△";
+  }
+
+
+  for (
+    const key of keys
+  ) {
+
+    if (
+      scores[key] !==
+      undefined &&
+      scores[key] !==
+      null
+    ) {
+
+      const value =
+        scores[key];
+
+
+      if (
+        typeof value ===
+        "number"
+      ) {
+
+        return String(
+          Math.round(
+            value
+          )
+        );
+      }
+
+
+      return String(
+        value
+      );
+    }
+  }
+
+
+  return "△";
+}
+
+
+/* ==========================================================
+   EVALUATION
+========================================================== */
+
+function renderEvaluation(
+  research
+) {
+
+  const scores =
+    research.scores ||
+    {};
+
+
+  const values = [
+
+    findScore(
+      scores,
+      [
+        "overall",
+        "total",
+        "総合"
+      ]
+    ),
+
+    findScore(
+      scores,
+      [
+        "hypothesis",
+        "hypotheses",
+        "仮説"
+      ]
+    ),
+
+    findScore(
+      scores,
+      [
+        "calculation",
+        "experiment",
+        "計算"
+      ]
+    ),
+
+    findScore(
+      scores,
+      [
+        "verification",
+        "検証"
+      ]
+    ),
+
+    findScore(
+      scores,
+      [
+        "logic",
+        "logical",
+        "論理"
+      ]
+    )
+
+  ];
+
+
+  /*
+   * index.htmlには最初から
+   * △ △ △ △ △ の表示がある。
+   *
+   * その5個を更新する。
+   */
+
+  const staticItems =
+    document.querySelectorAll(
+      ".latest-section .evaluation-grid:first-of-type .evaluation-item .value"
+    );
+
+
+  staticItems.forEach(
+    (
+      element,
+      index
+    ) => {
+
+      if (
+        values[index]
+      ) {
+
+        element.textContent =
+          values[index];
+      }
+    }
+  );
+
+
+  /*
+   * 追加評価が存在する場合は
+   * 下側のevaluationGridにも表示。
+   */
+
+  if (evaluationGrid) {
+
+    evaluationGrid.innerHTML =
+      "";
+
+
+    const labels = [
+      "総合",
+      "仮説",
+      "計算",
+      "検証",
+      "論理"
+    ];
+
+
+    values.forEach(
+      (
+        value,
+        index
+      ) => {
+
+        const item =
+          document.createElement(
+            "div"
+          );
+
+        item.className =
+          "evaluation-item";
+
+
+        item.innerHTML = `
+          <div class="label">
+            ${labels[index]}
+          </div>
+
+          <div class="value">
+            ${value}
+          </div>
+        `;
+
+
+        evaluationGrid.appendChild(
+          item
+        );
+      }
+    );
+  }
+}
+
+
+/* ==========================================================
+   HISTORY LOAD
+========================================================== */
+
+function loadHistory() {
+
+  try {
+
+    const raw =
+      localStorage.getItem(
+        HISTORY_KEY
+      );
+
+
+    if (!raw) {
+      return [];
+    }
+
+
+    const parsed =
+      JSON.parse(
+        raw
+      );
+
+
+    if (
+      !Array.isArray(
+        parsed
+      )
+    ) {
+
+      return [];
+    }
+
+
+    return parsed;
+
+  } catch (error) {
+
+    console.error(
+      "History load error:",
+      error
+    );
+
+    return [];
+  }
+}
+
+
+/* ==========================================================
+   HISTORY SAVE
+========================================================== */
+
+function saveHistory(
+  research
+) {
+
+  try {
+
+    let history =
+      loadHistory();
+
+
+    const item = {
+
+      id:
+        crypto?.randomUUID ?
+        crypto.randomUUID() :
+        String(
+          Date.now()
+        ),
+
+      created_at:
+        new Date().toISOString(),
+
+      question:
+        research.question,
+
+      title:
+        research.title,
+
+      summary:
+        research.summary,
+
+      hypothesis:
+        research.hypothesis,
+
+      calculation:
+        research.calculation,
+
+      verification:
+        research.verification,
+
+      nextAction:
+        research.nextAction,
+
+      route:
+        research.route,
+
+      reason:
+        research.reason,
+
+      status:
+        research.status,
+
+      confidence:
+        research.confidence,
+
+      scores:
+        research.scores
+    };
+
+
+    history.unshift(
+      item
+    );
+
+
+    history =
+      history.slice(
+        0,
+        50
+      );
+
+
+    localStorage.setItem(
+      HISTORY_KEY,
+      JSON.stringify(
+        history
+      )
+    );
+
+
+    renderHistory();
+
+  } catch (error) {
+
+    console.error(
+      "History save error:",
+      error
+    );
+  }
+}
+
+
+/* ==========================================================
+   HISTORY RENDER
+========================================================== */
+
+function renderHistory() {
+
+  if (!historyList) {
+    return;
+  }
+
+
+  const history =
+    loadHistory();
+
+
+  if (historyCount) {
+
+    historyCount.textContent =
+      `${history.length}件`;
+  }
+
+
+  historyList.innerHTML =
+    "";
+
+
+  if (!history.length) {
+
+    historyList.innerHTML = `
+      <div class="history-empty">
+        研究履歴はまだありません。
+      </div>
+    `;
+
+    return;
+  }
+
+
+  history.forEach(
+    item => {
+
+      const element =
+        document.createElement(
+          "div"
+        );
+
+      element.className =
+        "history-item";
+
+
+      const status =
+        String(
+          item.status ||
+          "maybe"
+        ).toLowerCase();
+
+
+      let symbol =
+        "△";
+
+      if (
+        status === "good" ||
+        status === "proved" ||
+        status === "confirmed"
+      ) {
+
+        symbol =
+          "✓";
+
+      } else if (
+        status === "bad" ||
+        status === "refuted" ||
+        status === "rejected"
+      ) {
+
+        symbol =
+          "×";
+      }
+
+
+      const date =
+        item.created_at
+          ? new Date(
+              item.created_at
+            ).toLocaleString(
+              "ja-JP"
+            )
+          : "";
+
+
+      element.innerHTML = `
+
+        <div class="history-main">
+
+          <div class="history-symbol ${status}">
+            ${symbol}
+          </div>
+
+          <div style="min-width:0">
+
+            <div class="history-title">
+              ${escapeHTML(
+                item.title ||
+                "AI研究回答"
+              )}
+            </div>
+
+            <div class="history-date">
+              ${escapeHTML(date)}
+            </div>
+
+          </div>
+
+        </div>
+
+      `;
+
+
+      element.addEventListener(
+        "click",
+        () => {
+
+          loadHistoryItem(
+            item
+          );
+
+        }
+      );
+
+
+      historyList.appendChild(
+        element
+      );
+    }
+  );
+}
+
+
+/* ==========================================================
+   HISTORY ITEM
+========================================================== */
+
+function loadHistoryItem(
+  item
+) {
+
+  const research = {
+
+    title:
+      item.title,
+
+    summary:
+      item.summary,
+
+    hypothesis:
+      item.hypothesis,
+
+    calculation:
+      item.calculation,
+
+    verification:
+      item.verification,
+
+    nextAction:
+      item.nextAction,
+
+    route:
+      item.route,
+
+    reason:
+      item.reason,
+
+    status:
+      item.status,
+
+    confidence:
+      item.confidence,
+
+    scores:
+      item.scores,
+
+    question:
+      item.question
+  };
+
+
+  currentResearch =
+    research;
+
+
+  if (questionInput) {
+
+    questionInput.value =
+      item.question ||
+      "";
+  }
+
+
+  renderResearch(
+    research
+  );
+
+
+  if (latestSection) {
+
+    latestSection.scrollIntoView({
+      behavior:
+        "smooth",
+      block:
+        "start"
+    });
+  }
+
+
+  showStatus(
+    "研究履歴を表示しました。",
+    "success"
+  );
+}
+
+
+/* ==========================================================
+   ESCAPE HTML
+========================================================== */
+
+function escapeHTML(
+  value
+) {
+
+  return String(
+    value ??
+    ""
+  )
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+}
+
+
+/* ==========================================================
+   EVALUATE
+========================================================== */
+
+async function evaluateCurrentResearch() {
+
+  if (
+    !currentResearch
+  ) {
+
+    showStatus(
+      "先に研究を実行してください。",
+      "error"
+    );
+
+    return;
+  }
+
+
+  if (evaluateButton) {
+
+    evaluateButton.disabled =
+      true;
+  }
+
+
+  setProgress(
+    15,
+    "研究結果をAI評価しています..."
+  );
+
+
+  showStatus(
+    "AI評価を実行しています..."
+  );
+
+
+  try {
+
+    const result =
+      await callFunction(
+        EVALUATE_FUNCTION,
+        {
+
+          project_id:
+            currentProjectId,
+
+          question:
+            currentResearch.question,
+
+          research:
+            currentResearch.raw ??
+            currentResearch,
+
+          answer:
+            currentResearch.summary
+
+        }
+      );
+
+
+    let evaluation =
+      parsePossibleJSON(
+        result?.answer ??
+        result?.evaluation ??
+        result
+      );
+
+
+    if (
+      typeof evaluation ===
+      "string"
+    ) {
+
+      evaluation = {
+
+        reason:
+          evaluation
+      };
+    }
+
+
+    if (
+      evaluation &&
+      typeof evaluation ===
+      "object"
+    ) {
+
+      currentResearch.scores =
+        evaluation.scores ??
+        evaluation.evaluation ??
+        currentResearch.scores ??
+        {};
+
+
+      currentResearch.reason =
+        evaluation.reason ??
+        evaluation.confidence_basis ??
+        evaluation.evaluation_reason ??
+        currentResearch.reason;
+
+
+      currentResearch.status =
+        evaluation.status ??
+        evaluation.verdict ??
+        currentResearch.status;
+
+
+      currentResearch.confidence =
+        evaluation.confidence ??
+        currentResearch.confidence;
+    }
+
+
+    renderResearch(
+      currentResearch
+    );
+
+
+    updateHistoryCurrent();
+
+
+    setProgress(
+      100,
+      "AI評価完了"
+    );
+
+
+    showStatus(
+      "AI評価が完了しました。",
+      "success"
+    );
+
+  } catch (
+    error
+  ) {
+
+    console.error(
+      "Evaluation error:",
+      error
+    );
+
+
+    showStatus(
+      [
+        "AI評価に失敗しました。",
+        "",
+        errorText(error)
+      ].join("\n"),
+      "error"
+    );
+
+
+    setProgress(
+      100,
+      "AI評価エラー"
+    );
+
+  } finally {
+
+    if (evaluateButton) {
+
+      evaluateButton.disabled =
+        false;
+    }
+  }
+}
+
+
+/* ==========================================================
+   UPDATE CURRENT HISTORY
+========================================================== */
+
+function updateHistoryCurrent() {
+
+  if (
+    !currentResearch
+  ) {
+
+    return;
+  }
+
+
+  const history =
+    loadHistory();
+
+
+  if (!history.length) {
+
+    saveHistory(
+      currentResearch
+    );
+
+    return;
+  }
+
+
+  const first =
+    history[0];
+
+
+  first.title =
+    currentResearch.title;
+
+  first.summary =
+    currentResearch.summary;
+
+  first.hypothesis =
+    currentResearch.hypothesis;
+
+  first.calculation =
+    currentResearch.calculation;
+
+  first.verification =
+    currentResearch.verification;
+
+  first.nextAction =
+    currentResearch.nextAction;
+
+  first.route =
+    currentResearch.route;
+
+  first.reason =
+    currentResearch.reason;
+
+  first.status =
+    currentResearch.status;
+
+  first.confidence =
+    currentResearch.confidence;
+
+  first.scores =
+    currentResearch.scores;
+
+
+  localStorage.setItem(
+    HISTORY_KEY,
+    JSON.stringify(
+      history
+    )
+  );
+
+
+  renderHistory();
 }
 
 
@@ -616,13 +2070,17 @@ async function runResearch() {
 
     showStatus(
       "研究したい数学的な問題を入力してください。",
-      "error",
+      "error"
     );
 
     questionInput.focus();
 
     return;
   }
+
+
+  currentQuestion =
+    message;
 
 
   researchButton.disabled =
@@ -632,20 +2090,27 @@ async function runResearch() {
     true;
 
 
+  if (evaluateButton) {
+
+    evaluateButton.disabled =
+      true;
+  }
+
+
   setConnectionState(
     "",
-    "Supabase 接続中...",
+    "Supabase 接続中..."
   );
 
 
   setProgress(
     5,
-    "研究を準備しています...",
+    "研究を準備しています..."
   );
 
 
   showStatus(
-    "研究AIに接続しています...",
+    "研究AIに接続しています..."
   );
 
 
@@ -656,13 +2121,8 @@ async function runResearch() {
     ------------------------------------------------------ */
 
     setProgress(
-      15,
-      "Supabase Edge Functionへ接続しています...",
-    );
-
-
-    console.log(
-      "=== RESEARCH START ===",
+      20,
+      "Supabase Edge Functionへ接続しています..."
     );
 
 
@@ -671,15 +2131,19 @@ async function runResearch() {
     ------------------------------------------------------ */
 
     setProgress(
-      25,
-      "smart-handlerを実行しています...",
+      35,
+      "smart-handlerを実行しています..."
     );
 
 
     const data =
       await callResearchFunction(
-        message,
+        message
       );
+
+
+    currentRawResponse =
+      data;
 
 
     /* ------------------------------------------------------
@@ -688,22 +2152,22 @@ async function runResearch() {
 
     setConnectionState(
       "ok",
-      "Supabase 接続済み",
+      "Supabase 接続済み"
     );
 
 
     setProgress(
-      70,
-      "研究AIから結果を受信しました...",
+      65,
+      "研究AIから結果を受信しました..."
     );
 
 
     console.log(
-      "=== FUNCTION DATA ===",
+      "=== RESEARCH RESPONSE ==="
     );
 
     console.log(
-      data,
+      data
     );
 
 
@@ -719,7 +2183,7 @@ async function runResearch() {
       throw new Error(
         data.error ||
         data.detail ||
-        "研究AIがエラーを返しました。",
+        "研究AIがエラーを返しました。"
       );
     }
 
@@ -729,16 +2193,10 @@ async function runResearch() {
     ------------------------------------------------------ */
 
     const research =
-      data?.research ||
-      data;
-
-
-    if (!research) {
-
-      throw new Error(
-        "研究AIから研究結果が返ってきませんでした。",
+      normalizeResearch(
+        data,
+        message
       );
-    }
 
 
     /* ------------------------------------------------------
@@ -746,127 +2204,68 @@ async function runResearch() {
     ------------------------------------------------------ */
 
     setProgress(
-      90,
-      "研究結果を表示しています...",
+      82,
+      "研究結果を整理しています..."
     );
 
 
-    /*
-     * 第1段階では、
-     * まず通信成功を確認することを優先。
-     *
-     * 既存HTMLに結果表示欄がある場合だけ
-     * 可能な範囲で表示する。
-     */
-
-    const latestSection =
-      document.getElementById(
-        "latestSection",
-      );
-
-    const latestTitle =
-      document.getElementById(
-        "latestTitle",
-      );
-
-    const latestDate =
-      document.getElementById(
-        "latestDate",
-      );
-
-    const latestSummary =
-      document.getElementById(
-        "latestSummary",
-      );
-
-
-    if (
-      latestSection
-    ) {
-
-      latestSection.classList.remove(
-        "hidden",
-      );
-    }
-
-
-    if (
-      latestTitle
-    ) {
-
-      latestTitle.textContent =
-        research.title ||
-        "AI研究回答";
-    }
-
-
-    if (
-      latestDate
-    ) {
-
-      latestDate.textContent =
-        new Date().toLocaleString(
-          "ja-JP",
-        );
-    }
-
-
-    if (
-      latestSummary
-    ) {
-
-      latestSummary.textContent =
-        research.summary ||
-        research.description ||
-        data.answer ||
-        "研究AIから結果を受信しました。";
-    }
+    renderResearch(
+      research
+    );
 
 
     /* ------------------------------------------------------
        STEP 7
     ------------------------------------------------------ */
 
+    saveHistory(
+      research
+    );
+
+
+    /* ------------------------------------------------------
+       STEP 8
+    ------------------------------------------------------ */
+
     setProgress(
       100,
-      "通信テスト・研究実行完了",
+      "研究実行完了"
     );
 
 
     showStatus(
       "研究AIとの通信に成功しました。",
-      "success",
+      "success"
     );
 
 
     console.log(
-      "=== RESEARCH COMPLETE ===",
+      "=== RESEARCH COMPLETE ==="
     );
-
 
   } catch (
     error
   ) {
 
     console.error(
-      "=== RESEARCH ERROR ===",
+      "=== RESEARCH ERROR ==="
     );
 
     console.error(
-      error,
+      error
     );
 
 
     setConnectionState(
       "error",
-      "Supabase 接続エラー",
+      "Supabase 接続エラー"
     );
 
 
     showStatus(
       [
         errorText(
-          error,
+          error
         ),
 
         "",
@@ -877,18 +2276,17 @@ async function runResearch() {
         "",
 
         "Project ID:",
-        currentProjectId,
+        currentProjectId
 
       ].join("\n"),
-      "error",
+      "error"
     );
 
 
     setProgress(
       100,
-      "エラーで終了",
+      "エラーで終了"
     );
-
 
   } finally {
 
@@ -897,6 +2295,16 @@ async function runResearch() {
 
     clearButton.disabled =
       false;
+
+
+    if (
+      evaluateButton &&
+      currentResearch
+    ) {
+
+      evaluateButton.disabled =
+        false;
+    }
   }
 }
 
@@ -910,16 +2318,101 @@ function clearResearch() {
   questionInput.value =
     "";
 
+  currentResearch =
+    null;
+
+  currentRawResponse =
+    null;
+
   hideStatus();
 
-  progress.classList.add(
-    "hidden",
-  );
+
+  if (progress) {
+
+    progress.classList.add(
+      "hidden"
+    );
+  }
+
 
   setConnectionState(
     "",
-    "接続待機中",
+    "接続待機中"
   );
+
+
+  if (latestSection) {
+
+    latestSection.classList.add(
+      "hidden"
+    );
+  }
+
+
+  if (evaluateButton) {
+
+    evaluateButton.disabled =
+      true;
+  }
+
+
+  if (details) {
+
+    details.classList.add(
+      "hidden"
+    );
+  }
+
+
+  if (toggleDetailsButton) {
+
+    toggleDetailsButton.textContent =
+      "詳細を表示";
+  }
+}
+
+
+/* ==========================================================
+   DETAILS TOGGLE
+========================================================== */
+
+function toggleDetails() {
+
+  if (!details) {
+    return;
+  }
+
+
+  const hidden =
+    details.classList.contains(
+      "hidden"
+    );
+
+
+  if (hidden) {
+
+    details.classList.remove(
+      "hidden"
+    );
+
+    if (toggleDetailsButton) {
+
+      toggleDetailsButton.textContent =
+        "詳細を閉じる";
+    }
+
+  } else {
+
+    details.classList.add(
+      "hidden"
+    );
+
+    if (toggleDetailsButton) {
+
+      toggleDetailsButton.textContent =
+        "詳細を表示";
+    }
+  }
 }
 
 
@@ -927,38 +2420,78 @@ function clearResearch() {
    BUTTON EVENTS
 ========================================================== */
 
-researchButton.addEventListener(
-  "click",
-  runResearch,
-);
+if (researchButton) {
+
+  researchButton.addEventListener(
+    "click",
+    runResearch
+  );
+}
 
 
-clearButton.addEventListener(
-  "click",
-  clearResearch,
-);
+if (clearButton) {
+
+  clearButton.addEventListener(
+    "click",
+    clearResearch
+  );
+}
+
+
+if (evaluateButton) {
+
+  evaluateButton.addEventListener(
+    "click",
+    evaluateCurrentResearch
+  );
+}
+
+
+if (toggleDetailsButton) {
+
+  toggleDetailsButton.addEventListener(
+    "click",
+    toggleDetails
+  );
+}
 
 
 /* ==========================================================
    COMMAND / CTRL + ENTER
 ========================================================== */
 
-questionInput.addEventListener(
-  "keydown",
-  event => {
+if (questionInput) {
 
-    if (
-      (event.metaKey ||
-        event.ctrlKey) &&
-      event.key === "Enter"
-    ) {
+  questionInput.addEventListener(
+    "keydown",
+    event => {
 
-      event.preventDefault();
+      if (
+        (event.metaKey ||
+          event.ctrlKey) &&
+        event.key === "Enter"
+      ) {
 
-      runResearch();
+        event.preventDefault();
+
+        runResearch();
+      }
     }
-  },
-);
+  );
+}
+
+
+/* ==========================================================
+   INITIALIZE CONNECTION UI
+========================================================== */
+
+function initializeConnectionUI() {
+
+  setConnectionState(
+    "",
+    "接続待機中"
+  );
+}
 
 
 /* ==========================================================
@@ -973,44 +2506,55 @@ function initialize() {
 
 
     console.log(
-      "================================",
+      "================================"
     );
 
     console.log(
-      "Research AI - STEP 1",
+      "24/7 Riemann Research Lab"
     );
 
     console.log(
-      "Initialized",
+      "FUNCTION RESTORE VERSION"
+    );
+
+    console.log(
+      "Initialized"
     );
 
     console.log(
       "Supabase:",
-      SUPABASE_URL,
+      SUPABASE_URL
     );
 
     console.log(
-      "Function:",
-      RESEARCH_FUNCTION,
+      "Research Function:",
+      RESEARCH_FUNCTION
+    );
+
+    console.log(
+      "Evaluate Function:",
+      EVALUATE_FUNCTION
     );
 
     console.log(
       "Project ID:",
-      currentProjectId,
+      currentProjectId
     );
 
     console.log(
       "Communication:",
-      "DIRECT FETCH",
+      "DIRECT FETCH"
     );
 
     console.log(
-      "================================",
+      "================================"
     );
 
 
     initializeConnectionUI();
 
+
+    renderHistory();
 
   } catch (
     error
@@ -1018,21 +2562,16 @@ function initialize() {
 
     console.error(
       "Initialization error:",
-      error,
+      error
     );
 
 
-    if (
-      statusBox
-    ) {
-
-      showStatus(
-        errorText(
-          error,
-        ),
-        "error",
-      );
-    }
+    showStatus(
+      errorText(
+        error
+      ),
+      "error"
+    );
   }
 }
 
