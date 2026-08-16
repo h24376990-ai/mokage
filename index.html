@@ -1,793 +1,2679 @@
+```html
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Research AI Lab</title>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="theme-color"
+    content="#07111f"
+  >
+
+  <title>24/7 Riemann Research Lab</title>
+
+  <!-- ======================================================
+       MathJax
+  ======================================================= -->
+
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [
+          ["$", "$"],
+          ["\\(", "\\)"]
+        ],
+        displayMath: [
+          ["$$", "$$"],
+          ["\\[", "\\]"]
+        ]
+      },
+      svg: {
+        fontCache: "global"
+      }
+    };
+  </script>
+
+  <script
+    async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"
+  ></script>
+
+
+  <!-- ======================================================
+       Supabase
+  ======================================================= -->
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+  ></script>
+
+
+  <!-- ======================================================
+       STYLE
+  ======================================================= -->
 
   <style>
+
     * {
       box-sizing: border-box;
     }
 
+
     :root {
-      --bg: #f5f6f8;
-      --card: #ffffff;
-      --text: #202124;
-      --sub: #6b7280;
-      --line: #e5e7eb;
-      --accent: #2563eb;
-      --accent-hover: #1d4ed8;
-      --good: #16a34a;
-      --maybe: #d97706;
-      --bad: #dc2626;
-      --shadow: 0 8px 30px rgba(0,0,0,.07);
+
+      --bg:
+        #050b14;
+
+      --panel:
+        #0b1422;
+
+      --panel-2:
+        #0e1a2b;
+
+      --border:
+        rgba(120, 150, 190, 0.16);
+
+      --text:
+        #e7eef8;
+
+      --muted:
+        #8fa2ba;
+
+      --blue:
+        #3b82f6;
+
+      --indigo:
+        #6366f1;
+
+      --emerald:
+        #10b981;
+
+      --amber:
+        #f59e0b;
+
+      --red:
+        #ef4444;
+
+      --shadow:
+        0 20px 60px rgba(0, 0, 0, 0.35);
+
+      --radius:
+        18px;
     }
 
+
+    html,
     body {
+
       margin: 0;
+      padding: 0;
+
+      min-height: 100%;
+
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(30, 64, 175, 0.12),
+          transparent 40%
+        ),
+        var(--bg);
+
+      color:
+        var(--text);
+
       font-family:
         -apple-system,
         BlinkMacSystemFont,
+        "SF Pro Display",
         "Segoe UI",
-        "Noto Sans JP",
         sans-serif;
-      background: var(--bg);
-      color: var(--text);
     }
 
+
+    body {
+      overflow-x: hidden;
+    }
+
+
     button,
+    input,
     textarea {
       font: inherit;
     }
+
 
     button {
       cursor: pointer;
     }
 
-    .app {
-      width: min(1200px, 100%);
-      margin: 0 auto;
-      padding: 20px;
+
+    .hidden {
+      display: none !important;
     }
 
-    header {
+
+    /* ======================================================
+       APP
+    ======================================================= */
+
+    .app {
+
+      width: 100%;
+      min-height: 100vh;
+
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 15px;
-      margin-bottom: 20px;
+      flex-direction: column;
     }
+
+
+    /* ======================================================
+       HEADER
+    ======================================================= */
+
+    .header {
+
+      position: sticky;
+      top: 0;
+      z-index: 20;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      padding:
+        14px 18px;
+
+      background:
+        rgba(5, 11, 20, 0.88);
+
+      backdrop-filter:
+        blur(18px);
+
+      border-bottom:
+        1px solid var(--border);
+    }
+
 
     .brand {
+
       display: flex;
       align-items: center;
-      gap: 12px;
+
+      gap: 10px;
+
+      min-width: 0;
     }
 
-    .brand-icon {
-      width: 42px;
-      height: 42px;
+
+    .brand-symbol {
+
+      width: 38px;
+      height: 38px;
+
       border-radius: 12px;
+
+      display: grid;
+      place-items: center;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(59, 130, 246, 0.25),
+          rgba(16, 185, 129, 0.18)
+        );
+
+      border:
+        1px solid var(--border);
+
+      font-size: 19px;
+    }
+
+
+    .brand-text {
+      min-width: 0;
+    }
+
+
+    .brand-title {
+
+      font-size: 15px;
+      font-weight: 700;
+
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+
+    .brand-subtitle {
+
+      margin-top: 2px;
+
+      font-size: 11px;
+
+      color:
+        var(--muted);
+    }
+
+
+    .header-actions {
+
       display: flex;
       align-items: center;
-      justify-content: center;
-      background: #111827;
-      color: white;
-      font-weight: 700;
+
+      gap: 8px;
     }
 
-    .brand h1 {
-      font-size: 20px;
-      margin: 0;
+
+    .icon-button {
+
+      width: 40px;
+      height: 40px;
+
+      border-radius: 12px;
+
+      border:
+        1px solid var(--border);
+
+      background:
+        rgba(255,255,255,0.035);
+
+      color:
+        var(--text);
+
+      display: grid;
+      place-items: center;
+
+      transition:
+        0.2s ease;
     }
 
-    .brand p {
-      margin: 3px 0 0;
-      color: var(--sub);
-      font-size: 12px;
+
+    .icon-button:hover {
+
+      background:
+        rgba(255,255,255,0.08);
     }
+
+
+    /* ======================================================
+       MAIN
+    ======================================================= */
+
+    .main {
+
+      width: 100%;
+      max-width: 980px;
+
+      margin:
+        0 auto;
+
+      padding:
+        22px 16px 80px;
+    }
+
+
+    /* ======================================================
+       CONNECTION
+    ======================================================= */
 
     .connection {
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      gap: 12px;
+
+      margin-bottom: 14px;
+
+      padding:
+        10px 13px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        14px;
+
+      background:
+        rgba(255,255,255,0.025);
+    }
+
+
+    .connection-left {
+
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 12px;
-      background: white;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      font-size: 13px;
+
+      font-size: 12px;
+      color: var(--muted);
     }
+
 
     .connection-dot {
-      width: 9px;
-      height: 9px;
+
+      width: 8px;
+      height: 8px;
+
       border-radius: 50%;
-      background: #9ca3af;
+
+      background:
+        var(--amber);
+
+      box-shadow:
+        0 0 12px currentColor;
     }
+
 
     .connection-dot.ok {
-      background: var(--good);
+      background:
+        var(--emerald);
     }
+
 
     .connection-dot.error {
-      background: var(--bad);
+      background:
+        var(--red);
     }
 
-    .layout {
-      display: grid;
-      grid-template-columns: 1fr 380px;
-      gap: 20px;
-    }
 
-    @media (max-width: 850px) {
-      .layout {
-        grid-template-columns: 1fr;
-      }
+    /* ======================================================
+       MODE BAR
+    ======================================================= */
 
-      header {
-        align-items: flex-start;
-      }
+    .mode-bar {
 
-      .connection {
-        font-size: 11px;
-      }
-    }
-
-    .card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-    }
-
-    .research-card {
-      padding: 20px;
-    }
-
-    .section-title {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
+
       gap: 10px;
+
       margin-bottom: 14px;
     }
 
-    .section-title h2 {
-      margin: 0;
-      font-size: 17px;
-    }
 
-    .section-title span {
-      color: var(--sub);
-      font-size: 12px;
-    }
+    .mode-label {
 
-    textarea {
-      width: 100%;
-      min-height: 170px;
-      resize: vertical;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 15px;
-      outline: none;
-      background: #fafafa;
-    }
-
-    textarea:focus {
-      border-color: var(--accent);
-      background: white;
-    }
-
-    .actions {
       display: flex;
-      gap: 10px;
-      margin-top: 12px;
-      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+
+      font-size: 12px;
+      color: var(--muted);
     }
 
-    .primary,
-    .secondary {
-      border: none;
-      border-radius: 11px;
-      padding: 11px 16px;
-      font-weight: 600;
+
+    .mode-dot {
+
+      width: 7px;
+      height: 7px;
+
+      border-radius: 50%;
+
+      background:
+        var(--emerald);
     }
 
-    .primary {
-      background: var(--accent);
-      color: white;
+
+    .strict-toggle {
+
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      font-size: 12px;
+      color: var(--muted);
     }
 
-    .primary:hover {
-      background: var(--accent-hover);
+
+    .strict-toggle input {
+      display: none;
     }
 
-    .secondary {
-      background: #eef0f3;
-      color: #374151;
+
+    .switch {
+
+      width: 38px;
+      height: 22px;
+
+      padding: 3px;
+
+      border-radius: 999px;
+
+      background:
+        #263449;
+
+      transition:
+        0.2s;
     }
 
-    .primary:disabled,
-    .secondary:disabled {
-      opacity: .5;
-      cursor: not-allowed;
+
+    .switch::after {
+
+      content: "";
+
+      display: block;
+
+      width: 16px;
+      height: 16px;
+
+      border-radius: 50%;
+
+      background:
+        #dbeafe;
+
+      transition:
+        0.2s;
     }
+
+
+    .strict-toggle input:checked + .switch {
+
+      background:
+        var(--indigo);
+    }
+
+
+    .strict-toggle input:checked + .switch::after {
+
+      transform:
+        translateX(16px);
+    }
+
+
+    /* ======================================================
+       CHAT CARD
+    ======================================================= */
+
+    .chat-card {
+
+      background:
+        linear-gradient(
+          180deg,
+          rgba(14, 26, 43, 0.94),
+          rgba(8, 17, 29, 0.96)
+        );
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        22px;
+
+      box-shadow:
+        var(--shadow);
+
+      overflow:
+        hidden;
+    }
+
+
+    .chat-header {
+
+      padding:
+        20px 20px 12px;
+    }
+
+
+    .chat-title {
+
+      font-size: 22px;
+      font-weight: 750;
+
+      letter-spacing:
+        -0.03em;
+    }
+
+
+    .chat-description {
+
+      margin-top: 6px;
+
+      color:
+        var(--muted);
+
+      font-size: 13px;
+
+      line-height:
+        1.6;
+    }
+
+
+    /* ======================================================
+       QUESTION
+    ======================================================= */
+
+    .input-area {
+
+      padding:
+        10px 16px 16px;
+    }
+
+
+    .input-wrap {
+
+      position: relative;
+    }
+
+
+    #questionInput {
+
+      width: 100%;
+
+      min-height: 145px;
+
+      resize: vertical;
+
+      padding:
+        16px 16px 52px;
+
+      border-radius:
+        16px;
+
+      border:
+        1px solid var(--border);
+
+      outline:
+        none;
+
+      color:
+        var(--text);
+
+      background:
+        rgba(0,0,0,0.2);
+
+      line-height:
+        1.65;
+    }
+
+
+    #questionInput:focus {
+
+      border-color:
+        rgba(99,102,241,0.65);
+
+      box-shadow:
+        0 0 0 3px
+        rgba(99,102,241,0.1);
+    }
+
+
+    .input-actions {
+
+      position: absolute;
+
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+
+    .shortcut {
+
+      color:
+        var(--muted);
+
+      font-size: 10px;
+    }
+
+
+    .input-buttons {
+
+      display: flex;
+      gap: 8px;
+    }
+
+
+    .secondary-button,
+    .primary-button {
+
+      border-radius:
+        11px;
+
+      padding:
+        9px 14px;
+
+      border:
+        1px solid var(--border);
+
+      color:
+        var(--text);
+
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+
+    .secondary-button {
+
+      background:
+        rgba(255,255,255,0.04);
+    }
+
+
+    .primary-button {
+
+      border:
+        none;
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--blue),
+          var(--indigo)
+        );
+    }
+
+
+    button:disabled {
+
+      opacity:
+        0.45;
+
+      cursor:
+        not-allowed;
+    }
+
+
+    /* ======================================================
+       STATUS
+    ======================================================= */
 
     .status-box {
-      margin-top: 14px;
-      padding: 12px 14px;
-      border-radius: 12px;
-      background: #f8fafc;
-      border: 1px solid var(--line);
-      font-size: 13px;
-      white-space: pre-wrap;
+
       display: none;
-      line-height: 1.65;
+
+      margin:
+        0 16px 16px;
+
+      padding:
+        13px 14px;
+
+      white-space:
+        pre-wrap;
+
+      word-break:
+        break-word;
+
+      border-radius:
+        13px;
+
+      font-size:
+        12px;
+
+      line-height:
+        1.6;
+
+      border:
+        1px solid var(--border);
+
+      background:
+        rgba(255,255,255,0.035);
     }
+
 
     .status-box.show {
       display: block;
     }
 
-    .status-box.error {
-      background: #fef2f2;
-      border-color: #fecaca;
-      color: #991b1b;
-    }
 
     .status-box.success {
-      background: #f0fdf4;
-      border-color: #bbf7d0;
-      color: #166534;
+
+      border-color:
+        rgba(16,185,129,0.3);
+
+      background:
+        rgba(16,185,129,0.08);
     }
 
-    .latest {
-      margin-top: 20px;
+
+    .status-box.error {
+
+      border-color:
+        rgba(239,68,68,0.35);
+
+      background:
+        rgba(239,68,68,0.08);
     }
 
-    .latest-content {
-      padding: 18px;
-    }
 
-    .result-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 12px;
-    }
-
-    .result-title {
-      margin: 0;
-      font-size: 18px;
-    }
-
-    .result-date {
-      color: var(--sub);
-      font-size: 11px;
-      margin-top: 5px;
-    }
-
-    .symbol {
-      min-width: 45px;
-      height: 45px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      font-weight: 700;
-      border: 1px solid var(--line);
-    }
-
-    .symbol.good {
-      color: var(--good);
-      background: #f0fdf4;
-    }
-
-    .symbol.maybe {
-      color: var(--maybe);
-      background: #fffbeb;
-    }
-
-    .symbol.bad {
-      color: var(--bad);
-      background: #fef2f2;
-    }
-
-    .symbol.unknown {
-      color: #6b7280;
-      background: #f3f4f6;
-    }
-
-    .result-summary {
-      margin-top: 14px;
-      line-height: 1.7;
-      white-space: pre-wrap;
-    }
-
-    .result-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 7px;
-      margin-top: 14px;
-    }
-
-    .tag {
-      background: #f3f4f6;
-      border-radius: 999px;
-      padding: 5px 9px;
-      color: #4b5563;
-      font-size: 11px;
-    }
-
-    .details {
-      margin-top: 15px;
-      border-top: 1px solid var(--line);
-      padding-top: 15px;
-    }
-
-    .detail-block {
-      margin-bottom: 18px;
-    }
-
-    .detail-block h3 {
-      margin: 0 0 7px;
-      font-size: 13px;
-    }
-
-    .detail-block p {
-      margin: 0;
-      white-space: pre-wrap;
-      line-height: 1.7;
-      font-size: 13px;
-      color: #374151;
-    }
-
-    .right-card {
-      padding: 18px;
-    }
-
-    .history-list {
-      display: flex;
-      flex-direction: column;
-      gap: 9px;
-      max-height: 650px;
-      overflow-y: auto;
-    }
-
-    .history-item {
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 11px;
-      background: white;
-      transition: .15s;
-    }
-
-    .history-item:hover {
-      border-color: #cbd5e1;
-      background: #fafafa;
-    }
-
-    .history-main {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-    }
-
-    .history-symbol {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-
-    .history-symbol.good {
-      color: var(--good);
-      background: #f0fdf4;
-    }
-
-    .history-symbol.maybe {
-      color: var(--maybe);
-      background: #fffbeb;
-    }
-
-    .history-symbol.bad {
-      color: var(--bad);
-      background: #fef2f2;
-    }
-
-    .history-symbol.unknown {
-      color: #6b7280;
-      background: #f3f4f6;
-    }
-
-    .history-title {
-      font-size: 13px;
-      font-weight: 600;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .history-date {
-      color: var(--sub);
-      font-size: 10px;
-      margin-top: 3px;
-    }
-
-    .history-empty {
-      text-align: center;
-      color: var(--sub);
-      padding: 30px 10px;
-      font-size: 13px;
-    }
-
-    .small-note {
-      color: var(--sub);
-      font-size: 11px;
-      line-height: 1.6;
-      margin-top: 10px;
-    }
+    /* ======================================================
+       PROGRESS
+    ======================================================= */
 
     .progress {
-      margin-top: 14px;
+
+      padding:
+        0 16px 16px;
     }
 
-    .progress-label {
+
+    .progress-top {
+
       display: flex;
       justify-content: space-between;
-      color: var(--sub);
-      font-size: 11px;
-      margin-bottom: 6px;
+
+      margin-bottom:
+        7px;
+
+      font-size:
+        11px;
+
+      color:
+        var(--muted);
     }
 
-    .progress-bar {
-      width: 100%;
-      height: 6px;
-      border-radius: 999px;
-      background: #e5e7eb;
-      overflow: hidden;
+
+    .progress-track {
+
+      height:
+        5px;
+
+      overflow:
+        hidden;
+
+      border-radius:
+        999px;
+
+      background:
+        rgba(255,255,255,0.07);
     }
+
 
     .progress-value {
+
       height: 100%;
-      width: 0%;
-      background: var(--accent);
-      transition: width .25s;
+
+      width: 0;
+
+      border-radius:
+        inherit;
+
+      background:
+        linear-gradient(
+          90deg,
+          var(--blue),
+          var(--indigo),
+          var(--emerald)
+        );
+
+      transition:
+        width 0.35s ease;
     }
+
+
+    /* ======================================================
+       LATEST RESULT
+    ======================================================= */
+
+    .latest-section {
+
+      margin-top:
+        18px;
+
+      background:
+        var(--panel);
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        var(--radius);
+
+      overflow:
+        hidden;
+    }
+
+
+    .latest-head {
+
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+
+      gap: 14px;
+
+      padding:
+        18px;
+    }
+
+
+    .latest-title {
+
+      font-size:
+        18px;
+
+      font-weight:
+        700;
+    }
+
+
+    .latest-date {
+
+      margin-top:
+        5px;
+
+      color:
+        var(--muted);
+
+      font-size:
+        11px;
+    }
+
+
+    .symbol {
+
+      flex: 0 0 auto;
+
+      width:
+        48px;
+
+      height:
+        48px;
+
+      border-radius:
+        15px;
+
+      display:
+        grid;
+
+      place-items:
+        center;
+
+      font-size:
+        24px;
+
+      font-weight:
+        800;
+
+      background:
+        rgba(255,255,255,0.04);
+    }
+
+
+    .symbol.good {
+
+      color:
+        var(--emerald);
+
+      background:
+        rgba(16,185,129,0.1);
+    }
+
+
+    .symbol.bad {
+
+      color:
+        var(--red);
+
+      background:
+        rgba(239,68,68,0.1);
+    }
+
+
+    .symbol.maybe {
+
+      color:
+        var(--amber);
+
+      background:
+        rgba(245,158,11,0.1);
+    }
+
+
+    .latest-summary {
+
+      padding:
+        0 18px 15px;
+
+      color:
+        #c6d2e2;
+
+      font-size:
+        13px;
+
+      line-height:
+        1.75;
+
+      white-space:
+        pre-wrap;
+    }
+
+
+    .latest-meta {
+
+      display:
+        flex;
+
+      flex-wrap:
+        wrap;
+
+      gap:
+        7px;
+
+      padding:
+        0 18px 16px;
+    }
+
+
+    .tag {
+
+      padding:
+        5px 9px;
+
+      border-radius:
+        999px;
+
+      font-size:
+        10px;
+
+      color:
+        #b9c9dc;
+
+      background:
+        rgba(255,255,255,0.05);
+
+      border:
+        1px solid var(--border);
+    }
+
+
+    .latest-actions {
+
+      display:
+        flex;
+
+      gap:
+        8px;
+
+      padding:
+        0 18px 18px;
+    }
+
+
+    /* ======================================================
+       DETAILS
+    ======================================================= */
+
+    .details {
+
+      border-top:
+        1px solid var(--border);
+
+      padding:
+        18px;
+    }
+
+
+    .detail-grid {
+
+      display:
+        grid;
+
+      gap:
+        12px;
+    }
+
+
+    .detail-card {
+
+      padding:
+        14px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        14px;
+
+      background:
+        rgba(255,255,255,0.025);
+    }
+
+
+    .detail-label {
+
+      margin-bottom:
+        7px;
+
+      color:
+        var(--muted);
+
+      font-size:
+        11px;
+
+      font-weight:
+        650;
+    }
+
+
+    .detail-value {
+
+      color:
+        #d7e1ef;
+
+      font-size:
+        13px;
+
+      line-height:
+        1.7;
+
+      white-space:
+        pre-wrap;
+
+      word-break:
+        break-word;
+    }
+
+
+    /* ======================================================
+       EVALUATION
+    ======================================================= */
 
     .evaluation-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      margin-top: 15px;
+
+      display:
+        grid;
+
+      grid-template-columns:
+        repeat(5, 1fr);
+
+      gap:
+        7px;
+
+      margin:
+        0 18px 18px;
     }
+
 
     .evaluation-item {
-      padding: 10px;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      background: #fafafa;
+
+      padding:
+        10px 5px;
+
+      text-align:
+        center;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        12px;
+
+      background:
+        rgba(255,255,255,0.025);
     }
+
 
     .evaluation-item .label {
-      font-size: 10px;
-      color: var(--sub);
+
+      color:
+        var(--muted);
+
+      font-size:
+        9px;
     }
+
 
     .evaluation-item .value {
-      margin-top: 3px;
-      font-weight: 700;
-      font-size: 17px;
+
+      margin-top:
+        5px;
+
+      font-size:
+        18px;
+
+      font-weight:
+        750;
     }
 
-    .hidden {
-      display: none !important;
+
+    /* ======================================================
+       HISTORY
+    ======================================================= */
+
+    .section-card {
+
+      margin-top:
+        18px;
+
+      padding:
+        18px;
+
+      background:
+        var(--panel);
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        var(--radius);
     }
+
+
+    .section-heading {
+
+      display:
+        flex;
+
+      justify-content:
+        space-between;
+
+      align-items:
+        center;
+
+      margin-bottom:
+        14px;
+    }
+
+
+    .section-title {
+
+      font-size:
+        15px;
+
+      font-weight:
+        700;
+    }
+
+
+    .section-count {
+
+      color:
+        var(--muted);
+
+      font-size:
+        11px;
+    }
+
+
+    .history-list {
+
+      display:
+        grid;
+
+      gap:
+        7px;
+    }
+
+
+    .history-item {
+
+      padding:
+        12px;
+
+      border:
+        1px solid transparent;
+
+      border-radius:
+        13px;
+
+      background:
+        rgba(255,255,255,0.025);
+
+      cursor:
+        pointer;
+
+      transition:
+        0.18s ease;
+    }
+
+
+    .history-item:hover {
+
+      border-color:
+        var(--border);
+
+      background:
+        rgba(255,255,255,0.045);
+    }
+
+
+    .history-main {
+
+      display:
+        flex;
+
+      align-items:
+        center;
+
+      gap:
+        11px;
+    }
+
+
+    .history-symbol {
+
+      width:
+        34px;
+
+      height:
+        34px;
+
+      display:
+        grid;
+
+      place-items:
+        center;
+
+      border-radius:
+        10px;
+
+      background:
+        rgba(255,255,255,0.04);
+
+      font-weight:
+        750;
+    }
+
+
+    .history-symbol.good {
+      color:
+        var(--emerald);
+    }
+
+
+    .history-symbol.bad {
+      color:
+        var(--red);
+    }
+
+
+    .history-symbol.maybe {
+      color:
+        var(--amber);
+    }
+
+
+    .history-title {
+
+      font-size:
+        12px;
+
+      font-weight:
+        650;
+
+      white-space:
+        nowrap;
+
+      overflow:
+        hidden;
+
+      text-overflow:
+        ellipsis;
+    }
+
+
+    .history-date {
+
+      margin-top:
+        3px;
+
+      color:
+        var(--muted);
+
+      font-size:
+        10px;
+    }
+
+
+    .history-empty {
+
+      padding:
+        24px;
+
+      text-align:
+        center;
+
+      color:
+        var(--muted);
+
+      font-size:
+        12px;
+    }
+
+
+    /* ======================================================
+       RESEARCH ROOMS
+    ======================================================= */
+
+    .room-grid {
+
+      display:
+        grid;
+
+      grid-template-columns:
+        repeat(2, 1fr);
+
+      gap:
+        10px;
+    }
+
+
+    .room-button {
+
+      min-height:
+        82px;
+
+      padding:
+        14px;
+
+      text-align:
+        left;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        15px;
+
+      background:
+        rgba(255,255,255,0.025);
+
+      color:
+        var(--text);
+
+      transition:
+        0.18s ease;
+    }
+
+
+    .room-button:hover {
+
+      background:
+        rgba(255,255,255,0.055);
+    }
+
+
+    .room-icon {
+
+      font-size:
+        18px;
+    }
+
+
+    .room-name {
+
+      margin-top:
+        7px;
+
+      font-size:
+        12px;
+
+      font-weight:
+        700;
+    }
+
+
+    .room-description {
+
+      margin-top:
+        3px;
+
+      color:
+        var(--muted);
+
+      font-size:
+        10px;
+
+      line-height:
+        1.4;
+    }
+
+
+    /* ======================================================
+       VISUALIZER
+    ======================================================= */
+
+    .visualizer-panel {
+
+      margin-top:
+        18px;
+
+      padding:
+        18px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        var(--radius);
+
+      background:
+        var(--panel);
+    }
+
+
+    .visualizer-head {
+
+      display:
+        flex;
+
+      justify-content:
+        space-between;
+
+      align-items:
+        center;
+    }
+
+
+    .visualizer-title {
+
+      font-size:
+        15px;
+
+      font-weight:
+        700;
+    }
+
+
+    .visualizer-description {
+
+      margin-top:
+        5px;
+
+      color:
+        var(--muted);
+
+      font-size:
+        11px;
+
+      line-height:
+        1.5;
+    }
+
+
+    .zero-buttons {
+
+      display:
+        flex;
+
+      flex-wrap:
+        wrap;
+
+      gap:
+        6px;
+
+      margin-top:
+        13px;
+    }
+
+
+    .zero-button {
+
+      padding:
+        7px 9px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        9px;
+
+      color:
+        var(--text);
+
+      background:
+        rgba(255,255,255,0.035);
+
+      font-size:
+        10px;
+    }
+
+
+    .slider-wrap {
+
+      margin-top:
+        15px;
+    }
+
+
+    .slider-wrap input {
+
+      width:
+        100%;
+    }
+
+
+    .slider-value {
+
+      margin-top:
+        5px;
+
+      color:
+        var(--muted);
+
+      font-size:
+        10px;
+    }
+
+
+    .math-display {
+
+      min-height:
+        120px;
+
+      margin-top:
+        14px;
+
+      padding:
+        18px;
+
+      display:
+        grid;
+
+      place-items:
+        center;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        14px;
+
+      background:
+        rgba(0,0,0,0.18);
+
+      overflow:
+        auto;
+    }
+
+
+    /* ======================================================
+       DRAWER
+    ======================================================= */
+
+    .drawer-overlay {
+
+      position:
+        fixed;
+
+      inset:
+        0;
+
+      z-index:
+        50;
+
+      background:
+        rgba(0,0,0,0.5);
+
+      backdrop-filter:
+        blur(5px);
+    }
+
+
+    .drawer {
+
+      position:
+        fixed;
+
+      top:
+        0;
+
+      right:
+        0;
+
+      z-index:
+        51;
+
+      width:
+        min(410px, 92vw);
+
+      height:
+        100vh;
+
+      padding:
+        18px;
+
+      overflow-y:
+        auto;
+
+      background:
+        #091321;
+
+      border-left:
+        1px solid var(--border);
+
+      box-shadow:
+        -25px 0 70px rgba(0,0,0,0.4);
+    }
+
+
+    .drawer-head {
+
+      display:
+        flex;
+
+      justify-content:
+        space-between;
+
+      align-items:
+        center;
+
+      margin-bottom:
+        18px;
+    }
+
+
+    .drawer-title {
+
+      font-size:
+        17px;
+
+      font-weight:
+        750;
+    }
+
+
+    .memory-list {
+
+      display:
+        grid;
+
+      gap:
+        8px;
+    }
+
+
+    .memory-item {
+
+      padding:
+        12px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        12px;
+
+      background:
+        rgba(255,255,255,0.025);
+    }
+
+
+    .memory-label {
+
+      color:
+        var(--muted);
+
+      font-size:
+        10px;
+    }
+
+
+    .memory-value {
+
+      margin-top:
+        5px;
+
+      font-size:
+        12px;
+
+      line-height:
+        1.55;
+    }
+
+
+    /* ======================================================
+       BOTTOM NAV
+    ======================================================= */
+
+    .bottom-nav {
+
+      position:
+        fixed;
+
+      left:
+        50%;
+
+      bottom:
+        12px;
+
+      transform:
+        translateX(-50%);
+
+      z-index:
+        30;
+
+      width:
+        min(620px, calc(100% - 24px));
+
+      display:
+        grid;
+
+      grid-template-columns:
+        repeat(4, 1fr);
+
+      gap:
+        4px;
+
+      padding:
+        6px;
+
+      border:
+        1px solid var(--border);
+
+      border-radius:
+        17px;
+
+      background:
+        rgba(8,17,29,0.9);
+
+      backdrop-filter:
+        blur(20px);
+
+      box-shadow:
+        var(--shadow);
+    }
+
+
+    .nav-button {
+
+      padding:
+        8px 4px;
+
+      border:
+        none;
+
+      border-radius:
+        11px;
+
+      background:
+        transparent;
+
+      color:
+        var(--muted);
+
+      font-size:
+        10px;
+    }
+
+
+    .nav-button.active {
+
+      color:
+        var(--text);
+
+      background:
+        rgba(255,255,255,0.07);
+    }
+
+
+    /* ======================================================
+       RESPONSIVE
+    ======================================================= */
+
+    @media (max-width: 600px) {
+
+      .main {
+        padding:
+          14px 10px 90px;
+      }
+
+
+      .header {
+        padding:
+          11px 12px;
+      }
+
+
+      .brand-symbol {
+
+        width:
+          34px;
+
+        height:
+          34px;
+      }
+
+
+      .brand-title {
+        font-size:
+          13px;
+      }
+
+
+      .chat-title {
+        font-size:
+          20px;
+      }
+
+
+      .room-grid {
+        grid-template-columns:
+          1fr 1fr;
+      }
+
+
+      .evaluation-grid {
+        gap:
+          4px;
+      }
+
+
+      .evaluation-item {
+        padding:
+          8px 2px;
+      }
+
+
+      .evaluation-item .value {
+        font-size:
+          16px;
+      }
+    }
+
+
+    @media (max-width: 380px) {
+
+      .room-grid {
+        grid-template-columns:
+          1fr;
+      }
+
+
+      .shortcut {
+        display:
+          none;
+      }
+    }
+
   </style>
 </head>
+
 
 <body>
 
 <div class="app">
 
-  <header>
+
+  <!-- ====================================================
+       HEADER
+  ===================================================== -->
+
+  <header class="header">
 
     <div class="brand">
 
-      <div class="brand-icon">
-        ∑
+      <div class="brand-symbol">
+        ζ
       </div>
 
-      <div>
-        <h1>Research AI Lab</h1>
-        <p>数学研究・仮説探索・検証システム</p>
+      <div class="brand-text">
+
+        <div class="brand-title">
+          24/7 Riemann Research Lab
+        </div>
+
+        <div class="brand-subtitle">
+          AI Mathematical Research Laboratory
+        </div>
+
       </div>
 
     </div>
 
-    <div class="connection">
 
-      <span
-        id="connectionDot"
-        class="connection-dot"
-      ></span>
+    <div class="header-actions">
 
-      <span id="connectionText">
-        Supabase 接続確認中...
-      </span>
+      <button
+        class="icon-button"
+        id="memoryButton"
+        title="Memory"
+        type="button"
+      >
+        🧠
+      </button>
+
+      <button
+        class="icon-button"
+        id="settingsButton"
+        title="Settings"
+        type="button"
+      >
+        ⚙
+      </button>
 
     </div>
 
   </header>
 
 
-  <div class="layout">
 
-    <main>
+  <!-- ====================================================
+       MAIN
+  ===================================================== -->
 
-      <section class="card research-card">
+  <main class="main">
 
-        <div class="section-title">
 
-          <h2>
-            新しい研究
-          </h2>
+    <!-- CONNECTION -->
 
-          <span>
-            AI研究ルートを自動記録
+    <div class="connection">
+
+      <div class="connection-left">
+
+        <span
+          id="connectionDot"
+          class="connection-dot"
+        ></span>
+
+        <span id="connectionText">
+          Supabase 接続確認中...
+        </span>
+
+      </div>
+
+
+      <div
+        class="mode-label"
+        id="researchModeLabel"
+      >
+
+        <span class="mode-dot"></span>
+
+        Research Lab
+
+      </div>
+
+    </div>
+
+
+
+    <!-- MODE -->
+
+    <div class="mode-bar">
+
+      <div class="mode-label">
+
+        <span>数学研究モード</span>
+
+      </div>
+
+
+      <label class="strict-toggle">
+
+        <span>
+          Strict Mode
+        </span>
+
+        <input
+          id="strictMode"
+          type="checkbox"
+        >
+
+        <span class="switch"></span>
+
+      </label>
+
+    </div>
+
+
+
+    <!-- ==================================================
+         CHAT
+    =================================================== -->
+
+    <section class="chat-card">
+
+      <div class="chat-header">
+
+        <div class="chat-title">
+          Research Chat
+        </div>
+
+        <div class="chat-description">
+
+          リーマン予想を中心に、
+          仮説・証明戦略・数値実験・反証を
+          探索します。
+
+        </div>
+
+      </div>
+
+
+      <div class="input-area">
+
+        <div class="input-wrap">
+
+          <textarea
+            id="questionInput"
+            placeholder="研究したい数学的な問題を入力..."
+            autocomplete="off"
+            spellcheck="false"
+          ></textarea>
+
+
+          <div class="input-actions">
+
+            <div class="shortcut">
+              ⌘ / Ctrl + Enter
+            </div>
+
+
+            <div class="input-buttons">
+
+              <button
+                id="clearButton"
+                class="secondary-button"
+                type="button"
+              >
+                クリア
+              </button>
+
+              <button
+                id="researchButton"
+                class="primary-button"
+                type="button"
+              >
+                研究する
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- STATUS -->
+
+      <div
+        id="statusBox"
+        class="status-box"
+      ></div>
+
+
+
+      <!-- PROGRESS -->
+
+      <div
+        id="progress"
+        class="progress hidden"
+      >
+
+        <div class="progress-top">
+
+          <span id="progressText">
+            準備中...
+          </span>
+
+          <span id="progressPercent">
+            0%
           </span>
 
         </div>
 
 
-        <textarea
-          id="questionInput"
-          placeholder="数学的な問題・仮説・疑問を入力してください。
+        <div class="progress-track">
 
-例：
-素数の分布について、既存の定理を単に使うのではなく、別の不変量から新しい見方ができないか検討したい。"
-        ></textarea>
+          <div
+            id="progressValue"
+            class="progress-value"
+          ></div>
+
+        </div>
+
+      </div>
+
+    </section>
 
 
-        <div class="actions">
 
-          <button
-            id="researchButton"
-            class="primary"
+    <!-- ==================================================
+         LATEST RESULT
+    =================================================== -->
+
+    <section
+      id="latestSection"
+      class="latest-section hidden"
+    >
+
+      <div class="latest-head">
+
+        <div>
+
+          <div
+            id="latestTitle"
+            class="latest-title"
           >
-            研究開始
-          </button>
+            AI研究回答
+          </div>
 
-          <button
-            id="clearButton"
-            class="secondary"
-          >
-            入力を消去
-          </button>
+          <div
+            id="latestDate"
+            class="latest-date"
+          ></div>
 
         </div>
 
 
         <div
-          id="statusBox"
-          class="status-box"
-        ></div>
-
-
-        <div
-          id="progress"
-          class="progress hidden"
+          id="latestSymbol"
+          class="symbol maybe"
         >
+          △
+        </div>
 
-          <div class="progress-label">
+      </div>
 
-            <span id="progressText">
-              準備中...
-            </span>
 
-            <span id="progressPercent">
-              0%
-            </span>
+      <div
+        id="latestSummary"
+        class="latest-summary"
+      ></div>
 
+
+      <div
+        id="latestMeta"
+        class="latest-meta"
+      ></div>
+
+
+      <div class="evaluation-grid">
+
+        <div class="evaluation-item">
+
+          <div class="label">
+            総合
           </div>
 
-
-          <div class="progress-bar">
-
-            <div
-              id="progressValue"
-              class="progress-value"
-            ></div>
-
+          <div class="value">
+            △
           </div>
 
         </div>
 
-      </section>
+
+        <div class="evaluation-item">
+
+          <div class="label">
+            仮説
+          </div>
+
+          <div class="value">
+            △
+          </div>
+
+        </div>
 
 
-      <section
-        id="latestSection"
-        class="card latest hidden"
+        <div class="evaluation-item">
+
+          <div class="label">
+            計算
+          </div>
+
+          <div class="value">
+            △
+          </div>
+
+        </div>
+
+
+        <div class="evaluation-item">
+
+          <div class="label">
+            検証
+          </div>
+
+          <div class="value">
+            △
+          </div>
+
+        </div>
+
+
+        <div class="evaluation-item">
+
+          <div class="label">
+            論理
+          </div>
+
+          <div class="value">
+            △
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="evaluationGrid"
+        class="evaluation-grid"
+      ></div>
+
+
+      <div class="latest-actions">
+
+        <button
+          id="evaluateButton"
+          class="primary-button"
+          type="button"
+          disabled
+        >
+          AI評価
+        </button>
+
+
+        <button
+          id="toggleDetailsButton"
+          class="secondary-button"
+          type="button"
+        >
+          詳細を表示
+        </button>
+
+      </div>
+
+
+      <!-- DETAILS -->
+
+      <div
+        id="details"
+        class="details hidden"
       >
 
-        <div class="latest-content">
-
-          <div class="section-title">
-
-            <h2>
-              最新の研究結果
-            </h2>
-
-            <span>
-              研究結果
-            </span>
-
-          </div>
+        <div class="detail-grid">
 
 
-          <div class="result-head">
+          <div class="detail-card">
 
-            <div>
-
-              <h2
-                id="latestTitle"
-                class="result-title"
-              ></h2>
-
-              <div
-                id="latestDate"
-                class="result-date"
-              ></div>
-
+            <div class="detail-label">
+              仮説
             </div>
-
 
             <div
-              id="latestSymbol"
-              class="symbol unknown"
+              id="detailHypothesis"
+              class="detail-value"
             >
-              ?
+              記録なし
             </div>
 
           </div>
 
 
-          <div
-            id="latestSummary"
-            class="result-summary"
-          ></div>
+          <div class="detail-card">
 
-
-          <div
-            id="latestMeta"
-            class="result-meta"
-          ></div>
-
-
-          <div class="actions">
-
-            <button
-              id="evaluateButton"
-              class="primary"
-              disabled
-            >
-              この結果を評価
-            </button>
-
-            <button
-              id="toggleDetailsButton"
-              class="secondary"
-            >
-              詳細を表示
-            </button>
-
-          </div>
-
-
-          <div
-            id="details"
-            class="details hidden"
-          >
-
-            <div class="detail-block">
-
-              <h3>
-                仮説
-              </h3>
-
-              <p id="detailHypothesis"></p>
-
+            <div class="detail-label">
+              計算
             </div>
-
-
-            <div class="detail-block">
-
-              <h3>
-                計算
-              </h3>
-
-              <p id="detailCalculation"></p>
-
-            </div>
-
-
-            <div class="detail-block">
-
-              <h3>
-                検証
-              </h3>
-
-              <p id="detailVerification"></p>
-
-            </div>
-
-
-            <div class="detail-block">
-
-              <h3>
-                次の行動
-              </h3>
-
-              <p id="detailNextAction"></p>
-
-            </div>
-
-
-            <div class="detail-block">
-
-              <h3>
-                研究ルート
-              </h3>
-
-              <p id="detailRoute"></p>
-
-            </div>
-
-
-            <div class="detail-block">
-
-              <h3>
-                評価理由
-              </h3>
-
-              <p id="detailReason"></p>
-
-            </div>
-
 
             <div
-              id="evaluationGrid"
-              class="evaluation-grid"
-            ></div>
+              id="detailCalculation"
+              class="detail-value"
+            >
+              記録なし
+            </div>
+
+          </div>
+
+
+          <div class="detail-card">
+
+            <div class="detail-label">
+              検証
+            </div>
+
+            <div
+              id="detailVerification"
+              class="detail-value"
+            >
+              記録なし
+            </div>
+
+          </div>
+
+
+          <div class="detail-card">
+
+            <div class="detail-label">
+              次の行動
+            </div>
+
+            <div
+              id="detailNextAction"
+              class="detail-value"
+            >
+              記録なし
+            </div>
+
+          </div>
+
+
+          <div class="detail-card">
+
+            <div class="detail-label">
+              研究ルート
+            </div>
+
+            <div
+              id="detailRoute"
+              class="detail-value"
+            >
+              記録なし
+            </div>
+
+          </div>
+
+
+          <div class="detail-card">
+
+            <div class="detail-label">
+              評価理由
+            </div>
+
+            <div
+              id="detailReason"
+              class="detail-value"
+            >
+              まだ評価されていません。
+            </div>
 
           </div>
 
         </div>
 
-      </section>
+      </div>
 
-    </main>
+    </section>
 
 
-    <aside class="card right-card">
 
-      <div class="section-title">
+    <!-- ==================================================
+         RESEARCH ROOMS
+    =================================================== -->
 
-        <h2>
-          研究履歴
-        </h2>
+    <section class="section-card">
 
-        <span id="historyCount">
+      <div class="section-heading">
+
+        <div class="section-title">
+          Research Rooms
+        </div>
+
+        <div class="section-count">
+          探索機能
+        </div>
+
+      </div>
+
+
+      <div class="room-grid">
+
+
+        <button
+          class="room-button"
+          id="directionRoomButton"
+          type="button"
+        >
+
+          <div class="room-icon">
+            🧭
+          </div>
+
+          <div class="room-name">
+            Direction
+          </div>
+
+          <div class="room-description">
+            研究方針・アイデア
+          </div>
+
+        </button>
+
+
+        <button
+          class="room-button"
+          id="researchRoomButton"
+          type="button"
+        >
+
+          <div class="room-icon">
+            📚
+          </div>
+
+          <div class="room-name">
+            Research
+          </div>
+
+          <div class="room-description">
+            論文・既知研究
+          </div>
+
+        </button>
+
+
+        <button
+          class="room-button"
+          id="hypothesisRoomButton"
+          type="button"
+        >
+
+          <div class="room-icon">
+            💡
+          </div>
+
+          <div class="room-name">
+            Hypotheses
+          </div>
+
+          <div class="room-description">
+            仮説と研究枝
+          </div>
+
+        </button>
+
+
+        <button
+          class="room-button"
+          id="experimentRoomButton"
+          type="button"
+        >
+
+          <div class="room-icon">
+            🧪
+          </div>
+
+          <div class="room-name">
+            Experiment
+          </div>
+
+          <div class="room-description">
+            数値実験・再現
+          </div>
+
+        </button>
+
+
+        <button
+          class="room-button"
+          id="redTeamButton"
+          type="button"
+        >
+
+          <div class="room-icon">
+            🧨
+          </div>
+
+          <div class="room-name">
+            Red Team
+          </div>
+
+          <div class="room-description">
+            反証・弱点探索
+          </div>
+
+        </button>
+
+
+        <button
+          class="room-button"
+          id="visualizerButton"
+          type="button"
+        >
+
+          <div class="room-icon">
+            📈
+          </div>
+
+          <div class="room-name">
+            Visualization
+          </div>
+
+          <div class="room-description">
+            ζ(s)・零点可視化
+          </div>
+
+        </button>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- ==================================================
+         VISUALIZER
+    =================================================== -->
+
+    <section
+      id="visualizerPanel"
+      class="visualizer-panel hidden"
+    >
+
+      <div class="visualizer-head">
+
+        <div>
+
+          <div class="visualizer-title">
+            Riemann ζ Visualizer
+          </div>
+
+          <div class="visualizer-description">
+
+            臨界線
+            $s = \frac{1}{2}+it$
+            を数値実験として可視化します。
+            グラフ上の表示は数値計算に基づくものであり、
+            証明を意味しません。
+
+          </div>
+
+        </div>
+
+
+        <button
+          id="closeVisualizerButton"
+          class="secondary-button"
+          type="button"
+        >
+          閉じる
+        </button>
+
+      </div>
+
+
+      <div class="zero-buttons">
+
+        <button
+          class="zero-button"
+          data-zero="14.134725"
+          type="button"
+        >
+          第1零点 14.134
+        </button>
+
+        <button
+          class="zero-button"
+          data-zero="21.022040"
+          type="button"
+        >
+          第2零点 21.022
+        </button>
+
+        <button
+          class="zero-button"
+          data-zero="25.010858"
+          type="button"
+        >
+          第3零点 25.011
+        </button>
+
+      </div>
+
+
+      <div class="slider-wrap">
+
+        <input
+          id="zeroSlider"
+          type="range"
+          min="0"
+          max="40"
+          step="0.001"
+          value="14.134725"
+        >
+
+        <div
+          id="sliderValue"
+          class="slider-value"
+        >
+          t = 14.134725
+        </div>
+
+      </div>
+
+
+      <div
+        id="mathDisplay"
+        class="math-display"
+      >
+
+        $$
+        s = \frac{1}{2} + 14.134725i
+        $$
+
+      </div>
+
+    </section>
+
+
+
+    <!-- ==================================================
+         HISTORY
+    =================================================== -->
+
+    <section class="section-card">
+
+      <div class="section-heading">
+
+        <div class="section-title">
+          Research History
+        </div>
+
+        <div
+          id="historyCount"
+          class="section-count"
+        >
           0件
-        </span>
+        </div>
 
       </div>
 
@@ -798,1994 +2684,1100 @@
       >
 
         <div class="history-empty">
-          まだ研究結果がありません。
+          研究履歴を読み込んでいます...
+        </div>
+
+      </div>
+
+    </section>
+
+
+  </main>
+
+
+
+  <!-- ====================================================
+       BOTTOM NAV
+  ===================================================== -->
+
+  <nav class="bottom-nav">
+
+    <button
+      class="nav-button active"
+      id="navLab"
+      type="button"
+    >
+      🏠<br>
+      Lab
+    </button>
+
+
+    <button
+      class="nav-button"
+      id="navResearch"
+      type="button"
+    >
+      📚<br>
+      Research
+    </button>
+
+
+    <button
+      class="nav-button"
+      id="navHypothesis"
+      type="button"
+    >
+      💡<br>
+      Hypotheses
+    </button>
+
+
+    <button
+      class="nav-button"
+      id="navExperiment"
+      type="button"
+    >
+      🧪<br>
+      Experiment
+    </button>
+
+  </nav>
+
+
+
+  <!-- ====================================================
+       MEMORY DRAWER
+  ===================================================== -->
+
+  <div
+    id="memoryOverlay"
+    class="drawer-overlay hidden"
+  ></div>
+
+
+  <aside
+    id="memoryDrawer"
+    class="drawer hidden"
+  >
+
+    <div class="drawer-head">
+
+      <div class="drawer-title">
+        🧠 Research Memory
+      </div>
+
+      <button
+        id="closeMemoryButton"
+        class="icon-button"
+        type="button"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <div class="memory-list">
+
+      <div class="memory-item">
+
+        <div class="memory-label">
+          Research Direction
+        </div>
+
+        <div class="memory-value">
+          リーマン予想を中心に、
+          既知研究の確認と新しい証明戦略を探索する。
         </div>
 
       </div>
 
 
-      <p class="small-note">
-        最新100件を表示します。
-        保存された研究結果はAI側からも参照できます。
-      </p>
+      <div class="memory-item">
 
-    </aside>
+        <div class="memory-label">
+          Mathematical Integrity
+        </div>
 
-  </div>
+        <div class="memory-value">
+          未証明の仮説、数値的観測、証明済みの定理を
+          明確に区別する。
+        </div>
 
-</div>
-
-
-<script>
-
-/* =========================================================
-   CONFIG
-========================================================= */
-
-const SUPABASE_URL =
-  "https://hiefdcodifkfhnqvruzn.supabase.co";
-
-
-const SUPABASE_KEY =
-  "sb_publishable_HmcPY6BGvUQTPESGHVe7Hw_W4NlTPqj";
-
-
-/*
- * 重要：
- *
- * Supabaseに存在するFunctionは
- *
- * research-ai
- * smart-handler
- *
- * であり、
- *
- * "research"
- *
- * ではない。
- *
- * 今回はsmart-handlerを使用する。
- */
-
-const RESEARCH_FUNCTION =
-  "smart-handler";
-
-
-const EVALUATE_FUNCTION =
-  "evaluate";
-
-
-const DEFAULT_PROJECT_ID =
-  "4253800d-a89e-45e2-a36a-cc52eb6c510b";
-
-
-/* =========================================================
-   STATE
-========================================================= */
-
-let projectId =
-  localStorage.getItem(
-    "research_project_id"
-  );
-
-
-if (!projectId) {
-
-  projectId =
-    DEFAULT_PROJECT_ID;
-
-  localStorage.setItem(
-    "research_project_id",
-    projectId
-  );
-}
-
-
-let latestResult = null;
-
-
-/* =========================================================
-   DOM
-========================================================= */
-
-const questionInput =
-  document.getElementById(
-    "questionInput"
-  );
-
-
-const researchButton =
-  document.getElementById(
-    "researchButton"
-  );
-
-
-const clearButton =
-  document.getElementById(
-    "clearButton"
-  );
-
-
-const evaluateButton =
-  document.getElementById(
-    "evaluateButton"
-  );
-
-
-const toggleDetailsButton =
-  document.getElementById(
-    "toggleDetailsButton"
-  );
-
-
-const statusBox =
-  document.getElementById(
-    "statusBox"
-  );
-
-
-const connectionDot =
-  document.getElementById(
-    "connectionDot"
-  );
-
-
-const connectionText =
-  document.getElementById(
-    "connectionText"
-  );
-
-
-const progress =
-  document.getElementById(
-    "progress"
-  );
-
-
-const progressText =
-  document.getElementById(
-    "progressText"
-  );
-
-
-const progressPercent =
-  document.getElementById(
-    "progressPercent"
-  );
-
-
-const progressValue =
-  document.getElementById(
-    "progressValue"
-  );
-
-
-const latestSection =
-  document.getElementById(
-    "latestSection"
-  );
-
-
-const latestTitle =
-  document.getElementById(
-    "latestTitle"
-  );
-
-
-const latestDate =
-  document.getElementById(
-    "latestDate"
-  );
-
-
-const latestSymbol =
-  document.getElementById(
-    "latestSymbol"
-  );
-
-
-const latestSummary =
-  document.getElementById(
-    "latestSummary"
-  );
-
-
-const latestMeta =
-  document.getElementById(
-    "latestMeta"
-  );
-
-
-const details =
-  document.getElementById(
-    "details"
-  );
-
-
-const historyList =
-  document.getElementById(
-    "historyList"
-  );
-
-
-const historyCount =
-  document.getElementById(
-    "historyCount"
-  );
-
-
-/* =========================================================
-   STATUS
-========================================================= */
-
-function showStatus(
-  message,
-  type = ""
-) {
-
-  statusBox.textContent =
-    String(message || "");
-
-  statusBox.className =
-    "status-box show";
-
-  if (type) {
-
-    statusBox.classList.add(
-      type
-    );
-  }
-}
-
-
-function hideStatus() {
-
-  statusBox.className =
-    "status-box";
-}
-
-
-/* =========================================================
-   PROGRESS
-========================================================= */
-
-function setProgress(
-  percent,
-  text
-) {
-
-  progress.classList.remove(
-    "hidden"
-  );
-
-  const safe =
-    Math.max(
-      0,
-      Math.min(
-        100,
-        Number(percent) || 0
-      )
-    );
-
-  progressValue.style.width =
-    `${safe}%`;
-
-  progressPercent.textContent =
-    `${Math.round(safe)}%`;
-
-  progressText.textContent =
-    text || "";
-}
-
-
-/* =========================================================
-   FETCH JSON
-========================================================= */
-
-async function fetchJson(
-  url,
-  options = {}
-) {
-
-  let response;
-
-  try {
-
-    response =
-      await fetch(
-        url,
-        {
-          ...options,
-
-          headers: {
-            "apikey":
-              SUPABASE_KEY,
-
-            "Authorization":
-              `Bearer ${SUPABASE_KEY}`,
-
-            "Content-Type":
-              "application/json",
-
-            ...(options.headers || {})
-          }
-        }
-      );
-
-  } catch (error) {
-
-    /*
-     * Safariで最も重要な部分。
-     *
-     * Consoleを開かなくても
-     * Load failedの正体を画面に出す。
-     */
-
-    throw new Error(
-      [
-        "Supabaseへの通信に失敗しました。",
-        "",
-        "Function:",
-        url,
-        "",
-        "Safariが通信そのものを完了できませんでした。",
-        "",
-        "考えられる原因：",
-        "・Edge FunctionのDeploy状態",
-        "・Edge FunctionのCORS設定",
-        "・Function名の間違い",
-        "・Supabase側の一時的な通信エラー",
-        "",
-        `元のエラー: ${error?.message || error}`
-      ].join("\n")
-    );
-  }
-
-
-  const text =
-    await response.text();
-
-
-  let data = null;
-
-
-  if (text) {
-
-    try {
-
-      data =
-        JSON.parse(text);
-
-    } catch {
-
-      data =
-        text;
-    }
-  }
-
-
-  if (!response.ok) {
-
-    let message =
-      `Supabase HTTP ${response.status}`;
-
-
-    if (
-      data &&
-      typeof data === "object"
-    ) {
-
-      if (data.error) {
-
-        message +=
-          `\n${data.error}`;
-      }
-
-      if (data.message) {
-
-        message +=
-          `\n${data.message}`;
-      }
-
-      if (data.detail) {
-
-        message +=
-          `\n${data.detail}`;
-      }
-
-    } else if (
-      typeof data === "string" &&
-      data
-    ) {
-
-      message +=
-        `\n${data}`;
-    }
-
-
-    throw new Error(
-      message
-    );
-  }
-
-
-  return data;
-}
-
-
-/* =========================================================
-   EDGE FUNCTION
-========================================================= */
-
-async function callFunction(
-  functionName,
-  body
-) {
-
-  const url =
-    `${SUPABASE_URL}/functions/v1/${functionName}`;
-
-
-  return await fetchJson(
-    url,
-    {
-      method: "POST",
-
-      body:
-        JSON.stringify(body)
-    }
-  );
-}
-
-
-/* =========================================================
-   CONNECTION
-========================================================= */
-
-async function checkConnection() {
-
-  connectionText.textContent =
-    "Supabase 接続確認中...";
-
-
-  connectionDot.classList.remove(
-    "ok",
-    "error"
-  );
-
-
-  try {
-
-    await fetchJson(
-      `${SUPABASE_URL}/rest/v1/research_results?select=id&project_id=eq.${encodeURIComponent(projectId)}&limit=1`
-    );
-
-
-    connectionDot.classList.add(
-      "ok"
-    );
-
-
-    connectionText.textContent =
-      "Supabase 接続済み";
-
-
-    return true;
-
-  } catch (error) {
-
-    connectionDot.classList.add(
-      "error"
-    );
-
-
-    connectionText.textContent =
-      "Supabase 接続エラー";
-
-
-    return false;
-  }
-}
-
-
-/* =========================================================
-   RESEARCH
-========================================================= */
-
-async function runResearch() {
-
-  const message =
-    questionInput.value.trim();
-
-
-  if (!message) {
-
-    showStatus(
-      "研究したい数学的な問題を入力してください。",
-      "error"
-    );
-
-
-    questionInput.focus();
-
-    return;
-  }
-
-
-  researchButton.disabled =
-    true;
-
-
-  clearButton.disabled =
-    true;
-
-
-  evaluateButton.disabled =
-    true;
-
-
-  setProgress(
-    5,
-    "研究を準備しています..."
-  );
-
-
-  showStatus(
-    "研究AIに接続しています..."
-  );
-
-
-  try {
-
-    setProgress(
-      15,
-      "smart-handlerに接続しています..."
-    );
-
-
-    /*
-     * ここが最重要。
-     *
-     * 以前：
-     * research
-     *
-     * 現在：
-     * smart-handler
-     */
-
-    const data =
-      await callFunction(
-        RESEARCH_FUNCTION,
-        {
-          message:
-            message,
-
-          project_id:
-            projectId
-        }
-      );
-
-
-    if (!data) {
-
-      throw new Error(
-        "研究AIからデータが返ってきませんでした。"
-      );
-    }
-
-
-    /*
-     * smart-handlerの
-     * 正常レスポンス
-     */
-
-    if (
-      data.ok === false
-    ) {
-
-      throw new Error(
-        data.error ||
-        data.detail ||
-        "smart-handlerでエラーが発生しました。"
-      );
-    }
-
-
-    setProgress(
-      65,
-      "研究結果を解析しています..."
-    );
-
-
-    /*
-     * 既使用ルート
-     */
-
-    if (
-      data.blocked
-    ) {
-
-      setProgress(
-        100,
-        "既使用ルートを検出しました。"
-      );
-
-
-      showStatus(
-        [
-          "この研究ルートは3回以上使用されています。",
-          "",
-          data.answer || "",
-          "",
-          "別のアプローチを探します。"
-        ].join("\n"),
-        "success"
-      );
-
-
-      await loadHistory();
-
-
-      return;
-    }
-
-
-    /*
-     * researchオブジェクトを取得
-     */
-
-    let research =
-      data.research ||
-      data.result ||
-      null;
-
-
-    /*
-     * もしresearchが文字列JSONなら
-     * JSONとして解析する。
-     */
-
-    if (
-      typeof research === "string"
-    ) {
-
-      try {
-
-        research =
-          JSON.parse(
-            research
-          );
-
-      } catch {
-
-        /*
-         * JSONではない場合は
-         * descriptionとして扱う。
-         */
-
-        research = {
-
-          title:
-            data.title ||
-            "AI研究回答",
-
-          description:
-            research,
-
-          status:
-            data.status ||
-            "maybe"
-        };
-      }
-    }
-
-
-    research =
-      research || {};
-
-
-    /*
-     * result_idは
-     * Edge Functionから返されたものを優先。
-     */
-
-    const resultId =
-      data.result_id ||
-      data.id ||
-      research.id ||
-      null;
-
-
-    const evidence =
-      research.evidence &&
-      typeof research.evidence === "object"
-        ? research.evidence
-        : {};
-
-
-    latestResult = {
-
-      id:
-        resultId,
-
-
-      title:
-        research.title ||
-        data.title ||
-        "AI研究回答",
-
-
-      description:
-        research.description ||
-        research.summary ||
-        data.description ||
-        data.answer ||
-        "",
-
-
-      status:
-        research.status ||
-        data.status ||
-        "maybe",
-
-
-      confidence:
-        Number(
-          research.confidence ??
-          data.confidence ??
-          0
-        ),
-
-
-      confidence_basis:
-        research.confidence_basis ||
-        data.confidence_basis ||
-        "",
-
-
-      hypothesis:
-        research.hypothesis ||
-        "",
-
-
-      calculation:
-        research.calculation ||
-        "",
-
-
-      verification:
-        research.verification ||
-        "",
-
-
-      next_action:
-        research.next_action ||
-        "",
-
-
-      evidence: {
-
-        ...evidence,
-
-        route:
-          evidence.route ||
-          research.route ||
-          data.route ||
-          "",
-
-
-        route_key:
-          evidence.route_key ||
-          research.route_key ||
-          data.route_key ||
-          "",
-
-
-        route_count:
-          Number(
-            evidence.route_count ??
-            research.route_count ??
-            data.route_count ??
-            1
-          ),
-
-
-        confidence:
-          Number(
-            evidence.confidence ??
-            research.confidence ??
-            data.confidence ??
-            0
-          ),
-
-
-        confidence_basis:
-          evidence.confidence_basis ||
-          research.confidence_basis ||
-          data.confidence_basis ||
-          "",
-
-
-        items:
-          Array.isArray(
-            evidence.items
-          )
-            ? evidence.items
-            : [],
-
-      },
-
-
-      created_at:
-        research.created_at ||
-        data.created_at ||
-        new Date().toISOString()
-    };
-
-
-    /*
-     * 評価情報が
-     * Functionから返ってきた場合も保持。
-     */
-
-    if (
-      data.evaluation
-    ) {
-
-      latestResult.evidence.evaluation =
-        data.evaluation;
-    }
-
-
-    setProgress(
-      80,
-      "研究結果を表示しています..."
-    );
-
-
-    renderLatestResult(
-      latestResult
-    );
-
-
-    /*
-     * result_idがある場合
-     */
-
-    if (
-      latestResult.id
-    ) {
-
-      showStatus(
-        "研究結果を受け取りました。保存された研究結果を表示しています。",
-        "success"
-      );
-
-    } else {
-
-      showStatus(
-        [
-          "研究AIから回答は返ってきました。",
-          "",
-          "ただしresult_idが返っていません。",
-          "そのため、この結果について「評価」を実行できません。"
-        ].join("\n"),
-        "success"
-      );
-    }
-
-
-    setProgress(
-      90,
-      "研究履歴を更新しています..."
-    );
-
-
-    await loadHistory();
-
-
-    setProgress(
-      100,
-      "研究完了"
-    );
-
-
-  } catch (error) {
-
-    showStatus(
-      formatError(error),
-      "error"
-    );
-
-
-    setProgress(
-      100,
-      "エラーで終了"
-    );
-
-  } finally {
-
-    researchButton.disabled =
-      false;
-
-
-    clearButton.disabled =
-      false;
-
-
-    evaluateButton.disabled =
-      !latestResult?.id;
-  }
-}
-
-
-/* =========================================================
-   EVALUATE
-========================================================= */
-
-async function evaluateLatest() {
-
-  if (
-    !latestResult?.id
-  ) {
-
-    showStatus(
-      "評価する研究結果がありません。",
-      "error"
-    );
-
-    return;
-  }
-
-
-  evaluateButton.disabled =
-    true;
-
-
-  researchButton.disabled =
-    true;
-
-
-  setProgress(
-    40,
-    "評価AIに接続しています..."
-  );
-
-
-  showStatus(
-    "評価AIが研究結果を確認しています..."
-  );
-
-
-  try {
-
-    const data =
-      await callFunction(
-        EVALUATE_FUNCTION,
-        {
-          project_id:
-            projectId,
-
-          result_id:
-            latestResult.id
-        }
-      );
-
-
-    if (!data) {
-
-      throw new Error(
-        "評価AIからデータが返ってきませんでした。"
-      );
-    }
-
-
-    if (
-      data.ok === false
-    ) {
-
-      throw new Error(
-        data.error ||
-        data.detail ||
-        "evaluateでエラーが発生しました。"
-      );
-    }
-
-
-    const evaluation =
-      data.evaluation ||
-      data.result ||
-      data;
-
-
-    latestResult.evidence =
-      latestResult.evidence ||
-      {};
-
-
-    latestResult.evidence.evaluation =
-      evaluation;
-
-
-    renderLatestResult(
-      latestResult
-    );
-
-
-    details.classList.remove(
-      "hidden"
-    );
-
-
-    toggleDetailsButton.textContent =
-      "詳細を閉じる";
-
-
-    setProgress(
-      100,
-      "評価完了"
-    );
-
-
-    showStatus(
-      [
-        `評価完了：${
-          evaluation?.overall_symbol ||
-          "△"
-        }`,
-        "",
-        evaluation?.reason ||
-        ""
-      ].join("\n"),
-      "success"
-    );
-
-
-    await loadHistory();
-
-
-  } catch (error) {
-
-    showStatus(
-      formatError(error),
-      "error"
-    );
-
-
-    setProgress(
-      100,
-      "評価エラー"
-    );
-
-
-  } finally {
-
-    evaluateButton.disabled =
-      false;
-
-
-    researchButton.disabled =
-      false;
-  }
-}
-
-
-/* =========================================================
-   HISTORY
-========================================================= */
-
-async function loadHistory() {
-
-  try {
-
-    const data =
-      await fetchJson(
-        `${SUPABASE_URL}/rest/v1/research_results?select=id,project_id,hypothesis_id,title,description,status,hypothesis,calculation,verification,next_action,evidence,created_at&project_id=eq.${encodeURIComponent(projectId)}&order=created_at.desc&limit=100`
-      );
-
-
-    renderHistory(
-      Array.isArray(data)
-        ? data
-        : []
-    );
-
-
-  } catch (error) {
-
-    historyList.innerHTML = `
-      <div class="history-empty">
-        履歴を読み込めませんでした。
       </div>
-    `;
-  }
-}
 
 
-/* =========================================================
-   HISTORY RENDER
-========================================================= */
+      <div class="memory-item">
 
-function renderHistory(
-  results
-) {
+        <div class="memory-label">
+          Research Loop
+        </div>
 
-  historyCount.textContent =
-    `${results.length}件`;
+        <div class="memory-value">
+          Research → Hypothesis → Experiment →
+          Red Team → Reproducibility
+        </div>
 
-
-  if (
-    !results.length
-  ) {
-
-    historyList.innerHTML = `
-      <div class="history-empty">
-        まだ研究結果がありません。
       </div>
-    `;
-
-    return;
-  }
 
 
-  historyList.innerHTML =
-    results
-      .map(
-        result =>
-          createHistoryItem(
-            result
-          )
-      )
-      .join("");
+      <div class="memory-item">
 
-
-  historyList
-    .querySelectorAll(
-      "[data-result-id]"
-    )
-    .forEach(
-      element => {
-
-        element.addEventListener(
-          "click",
-          () => {
-
-            const id =
-              element.dataset.resultId;
-
-
-            const result =
-              results.find(
-                item =>
-                  String(item.id) ===
-                  String(id)
-              );
-
-
-            if (!result) {
-              return;
-            }
-
-
-            latestResult =
-              normalizeHistoryResult(
-                result
-              );
-
-
-            renderLatestResult(
-              latestResult
-            );
-
-
-            window.scrollTo({
-              top: 0,
-              behavior: "smooth"
-            });
-          }
-        );
-      }
-    );
-}
-
-
-/* =========================================================
-   NORMALIZE HISTORY
-========================================================= */
-
-function normalizeHistoryResult(
-  result
-) {
-
-  const evidence =
-    result?.evidence &&
-    typeof result.evidence === "object"
-      ? result.evidence
-      : {};
-
-
-  return {
-
-    ...result,
-
-    evidence: {
-
-      ...evidence,
-
-      route:
-        evidence.route ||
-        "",
-
-
-      route_key:
-        evidence.route_key ||
-        "",
-
-
-      route_count:
-        Number(
-          evidence.route_count ??
-          1
-        ),
-
-
-      confidence:
-        Number(
-          evidence.confidence ??
-          0
-        ),
-
-
-      confidence_basis:
-        evidence.confidence_basis ||
-        "",
-
-
-      items:
-        Array.isArray(
-          evidence.items
-        )
-          ? evidence.items
-          : []
-    }
-  };
-}
-
-
-/* =========================================================
-   HISTORY ITEM
-========================================================= */
-
-function createHistoryItem(
-  result
-) {
-
-  const evaluation =
-    result?.evidence?.evaluation;
-
-
-  const status =
-    evaluation?.overall ||
-    result.status ||
-    "maybe";
-
-
-  const symbol =
-    evaluation?.overall_symbol ||
-    statusToSymbol(
-      status
-    );
-
-
-  return `
-    <div
-      class="history-item"
-      data-result-id="${escapeHtml(result.id)}"
-    >
-
-      <div class="history-main">
+        <div class="memory-label">
+          Important Results
+        </div>
 
         <div
-          class="history-symbol ${statusClass(status)}"
+          id="importantMemory"
+          class="memory-value"
         >
-          ${escapeHtml(symbol)}
-        </div>
-
-        <div style="min-width:0">
-
-          <div class="history-title">
-            ${escapeHtml(
-              result.title ||
-              "無題の研究"
-            )}
-          </div>
-
-          <div class="history-date">
-            ${formatDate(
-              result.created_at
-            )}
-          </div>
-
+          重要研究は今後ここへ保存します。
         </div>
 
       </div>
 
     </div>
-  `;
-}
 
+  </aside>
 
-/* =========================================================
-   RESULT RENDER
-========================================================= */
 
-function renderLatestResult(
-  result
-) {
 
-  latestSection.classList.remove(
-    "hidden"
-  );
+  <!-- ====================================================
+       ROOM MODAL
+  ===================================================== -->
 
+  <div
+    id="roomOverlay"
+    class="drawer-overlay hidden"
+  ></div>
 
-  latestTitle.textContent =
-    result.title ||
-    "AI研究回答";
 
+  <aside
+    id="roomDrawer"
+    class="drawer hidden"
+  >
 
-  latestDate.textContent =
-    formatDate(
-      result.created_at
-    );
+    <div class="drawer-head">
 
+      <div
+        id="roomDrawerTitle"
+        class="drawer-title"
+      >
+        Research Room
+      </div>
 
-  const evaluation =
-    result?.evidence?.evaluation;
+      <button
+        id="closeRoomButton"
+        class="icon-button"
+        type="button"
+      >
+        ×
+      </button>
 
+    </div>
 
-  const status =
-    evaluation?.overall ||
-    result.status ||
-    "maybe";
 
+    <div
+      id="roomDrawerContent"
+      class="memory-list"
+    >
 
-  const symbol =
-    evaluation?.overall_symbol ||
-    statusToSymbol(
-      status
-    );
+      <div class="memory-item">
 
-
-  latestSymbol.textContent =
-    symbol;
-
-
-  latestSymbol.className =
-    `symbol ${statusClass(status)}`;
-
-
-  latestSummary.textContent =
-    result.description ||
-    "研究結果が保存されています。";
-
-
-  latestMeta.innerHTML =
-    "";
-
-
-  addTag(
-    latestMeta,
-    `状態: ${statusLabel(status)}`
-  );
-
-
-  const route =
-    result?.evidence?.route;
-
-
-  if (route) {
-
-    addTag(
-      latestMeta,
-      `ルート: ${route}`
-    );
-  }
-
-
-  const routeCount =
-    result?.evidence?.route_count;
-
-
-  if (
-    routeCount
-  ) {
-
-    addTag(
-      latestMeta,
-      `使用回数: ${routeCount}`
-    );
-  }
-
-
-  const confidence =
-    Number(
-      result?.evidence?.confidence ??
-      result?.confidence ??
-      0
-    );
-
-
-  if (
-    Number.isFinite(confidence)
-  ) {
-
-    addTag(
-      latestMeta,
-      `信頼度: ${Math.round(
-        confidence * 100
-      )}%`
-    );
-  }
-
-
-  const hypothesis =
-    document.getElementById(
-      "detailHypothesis"
-    );
-
-
-  const calculation =
-    document.getElementById(
-      "detailCalculation"
-    );
-
-
-  const verification =
-    document.getElementById(
-      "detailVerification"
-    );
-
-
-  const nextAction =
-    document.getElementById(
-      "detailNextAction"
-    );
-
-
-  const routeElement =
-    document.getElementById(
-      "detailRoute"
-    );
-
-
-  const reason =
-    document.getElementById(
-      "detailReason"
-    );
-
-
-  if (hypothesis) {
-
-    hypothesis.textContent =
-      result.hypothesis ||
-      "記録なし";
-  }
-
-
-  if (calculation) {
-
-    calculation.textContent =
-      result.calculation ||
-      "記録なし";
-  }
-
-
-  if (verification) {
-
-    verification.textContent =
-      result.verification ||
-      "記録なし";
-  }
-
-
-  if (nextAction) {
-
-    nextAction.textContent =
-      result.next_action ||
-      "記録なし";
-  }
-
-
-  if (routeElement) {
-
-    routeElement.textContent =
-      route ||
-      "記録なし";
-  }
-
-
-  if (reason) {
-
-    reason.textContent =
-      evaluation?.reason ||
-      "まだ評価されていません。";
-  }
-
-
-  renderEvaluationGrid(
-    evaluation
-  );
-
-
-  evaluateButton.disabled =
-    !result.id;
-}
-
-
-/* =========================================================
-   EVALUATION GRID
-========================================================= */
-
-function renderEvaluationGrid(
-  evaluation
-) {
-
-  const grid =
-    document.getElementById(
-      "evaluationGrid"
-    );
-
-
-  if (!grid) {
-    return;
-  }
-
-
-  if (!evaluation) {
-
-    grid.innerHTML = `
-      <div class="evaluation-item">
-
-        <div class="label">
-          評価
+        <div class="memory-label">
+          Room
         </div>
 
-        <div class="value">
-          未評価
+        <div class="memory-value">
+          ここから研究機能を拡張できます。
         </div>
 
       </div>
-    `;
 
-    return;
-  }
+    </div>
 
-
-  const items = [
-
-    [
-      "総合",
-      evaluation.overall_symbol ||
-      "△"
-    ],
-
-    [
-      "仮説",
-      evaluation.hypothesis_symbol ||
-      "△"
-    ],
-
-    [
-      "計算",
-      evaluation.calculation_symbol ||
-      "△"
-    ],
-
-    [
-      "検証",
-      evaluation.verification_symbol ||
-      "△"
-    ],
-
-    [
-      "論理",
-      evaluation.logic_symbol ||
-      "△"
-    ]
-
-  ];
+  </aside>
 
 
-  grid.innerHTML =
-    items
-      .map(
-        ([label, value]) => `
-          <div class="evaluation-item">
 
-            <div class="label">
-              ${escapeHtml(label)}
-            </div>
+  <!-- ====================================================
+       SETTINGS DRAWER
+  ===================================================== -->
 
-            <div class="value">
-              ${escapeHtml(value)}
-            </div>
-
-          </div>
-        `
-      )
-      .join("");
-}
+  <div
+    id="settingsOverlay"
+    class="drawer-overlay hidden"
+  ></div>
 
 
-/* =========================================================
-   DETAILS
-========================================================= */
+  <aside
+    id="settingsDrawer"
+    class="drawer hidden"
+  >
 
-toggleDetailsButton.addEventListener(
-  "click",
-  () => {
+    <div class="drawer-head">
 
-    const hidden =
-      details.classList.contains(
-        "hidden"
+      <div class="drawer-title">
+        ⚙ Settings
+      </div>
+
+      <button
+        id="closeSettingsButton"
+        class="icon-button"
+        type="button"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <div class="memory-list">
+
+
+      <div class="memory-item">
+
+        <div class="memory-label">
+          Research Mode
+        </div>
+
+        <div class="memory-value">
+
+          <label class="strict-toggle">
+
+            <span>
+              Strict Mode
+            </span>
+
+            <input
+              id="settingsStrictMode"
+              type="checkbox"
+            >
+
+            <span class="switch"></span>
+
+          </label>
+
+        </div>
+
+      </div>
+
+
+      <div class="memory-item">
+
+        <div class="memory-label">
+          AI Model
+        </div>
+
+        <div class="memory-value">
+          OpenRouter / openrouter/free
+        </div>
+
+      </div>
+
+
+      <div class="memory-item">
+
+        <div class="memory-label">
+          Research Function
+        </div>
+
+        <div class="memory-value">
+          smart-handler
+        </div>
+
+      </div>
+
+
+      <div class="memory-item">
+
+        <div class="memory-label">
+          Evaluation Function
+        </div>
+
+        <div class="memory-value">
+          evaluate
+        </div>
+
+      </div>
+
+
+      <div class="memory-item">
+
+        <div class="memory-label">
+          Background Research
+        </div>
+
+        <div class="memory-value">
+          24/7 Autonomous Research は
+          バックエンド側のJob Queueと接続する構成。
+        </div>
+
+      </div>
+
+    </div>
+
+  </aside>
+
+
+
+  <!-- ====================================================
+       SCRIPT
+  ===================================================== -->
+
+  <script src="./app.js"></script>
+
+
+  <!-- ====================================================
+       UI EXTENSIONS
+       現在のapp.jsの基本研究機能を変更せず、
+       UI側の追加機能だけを担当する。
+  ===================================================== -->
+
+  <script>
+
+    /* ==================================================
+       MEMORY
+    ================================================== */
+
+    const memoryButton =
+      document.getElementById(
+        "memoryButton"
+      );
+
+    const memoryDrawer =
+      document.getElementById(
+        "memoryDrawer"
+      );
+
+    const memoryOverlay =
+      document.getElementById(
+        "memoryOverlay"
+      );
+
+    const closeMemoryButton =
+      document.getElementById(
+        "closeMemoryButton"
       );
 
 
-    details.classList.toggle(
-      "hidden"
+    function openMemory() {
+
+      memoryDrawer.classList.remove(
+        "hidden"
+      );
+
+      memoryOverlay.classList.remove(
+        "hidden"
+      );
+    }
+
+
+    function closeMemory() {
+
+      memoryDrawer.classList.add(
+        "hidden"
+      );
+
+      memoryOverlay.classList.add(
+        "hidden"
+      );
+    }
+
+
+    memoryButton.addEventListener(
+      "click",
+      openMemory
     );
 
 
-    toggleDetailsButton.textContent =
-      hidden
-        ? "詳細を閉じる"
-        : "詳細を表示";
-  }
-);
-
-
-/* =========================================================
-   BUTTONS
-========================================================= */
-
-researchButton.addEventListener(
-  "click",
-  runResearch
-);
-
-
-evaluateButton.addEventListener(
-  "click",
-  evaluateLatest
-);
-
-
-clearButton.addEventListener(
-  "click",
-  () => {
-
-    questionInput.value =
-      "";
-
-    hideStatus();
-
-    progress.classList.add(
-      "hidden"
+    closeMemoryButton.addEventListener(
+      "click",
+      closeMemory
     );
-  }
-);
 
 
-/* =========================================================
-   KEYBOARD
-========================================================= */
+    memoryOverlay.addEventListener(
+      "click",
+      closeMemory
+    );
 
-questionInput.addEventListener(
-  "keydown",
-  event => {
 
-    if (
-      (event.metaKey ||
-       event.ctrlKey) &&
-      event.key === "Enter"
+    /* ==================================================
+       SETTINGS
+    ================================================== */
+
+    const settingsButton =
+      document.getElementById(
+        "settingsButton"
+      );
+
+    const settingsDrawer =
+      document.getElementById(
+        "settingsDrawer"
+      );
+
+    const settingsOverlay =
+      document.getElementById(
+        "settingsOverlay"
+      );
+
+    const closeSettingsButton =
+      document.getElementById(
+        "closeSettingsButton"
+      );
+
+
+    function openSettings() {
+
+      settingsDrawer.classList.remove(
+        "hidden"
+      );
+
+      settingsOverlay.classList.remove(
+        "hidden"
+      );
+    }
+
+
+    function closeSettings() {
+
+      settingsDrawer.classList.add(
+        "hidden"
+      );
+
+      settingsOverlay.classList.add(
+        "hidden"
+      );
+    }
+
+
+    settingsButton.addEventListener(
+      "click",
+      openSettings
+    );
+
+
+    closeSettingsButton.addEventListener(
+      "click",
+      closeSettings
+    );
+
+
+    settingsOverlay.addEventListener(
+      "click",
+      closeSettings
+    );
+
+
+    /* ==================================================
+       STRICT MODE
+    ================================================== */
+
+    const strictMode =
+      document.getElementById(
+        "strictMode"
+      );
+
+    const settingsStrictMode =
+      document.getElementById(
+        "settingsStrictMode"
+      );
+
+
+    const savedStrictMode =
+      localStorage.getItem(
+        "research_strict_mode"
+      ) === "true";
+
+
+    strictMode.checked =
+      savedStrictMode;
+
+
+    settingsStrictMode.checked =
+      savedStrictMode;
+
+
+    function updateStrictMode(
+      value
     ) {
 
-      event.preventDefault();
+      strictMode.checked =
+        value;
 
-      runResearch();
+      settingsStrictMode.checked =
+        value;
+
+      localStorage.setItem(
+        "research_strict_mode",
+        String(value)
+      );
     }
-  }
-);
 
 
-/* =========================================================
-   HELPERS
-========================================================= */
+    strictMode.addEventListener(
+      "change",
+      () => {
 
-function statusToSymbol(
-  status
-) {
+        updateStrictMode(
+          strictMode.checked
+        );
 
-  if (
-    status === "good"
-  ) {
-
-    return "○";
-  }
-
-
-  if (
-    status === "bad"
-  ) {
-
-    return "×";
-  }
-
-
-  return "△";
-}
-
-
-function statusClass(
-  status
-) {
-
-  if (
-    status === "good"
-  ) {
-
-    return "good";
-  }
-
-
-  if (
-    status === "bad"
-  ) {
-
-    return "bad";
-  }
-
-
-  if (
-    status === "maybe"
-  ) {
-
-    return "maybe";
-  }
-
-
-  return "unknown";
-}
-
-
-function statusLabel(
-  status
-) {
-
-  if (
-    status === "good"
-  ) {
-
-    return "良";
-  }
-
-
-  if (
-    status === "bad"
-  ) {
-
-    return "不成立・問題あり";
-  }
-
-
-  return "要検証";
-}
-
-
-function addTag(
-  container,
-  text
-) {
-
-  if (!container) {
-    return;
-  }
-
-
-  const element =
-    document.createElement(
-      "span"
+      }
     );
 
 
-  element.className =
-    "tag";
+    settingsStrictMode.addEventListener(
+      "change",
+      () => {
 
+        updateStrictMode(
+          settingsStrictMode.checked
+        );
 
-  element.textContent =
-    text;
-
-
-  container.appendChild(
-    element
-  );
-}
-
-
-function formatDate(
-  date
-) {
-
-  if (!date) {
-    return "";
-  }
-
-
-  const value =
-    new Date(date);
-
-
-  if (
-    Number.isNaN(
-      value.getTime()
-    )
-  ) {
-
-    return "";
-  }
-
-
-  return value.toLocaleString(
-    "ja-JP",
-    {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit"
-    }
-  );
-}
-
-
-function escapeHtml(
-  value
-) {
-
-  return String(
-    value ?? ""
-  )
-    .replace(
-      /&/g,
-      "&amp;"
-    )
-    .replace(
-      /</g,
-      "&lt;"
-    )
-    .replace(
-      />/g,
-      "&gt;"
-    )
-    .replace(
-      /"/g,
-      "&quot;"
-    )
-    .replace(
-      /'/g,
-      "&#039;"
+      }
     );
-}
 
 
-/* =========================================================
-   ERROR
-========================================================= */
+    /* ==================================================
+       VISUALIZER
+    ================================================== */
 
-function formatError(
-  error
-) {
+    const visualizerButton =
+      document.getElementById(
+        "visualizerButton"
+      );
 
-  if (!error) {
+    const visualizerPanel =
+      document.getElementById(
+        "visualizerPanel"
+      );
 
-    return [
-      "不明なエラーが発生しました。"
-    ].join("\n");
-  }
+    const closeVisualizerButton =
+      document.getElementById(
+        "closeVisualizerButton"
+      );
+
+    const zeroSlider =
+      document.getElementById(
+        "zeroSlider"
+      );
+
+    const sliderValue =
+      document.getElementById(
+        "sliderValue"
+      );
+
+    const mathDisplay =
+      document.getElementById(
+        "mathDisplay"
+      );
 
 
-  const message =
-    error.message ||
-    String(error);
+    function openVisualizer() {
+
+      visualizerPanel.classList.remove(
+        "hidden"
+      );
+
+      visualizerPanel.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+
+      renderMath();
+    }
 
 
-  /*
-   * SafariのLoad failed
-   */
+    function closeVisualizer() {
 
-  if (
-    message
-      .toLowerCase()
-      .includes(
-        "load failed"
+      visualizerPanel.classList.add(
+        "hidden"
+      );
+    }
+
+
+    visualizerButton.addEventListener(
+      "click",
+      openVisualizer
+    );
+
+
+    closeVisualizerButton.addEventListener(
+      "click",
+      closeVisualizer
+    );
+
+
+    function renderMath() {
+
+      const t =
+        Number(
+          zeroSlider.value
+        );
+
+
+      sliderValue.textContent =
+        `t = ${t.toFixed(6)}`;
+
+
+      mathDisplay.innerHTML =
+        `$$
+          s = \\frac{1}{2} + ${t.toFixed(6)}i
+        $$`;
+
+
+      if (
+        window.MathJax &&
+        window.MathJax.typesetPromise
+      ) {
+
+        window.MathJax.typesetPromise([
+          mathDisplay
+        ]).catch(
+          console.error
+        );
+      }
+    }
+
+
+    zeroSlider.addEventListener(
+      "input",
+      renderMath
+    );
+
+
+    document
+      .querySelectorAll(
+        "[data-zero]"
       )
-  ) {
+      .forEach(
+        button => {
 
-    return [
-      "研究AIへの通信に失敗しました。",
-      "",
-      "接続先:",
-      `${SUPABASE_URL}/functions/v1/${RESEARCH_FUNCTION}`,
-      "",
-      "使用Function:",
-      RESEARCH_FUNCTION,
-      "",
-      "Supabase側のFunctionに接続できていません。",
-      "",
-      "このページ側ではこれ以上の設定変更は必要ありません。",
-      "次に確認するのはSupabase側のsmart-handlerです。"
-    ].join("\n");
-  }
+          button.addEventListener(
+            "click",
+            () => {
+
+              zeroSlider.value =
+                button.dataset.zero;
+
+              renderMath();
+
+            }
+          );
+
+        }
+      );
 
 
-  /*
-   * Failed to fetch
-   */
+    /* ==================================================
+       ROOM DRAWER
+    ================================================== */
 
-  if (
-    message
-      .toLowerCase()
-      .includes(
-        "failed to fetch"
+    const roomOverlay =
+      document.getElementById(
+        "roomOverlay"
+      );
+
+    const roomDrawer =
+      document.getElementById(
+        "roomDrawer"
+      );
+
+    const roomDrawerTitle =
+      document.getElementById(
+        "roomDrawerTitle"
+      );
+
+    const roomDrawerContent =
+      document.getElementById(
+        "roomDrawerContent"
+      );
+
+    const closeRoomButton =
+      document.getElementById(
+        "closeRoomButton"
+      );
+
+
+    const rooms = {
+
+      direction: {
+
+        title:
+          "🧭 Direction Room",
+
+        text:
+          "研究方針、ユーザーのアイデア、Claudeや他AIから持ち込んだ仮説を整理する部屋です。"
+
+      },
+
+
+      research: {
+
+        title:
+          "📚 Research Room",
+
+        text:
+          "論文、既知結果、関連する定理、研究手法を整理します。新規性は暫定評価として扱います。"
+
+      },
+
+
+      hypothesis: {
+
+        title:
+          "💡 Hypothesis Room",
+
+        text:
+          "仮説、前提条件、証拠、反例、研究枝を管理します。未証明の仮説を証明済みとは扱いません。"
+
+      },
+
+
+      experiment: {
+
+        title:
+          "🧪 Experiment Room",
+
+        text:
+          "Python Workerへ実験Jobを送るための研究入口です。計算結果と証明を明確に分離します。"
+
+      },
+
+
+      redteam: {
+
+        title:
+          "🧨 Red Team",
+
+        text:
+          "研究中の仮説に対して反例、前提条件の破綻、論理の飛躍、既知の矛盾を探索します。"
+
+      }
+
+    };
+
+
+    function openRoom(
+      type
+    ) {
+
+      const room =
+        rooms[type];
+
+      if (!room) {
+        return;
+      }
+
+
+      roomDrawerTitle.textContent =
+        room.title;
+
+
+      roomDrawerContent.innerHTML = `
+
+        <div class="memory-item">
+
+          <div class="memory-label">
+            ROOM
+          </div>
+
+          <div class="memory-value">
+            ${room.text}
+          </div>
+
+        </div>
+
+
+        <div class="memory-item">
+
+          <div class="memory-label">
+            STATUS
+          </div>
+
+          <div class="memory-value">
+            現在の研究基盤と接続可能です。
+          </div>
+
+        </div>
+
+      `;
+
+
+      roomDrawer.classList.remove(
+        "hidden"
+      );
+
+      roomOverlay.classList.remove(
+        "hidden"
+      );
+    }
+
+
+    function closeRoom() {
+
+      roomDrawer.classList.add(
+        "hidden"
+      );
+
+      roomOverlay.classList.add(
+        "hidden"
+      );
+    }
+
+
+    document
+      .getElementById(
+        "directionRoomButton"
       )
-  ) {
-
-    return [
-      "Supabaseへの通信に失敗しました。",
-      "",
-      "使用Function:",
-      RESEARCH_FUNCTION,
-      "",
-      "Function名は smart-handler に設定されています。",
-      "",
-      "Supabase側のFunctionまたはCORS設定を確認する必要があります。"
-    ].join("\n");
-  }
+      .addEventListener(
+        "click",
+        () => openRoom("direction")
+      );
 
 
-  return message;
-}
+    document
+      .getElementById(
+        "researchRoomButton"
+      )
+      .addEventListener(
+        "click",
+        () => openRoom("research")
+      );
 
 
-/* =========================================================
-   INITIALIZE
-========================================================= */
-
-async function initialize() {
-
-  /*
-   * 接続チェックで失敗しても
-   * ページ全体を止めない。
-   */
-
-  await checkConnection();
+    document
+      .getElementById(
+        "hypothesisRoomButton"
+      )
+      .addEventListener(
+        "click",
+        () => openRoom("hypothesis")
+      );
 
 
-  /*
-   * 履歴読み込みも独立。
-   */
+    document
+      .getElementById(
+        "experimentRoomButton"
+      )
+      .addEventListener(
+        "click",
+        () => openRoom("experiment")
+      );
 
-  await loadHistory();
-}
+
+    document
+      .getElementById(
+        "redTeamButton"
+      )
+      .addEventListener(
+        "click",
+        () => openRoom("redteam")
+      );
 
 
-/* =========================================================
-   START
-========================================================= */
+    closeRoomButton.addEventListener(
+      "click",
+      closeRoom
+    );
 
-initialize();
 
-</script>
+    roomOverlay.addEventListener(
+      "click",
+      closeRoom
+    );
+
+
+    /* ==================================================
+       BOTTOM NAV
+    ================================================== */
+
+    const navButtons =
+      document.querySelectorAll(
+        ".nav-button"
+      );
+
+
+    navButtons.forEach(
+      button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            navButtons.forEach(
+              item =>
+                item.classList.remove(
+                  "active"
+                )
+            );
+
+
+            button.classList.add(
+              "active"
+            );
+
+
+            const id =
+              button.id;
+
+
+            if (
+              id === "navResearch"
+            ) {
+
+              document
+                .getElementById(
+                  "researchRoomButton"
+                )
+                .scrollIntoView({
+                  behavior:
+                    "smooth"
+                });
+
+            }
+
+
+            if (
+              id === "navHypothesis"
+            ) {
+
+              document
+                .getElementById(
+                  "hypothesisRoomButton"
+                )
+                .scrollIntoView({
+                  behavior:
+                    "smooth"
+                });
+
+            }
+
+
+            if (
+              id === "navExperiment"
+            ) {
+
+              document
+                .getElementById(
+                  "experimentRoomButton"
+                )
+                .scrollIntoView({
+                  behavior:
+                    "smooth"
+                });
+
+            }
+
+
+            if (
+              id === "navLab"
+            ) {
+
+              window.scrollTo({
+                top: 0,
+                behavior:
+                  "smooth"
+              });
+
+            }
+
+          }
+        );
+
+      }
+    );
+
+
+    /* ==================================================
+       CHAT PRUNING
+       UI側の将来のチャット拡張用。
+    ================================================== */
+
+    const MAX_CHAT_MESSAGES =
+      50;
+
+
+    function pruneChatMessages(
+      messages
+    ) {
+
+      if (
+        !Array.isArray(messages)
+      ) {
+
+        return [];
+      }
+
+
+      if (
+        messages.length <=
+        MAX_CHAT_MESSAGES
+      ) {
+
+        return messages;
+      }
+
+
+      return messages.slice(
+        -MAX_CHAT_MESSAGES
+      );
+    }
+
+
+    /* ==================================================
+       WELCOME BACK
+       前回訪問時刻だけ軽量に保存。
+    ================================================== */
+
+    const lastVisit =
+      localStorage.getItem(
+        "research_last_visit"
+      );
+
+
+    const now =
+      Date.now();
+
+
+    localStorage.setItem(
+      "research_last_visit",
+      String(now)
+    );
+
+
+    if (lastVisit) {
+
+      const elapsed =
+        now -
+        Number(lastVisit);
+
+
+      /*
+       * 長時間離れていた場合だけ
+       * 将来のバックグラウンドJob結果を
+       * 表示できるようにする。
+       */
+
+      if (
+        elapsed >
+        30 * 60 * 1000
+      ) {
+
+        console.log(
+          "Welcome back research session."
+        );
+
+      }
+
+    }
+
+  </script>
+
+</div>
 
 </body>
 </html>
+```
