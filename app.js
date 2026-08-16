@@ -409,8 +409,44 @@ function setProgress(
 
 
 /* ==========================================================
-   EDGE FUNCTION ERROR
+   DIAGNOSTIC HELPERS
 ========================================================== */
+
+/*
+ * JavaScriptのErrorオブジェクトを、
+ * 画面表示できる安全な文字列に変換する。
+ */
+
+function getErrorProperty(
+  error,
+  key,
+) {
+
+  try {
+
+    if (
+      error &&
+      error[key] !== undefined &&
+      error[key] !== null
+    ) {
+
+      return String(
+        error[key],
+      );
+    }
+
+  } catch (_) {
+    // ignore
+  }
+
+
+  return "";
+}
+
+
+/*
+ * Edge Functionエラーの詳細を取得する。
+ */
 
 async function getFunctionErrorDetails(
   error,
@@ -418,7 +454,25 @@ async function getFunctionErrorDetails(
 
   if (!error) {
 
-    return "不明なEdge Functionエラーです。";
+    return {
+      message:
+        "不明なEdge Functionエラーです。",
+
+      raw:
+        "",
+
+      status:
+        "",
+
+      body:
+        "",
+
+      name:
+        "",
+
+      stack:
+        "",
+    };
   }
 
 
@@ -428,56 +482,87 @@ async function getFunctionErrorDetails(
   );
 
 
+  const name =
+    getErrorProperty(
+      error,
+      "name",
+    );
+
+
+  const message =
+    getErrorProperty(
+      error,
+      "message",
+    );
+
+
+  const stack =
+    getErrorProperty(
+      error,
+      "stack",
+    );
+
+
+  let status = "";
+
+
+  try {
+
+    if (
+      error.context &&
+      error.context.status
+    ) {
+
+      status =
+        String(
+          error.context.status,
+        );
+    }
+
+  } catch (_) {
+    // ignore
+  }
+
+
+  let body = "";
+
+
   /*
-   * FunctionsHttpError
-   *
-   * Supabase Function自体は実行されたが
-   * 4xx / 5xx を返した場合
+   * FunctionsHttpErrorの場合、
+   * error.contextはResponse。
    */
 
   try {
 
     if (
       error.context &&
-      typeof error.context.json ===
+      typeof error.context.clone ===
         "function"
     ) {
 
-      const body =
-        await error.context.json();
-
-
-      console.error(
-        "Function error body:",
-        body,
-      );
+      const cloned =
+        error.context.clone();
 
 
       if (
-        body?.error
+        typeof cloned.text ===
+          "function"
       ) {
 
-        return String(
-          body.error,
-        );
+        body =
+          await cloned.text();
+
       }
 
+    } else if (
+      error.context &&
+      typeof error.context.text ===
+        "function"
+    ) {
 
-      if (
-        body?.message
-      ) {
+      body =
+        await error.context.text();
 
-        return String(
-          body.message,
-        );
-      }
-
-
-      return JSON.stringify(
-        body,
-        null,
-        2,
-      );
     }
 
   } catch (
@@ -492,27 +577,91 @@ async function getFunctionErrorDetails(
 
 
   /*
-   * 一般的なエラー
+   * JSONなら整形する。
    */
 
-  if (
-    error.message
-  ) {
+  let parsedBody = null;
 
-    return String(
-      error.message,
-    );
+
+  if (body) {
+
+    try {
+
+      parsedBody =
+        JSON.parse(
+          body,
+        );
+
+    } catch (_) {
+      // plain text
+    }
+
   }
 
 
-  return String(
-    error,
-  );
+  let detailMessage =
+    message ||
+    "Edge Functionでエラーが発生しました。";
+
+
+  if (
+    parsedBody &&
+    typeof parsedBody ===
+      "object"
+  ) {
+
+    if (
+      parsedBody.error
+    ) {
+
+      detailMessage =
+        String(
+          parsedBody.error,
+        );
+
+    } else if (
+      parsedBody.message
+    ) {
+
+      detailMessage =
+        String(
+          parsedBody.message,
+        );
+
+    }
+
+  } else if (
+    body
+  ) {
+
+    detailMessage =
+      body;
+
+  }
+
+
+  return {
+
+    message:
+      detailMessage,
+
+    raw:
+      body,
+
+    status,
+
+    body,
+
+    name,
+
+    stack,
+
+  };
 }
 
 
 /* ==========================================================
-   ERROR FORMAT
+   DIAGNOSTIC ERROR FORMAT
 ========================================================== */
 
 function formatError(
@@ -524,14 +673,32 @@ function formatError(
     return [
       "不明なエラーです。",
       "",
-      "ブラウザのコンソールを確認してください。",
+      `Function: ${RESEARCH_FUNCTION}`,
+      `project_id: ${currentProjectId}`,
     ].join("\n");
   }
 
 
   const message =
-    error.message ||
+    getErrorProperty(
+      error,
+      "message",
+    ) ||
     String(error);
+
+
+  const name =
+    getErrorProperty(
+      error,
+      "name",
+    );
+
+
+  const stack =
+    getErrorProperty(
+      error,
+      "stack",
+    );
 
 
   console.error(
@@ -553,16 +720,36 @@ function formatError(
   ) {
 
     return [
-      "Edge Functionへの通信に失敗しました。",
+      "【通信エラー】",
       "",
-      `使用Function: ${RESEARCH_FUNCTION}`,
+      "ブラウザからSupabase Edge Functionへ接続できませんでした。",
+      "",
+      `Function: ${RESEARCH_FUNCTION}`,
       `project_id: ${currentProjectId}`,
       "",
-      "Supabase側のsmart-handlerが存在するか、",
-      "Deploy済みかを確認してください。",
+      "考えられる原因:",
+      "・CORS",
+      "・Edge Functionへの通信失敗",
+      "・GitHub Pagesからのリクエスト拒否",
+      "・ネットワーク接続",
+      "・ブラウザのFetchエラー",
       "",
-      "詳細:",
-      message,
+      `エラー名: ${name || "取得できませんでした"}`,
+      `エラー内容: ${message}`,
+      "",
+      "このエラーはsmart-handler内部のAI処理エラーとは限りません。",
+      "Supabase Dashboardからのテストが200なら、",
+      "GitHubサイトからFunctionへ到達する部分を調査する必要があります。",
+      "",
+      "▼ 診断情報",
+      `URL: ${SUPABASE_URL}`,
+      `Function URL: ${SUPABASE_URL}/functions/v1/${RESEARCH_FUNCTION}`,
+      `Project ID: ${currentProjectId}`,
+      `Message: ${questionInput.value.trim()}`,
+      "",
+      stack
+        ? `Stack:\n${stack}`
+        : "Stack: 取得できませんでした",
     ].join("\n");
   }
 
@@ -578,20 +765,45 @@ function formatError(
   ) {
 
     return [
-      "Edge Functionへの接続に失敗しました。",
+      "【Edge Function通信エラー】",
       "",
       `Function: ${RESEARCH_FUNCTION}`,
+      `project_id: ${currentProjectId}`,
       "",
-      "Supabase Dashboard → Edge Functions →",
-      "smart-handler のDeploy状態を確認してください。",
+      "Supabase Edge Functionへのリクエスト送信に失敗しました。",
       "",
-      "詳細:",
-      message,
+      "考えられる原因:",
+      "・CORS",
+      "・Functionが公開されていない",
+      "・Function URLへの接続失敗",
+      "・ブラウザ側Fetchエラー",
+      "",
+      `エラー内容: ${message}`,
+      "",
+      stack
+        ? `Stack:\n${stack}`
+        : "",
     ].join("\n");
   }
 
 
-  return message;
+  /*
+   * その他
+   */
+
+  return [
+    "【エラー】",
+    "",
+    `Function: ${RESEARCH_FUNCTION}`,
+    `project_id: ${currentProjectId}`,
+    "",
+    `エラー名: ${name || "不明"}`,
+    `エラー内容: ${message}`,
+    "",
+    stack
+      ? `Stack:\n${stack}`
+      : "",
+  ].join("\n");
 }
 
 
@@ -691,21 +903,54 @@ async function runResearch() {
     );
 
 
-    const response =
-      await supabase.functions.invoke(
-        RESEARCH_FUNCTION,
-        {
-          body: {
+    let response;
 
-            message:
-              message,
 
-            project_id:
-              currentProjectId,
+    try {
 
+      response =
+        await supabase.functions.invoke(
+          RESEARCH_FUNCTION,
+          {
+            body: {
+
+              message:
+                message,
+
+              project_id:
+                currentProjectId,
+
+            },
           },
-        },
+        );
+
+    } catch (
+      invokeError
+    ) {
+
+      /*
+       * invoke()自体がPromise rejectした場合。
+       *
+       * ここが今回の「Load failed」の
+       * 最重要ポイント。
+       */
+
+      console.error(
+        "invoke() threw an exception:",
+        invokeError,
       );
+
+
+      const detail =
+        formatError(
+          invokeError,
+        );
+
+
+      throw new Error(
+        detail,
+      );
+    }
 
 
     console.log(
@@ -738,7 +983,7 @@ async function runResearch() {
      */
 
     if (
-      response.error
+      response?.error
     ) {
 
       const detail =
@@ -747,8 +992,47 @@ async function runResearch() {
         );
 
 
+      const diagnostic = [
+
+        "【Supabase Edge Functionエラー】",
+
+        "",
+
+        `Function: ${RESEARCH_FUNCTION}`,
+
+        `project_id: ${currentProjectId}`,
+
+        `HTTP status: ${
+          detail.status ||
+          "取得できませんでした"
+        }`,
+
+        `Error name: ${
+          detail.name ||
+          "取得できませんでした"
+        }`,
+
+        "",
+
+        detail.message,
+
+        "",
+
+        detail.body
+          ? `Response body:\n${detail.body}`
+          : "Response body: 取得できませんでした",
+
+        "",
+
+        detail.stack
+          ? `Stack:\n${detail.stack}`
+          : "",
+
+      ].join("\n");
+
+
       throw new Error(
-        detail,
+        diagnostic,
       );
     }
 
@@ -760,13 +1044,23 @@ async function runResearch() {
      */
 
     const data =
-      response.data;
+      response?.data;
 
 
     if (!data) {
 
       throw new Error(
-        "AIからデータが返ってきませんでした。",
+        [
+          "AIからデータが返ってきませんでした。",
+          "",
+          `Function: ${RESEARCH_FUNCTION}`,
+          `project_id: ${currentProjectId}`,
+          "",
+          "response:",
+          safeJson(
+            response,
+          ),
+        ].join("\n"),
       );
     }
 
@@ -788,9 +1082,20 @@ async function runResearch() {
     ) {
 
       throw new Error(
-        data.error ||
-        data.detail ||
-        "研究AIでエラーが発生しました。",
+        [
+          data.error ||
+          data.detail ||
+          "研究AIでエラーが発生しました。",
+
+          "",
+
+          "Function response:",
+
+          safeJson(
+            data,
+          ),
+
+        ].join("\n"),
       );
     }
 
@@ -1032,8 +1337,13 @@ async function runResearch() {
     );
 
 
+    const errorText =
+      error?.message ||
+      String(error);
+
+
     showStatus(
-      formatError(error),
+      errorText,
       "error",
     );
 
@@ -1158,7 +1468,18 @@ async function evaluateLatest() {
 
 
       throw new Error(
-        detail,
+        [
+          "【評価Edge Functionエラー】",
+          "",
+          `Function: ${EVALUATE_FUNCTION}`,
+          `project_id: ${currentProjectId}`,
+          "",
+          detail.message,
+          "",
+          detail.body
+            ? `Response body:\n${detail.body}`
+            : "",
+        ].join("\n"),
       );
     }
 
@@ -2141,6 +2462,31 @@ function addTag(
   container.appendChild(
     element,
   );
+}
+
+
+/* ==========================================================
+   SAFE JSON
+========================================================== */
+
+function safeJson(
+  value,
+) {
+
+  try {
+
+    return JSON.stringify(
+      value,
+      null,
+      2,
+    );
+
+  } catch (_) {
+
+    return String(
+      value,
+    );
+  }
 }
 
 
